@@ -581,21 +581,24 @@ public class BeforeSceneManager : MonoBehaviour
             StopCoroutine(gameplayDialogueRoutine);
 
         // Hide only the top buttons (mission, achievements, pause) to avoid overlapping the floating dialogue.
+        // When `gameplayUIRoot` is inactive (e.g., during a quiz), the buttons will report inactive.
+        // In that case assume they *should* be visible when gameplay UI is restored, so mark them
+        // as previously active so we re-enable them after the floating dialogue completes.
         if (missionButton != null)
         {
-            missionButtonWasActive = missionButton.gameObject.activeSelf;
+            missionButtonWasActive = (gameplayUIRoot != null && !gameplayUIRoot.activeInHierarchy) ? true : missionButton.gameObject.activeSelf;
             if (missionButtonWasActive) missionButton.gameObject.SetActive(false);
         }
 
         if (achievementsButton != null)
         {
-            achievementsButtonWasActive = achievementsButton.gameObject.activeSelf;
+            achievementsButtonWasActive = (gameplayUIRoot != null && !gameplayUIRoot.activeInHierarchy) ? true : achievementsButton.gameObject.activeSelf;
             if (achievementsButtonWasActive) achievementsButton.gameObject.SetActive(false);
         }
 
         if (pauseButton != null)
         {
-            pauseButtonWasActive = pauseButton.activeSelf;
+            pauseButtonWasActive = (gameplayUIRoot != null && !gameplayUIRoot.activeInHierarchy) ? true : pauseButton.activeSelf;
             if (pauseButtonWasActive) pauseButton.SetActive(false);
         }
 
@@ -1442,6 +1445,9 @@ public class BeforeSceneManager : MonoBehaviour
             Debug.Log("[BeforeSceneManager] Gameplay UI disabled for evacuation quiz");
         }
 
+        // Teleport player to outside spawn immediately now that they're outside
+        TeleportPlayerToOutsideSpawn();
+
         // Start evacuation sequence
         StartCoroutine(EvacuationMissionSequence());
     }
@@ -1537,9 +1543,8 @@ public class BeforeSceneManager : MonoBehaviour
     private void OnProceedDuringSceneClicked()
     {
         if (levelCompleteDecisionPanel != null) levelCompleteDecisionPanel.SetActive(false);
-        // Continue in current scene - teleport player to outside spawn so they resume at the outside location
-        Debug.Log("[BeforeSceneManager] Player chose to proceed in current scene. Teleporting to outside spawn.");
-        TeleportPlayerToOutsideSpawn();
+        // Continue in current scene - player already teleported when they went outside
+        Debug.Log("[BeforeSceneManager] Player chose to proceed in current scene.");
     }
 
     private void TeleportPlayerToOutsideSpawn()
