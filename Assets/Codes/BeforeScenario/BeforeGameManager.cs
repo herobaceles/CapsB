@@ -81,6 +81,7 @@ public class BeforeSceneManager : MonoBehaviour
     [SerializeField] private float gameplayDialogueDuration = 3f;
     [SerializeField] private float delayAfterBanner = 3f;
     [SerializeField] private float delayAfterAchievementBanner = 2f;
+    [SerializeField] private string duringFirstFloatingDialogue = "Keep going, {name}! This is the most dangerous part. The water is high, and we can't see what's beneath it. Your quick thinking is all that matters now.";
 
     [Header("Player Spawn")]
     [SerializeField] private Transform spawnPoint;
@@ -603,6 +604,13 @@ public class BeforeSceneManager : MonoBehaviour
         }
 
         gameplayDialogueRoutine = StartCoroutine(GameplayDialogueRoutine(line));
+    }
+
+    // Public helper to show the first floating dialogue when continuing into the "during flood" section
+    public void ShowDuringFirstFloatingDialogue()
+    {
+        if (string.IsNullOrEmpty(duringFirstFloatingDialogue)) return;
+        ShowGameplayDialogue(ResolveTokens(duringFirstFloatingDialogue));
     }
 
     private IEnumerator GameplayDialogueRoutine(string line)
@@ -1545,6 +1553,17 @@ public class BeforeSceneManager : MonoBehaviour
         if (levelCompleteDecisionPanel != null) levelCompleteDecisionPanel.SetActive(false);
         // Continue in current scene - player already teleported when they went outside
         Debug.Log("[BeforeSceneManager] Player chose to proceed in current scene.");
+
+        // If a DuringGameManager exists in the scene, notify it to continue in-scene.
+        var duringMgr = FindObjectOfType<DuringGameManager>();
+        if (duringMgr != null)
+        {
+            duringMgr.ContinueInScene();
+        }
+        else
+        {
+            Debug.LogWarning("[BeforeSceneManager] DuringGameManager not found - cannot trigger during-scene continuation.");
+        }
     }
 
     private void TeleportPlayerToOutsideSpawn()

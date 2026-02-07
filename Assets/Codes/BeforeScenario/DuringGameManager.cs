@@ -23,7 +23,15 @@ public class DuringGameManager : MonoBehaviour
     public void ContinueInScene()
     {
         Debug.Log("[DuringGameManager] ContinueInScene called.");
-        // Nothing extra required here; gameplay UI and player movement are managed by BeforeSceneManager completion sequence.
+        // Trigger the during-scene first floating dialogue from the BeforeSceneManager
+        if (before != null)
+        {
+            before.ShowDuringFirstFloatingDialogue();
+        }
+        else
+        {
+            Debug.LogWarning("[DuringGameManager] BeforeSceneManager instance missing; cannot show during dialogue.");
+        }
     }
 
     // Return to main menu via the existing manager

@@ -10461,7 +10461,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &925014905
 Transform:
   m_ObjectHideFlags: 0
@@ -19979,6 +19979,9 @@ MonoBehaviour:
   gameplayDialogueDuration: 3
   delayAfterBanner: 3
   delayAfterAchievementBanner: 2
+  duringFirstFloatingDialogue: Keep going, {name}! This is the most dangerous part.
+    The water is high, and we can't see what's beneath it. Your quick thinking is
+    all that matters now.
   spawnPoint: {fileID: 1778060659}
   outsideSpawnPoint: {fileID: 886355217}
   malePrefab: {fileID: 8576344283313510494, guid: 26c8dcd4824038d4aaa7569ec6cbf17e, type: 3}
@@ -29228,7 +29231,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &2006163740
 MonoBehaviour:
   m_ObjectHideFlags: 0
