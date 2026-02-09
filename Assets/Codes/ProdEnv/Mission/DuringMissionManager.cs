@@ -134,19 +134,9 @@ public class DuringMissionManager : MissionSceneManager
 
         Debug.Log("DuringMissionManager: Time expired!");
 
-        // Show failure dialogue
-        if (ProdDialogueManager.Instance != null)
-        {
-            ProdDialogueManager.Instance.CreateSequence()
-                .AddProfessorLine("Time's up! In a real emergency, timing is crucial.")
-                .AddProfessorLine("Don't worry - let's try again and move faster this time!")
-                .OnComplete(() => ReturnToMissionSelect())
-                .Play();
-        }
-        else
-        {
-            ReturnToMissionSelect();
-        }
+        // Skip dialogue - return to mission select directly
+        // TODO: Add DialoguePanel to mission scenes if dialogue is needed
+        ReturnToMissionSelect();
     }
 
     /// <summary>

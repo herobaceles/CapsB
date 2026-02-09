@@ -378,19 +378,29 @@ public class MissionSelectManager : MonoBehaviour
         SelectedMission = mission;
         Debug.Log($"MissionSelectManager: Starting mission - {mission.missionName}");
 
-        // Show brief dialogue before loading
-        if (ProdDialogueManager.Instance != null)
+        // Skip dialogue for now - load directly
+        // TODO: Re-enable dialogue once UI is properly set up
+        LoadMissionScene(mission);
+        
+        /* DIALOGUE DISABLED - uncomment when ready:
+        if (ProdDialogueManager.Instance != null && ProdDialogueManager.Instance.IsDialogueActive == false)
         {
+            Debug.Log("MissionSelectManager: ProdDialogueManager found, showing dialogue...");
             ProdDialogueManager.Instance.CreateSequence()
                 .AddProfessorLine($"Alright! Starting: {mission.missionName}")
                 .AddProfessorLine("Good luck out there!")
-                .OnComplete(() => LoadMissionScene(mission))
+                .OnComplete(() => {
+                    Debug.Log("MissionSelectManager: Dialogue complete, loading mission scene...");
+                    LoadMissionScene(mission);
+                })
                 .Play();
         }
         else
         {
+            Debug.Log("MissionSelectManager: No ProdDialogueManager, loading directly...");
             LoadMissionScene(mission);
         }
+        */
     }
 
     private void LoadMissionScene(MissionData mission)
