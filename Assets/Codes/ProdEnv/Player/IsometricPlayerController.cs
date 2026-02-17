@@ -116,11 +116,7 @@ public class IsometricPlayerController : MonoBehaviour
         // Convert input to isometric world direction
         moveDirection = ConvertToIsometric(inputDirection);
 
-        // Debug: Log input and movement
-        if (inputDirection.sqrMagnitude > 0.01f)
-        {
-            Debug.Log($"Input: {inputDirection}, MoveDir: {moveDirection}, CurrentVel: {currentVelocity.magnitude}");
-        }
+        // ...existing code...
 
         // Calculate target velocity
         Vector3 targetVelocity = moveDirection * moveSpeed;

@@ -1,221 +1,197 @@
 using UnityEngine;
-using System.Collections;
-using BaHanda.AR;
+using System.Linq;
+using System.Collections.Generic;
 
 /// <summary>
 /// Manages the Before Mission phase - preparation tasks.
 /// Examples: Packing emergency bags, securing the home, planning evacuation routes.
 /// Integrates with AR handlers for immersive experiences.
 /// </summary>
+[System.Serializable]
+public class MissionTrigger
+{
+    public string missionId;         // e.g., "before_01"
+    public GameObject triggerObject; // The trigger GameObject for this mission
+}
+
 public class BeforeMissionManager : MissionSceneManager
 {
+    public new static BeforeMissionManager Instance { get; private set; }
+
     [Header("Before Phase Specific")]
     [SerializeField] private GameObject preparationUI;
     [SerializeField] private GameObject inventoryPanel;
+    [Header("Task Info UI")]
+    [SerializeField] private TMPro.TextMeshProUGUI selectedTaskText; // Assign in inspector: TextMeshProUGUI above main panel
+    [SerializeField] private TMPro.TextMeshProUGUI selectedTaskDescriptionText; // Assign in inspector: TextMeshProUGUI for description
+    [SerializeField] private TMPro.TextMeshProUGUI selectedTaskObjectivesText; // Assign in inspector: TextMeshProUGUI for objectives/tasks
+        [Header("Task Panels")]
+        [SerializeField] private GameObject goBagPanel;
+        [SerializeField] private GameObject circuitBreakerPanel;
 
-    [Header("AR Handlers")]
-    [SerializeField] private GoBagPackingARHandler goBagARHandler;
+    [Header("AR Mission")]
+    [SerializeField] private GameObject arSession;
+    [SerializeField] private GameObject arSessionRoot;
+    [SerializeField] private Camera normalCamera;
+    [SerializeField] private Camera arCamera;
 
-    // Current active AR handler
-    private IARMissionHandler activeARHandler;
+    [Header("UI Panels")]
+    [SerializeField] private GameObject gameUI;
+
+    [Header("Mission Triggers")]
+    public List<MissionTrigger> missionTriggers;
 
     protected override void Awake()
     {
         base.Awake();
+        Instance = this;
     }
 
     protected override void Start()
     {
         base.Start();
 
-        // Setup phase-specific UI
+        // Show preparation UI by default
         if (preparationUI != null)
             preparationUI.SetActive(true);
 
-        // Subscribe to AR handler events
-        SubscribeToARHandlers();
-    }
+        // Ensure AR camera is disabled at scene start
+        if (arCamera != null)
+            arCamera.gameObject.SetActive(false);
+        
+        // Set the selected task text UI
+            var mission = MissionSelectManager.SelectedMission;
+            var goBagManager = GameObject.FindObjectOfType<PreparingGoBagManager>(true);
+            var circuitBreakerManager = GameObject.FindObjectOfType<CircuitBreakerManager>(true);
+            if (goBagManager != null) goBagManager.gameObject.SetActive(false);
+            if (circuitBreakerManager != null) circuitBreakerManager.gameObject.SetActive(false);
 
-    private void SubscribeToARHandlers()
-    {
-        if (goBagARHandler != null)
-        {
-            goBagARHandler.OnARCompleted += OnGoBagARCompleted;
-            goBagARHandler.OnProgressChanged += OnARProgressChanged;
-        }
-    }
-
-    private void UnsubscribeFromARHandlers()
-    {
-        if (goBagARHandler != null)
-        {
-            goBagARHandler.OnARCompleted -= OnGoBagARCompleted;
-            goBagARHandler.OnProgressChanged -= OnARProgressChanged;
-        }
-    }
-
-    protected override string GetCompletionMessage()
-    {
-        return "Excellent preparation! Your emergency kit is ready. Being prepared saves lives!";
-    }
-
-    #region AR Integration
-
-    /// <summary>
-    /// Start the Go Bag packing AR experience.
-    /// Called by TaskTrigger when player enters the trigger zone.
-    /// </summary>
-    public void StartGoBagPackingAR()
-    {
-        if (goBagARHandler == null)
-        {
-            Debug.LogError("BeforeMissionManager: GoBagPackingARHandler not assigned!");
-            return;
-        }
-
-        Debug.Log("BeforeMissionManager: Starting Go Bag AR experience");
-
-        activeARHandler = goBagARHandler;
-        goBagARHandler.StartAR();
-    }
-
-    /// <summary>
-    /// Called when Go Bag AR is completed
-    /// </summary>
-    private void OnGoBagARCompleted()
-    {
-        Debug.Log("BeforeMissionManager: Go Bag AR completed!");
-
-        StartCoroutine(CompleteARTaskSequence());
-    }
-
-    /// <summary>
-    /// Called when AR progress changes
-    /// </summary>
-    private void OnARProgressChanged(float progress)
-    {
-        Debug.Log($"BeforeMissionManager: AR progress = {progress:P0}");
-
-        // Could update UI here
-    }
-
-    private IEnumerator CompleteARTaskSequence()
-    {
-        // Wait for visual feedback
-        yield return new WaitForSeconds(1.5f);
-
-        // End AR session
-        if (activeARHandler != null)
-        {
-            activeARHandler.EndAR();
-            activeARHandler = null;
-        }
-
-        yield return new WaitForSeconds(0.5f);
-
-        // Complete the current mission task
-        CompleteCurrentTask();
-    }
-
-    /// <summary>
-    /// End any active AR session
-    /// </summary>
-    public void EndActiveAR()
-    {
-        if (activeARHandler != null && activeARHandler.IsActive)
-        {
-            activeARHandler.EndAR();
-            activeARHandler = null;
-        }
-    }
-
-    #endregion
-
-    #region Task Trigger Integration
-
-    /// <summary>
-    /// Override to intercept trigger activation and start AR instead of completing directly.
-    /// </summary>
-    public override void OnTriggerActivated(string taskId)
-    {
-        if (!IsMissionActive) return;
-
-        // Check if current task matches and requires AR
-        if (CurrentTask != null && CurrentTask.taskId == taskId)
-        {
-            if (ShouldStartARForTask(taskId))
+            if (mission != null)
             {
-                StartARForTask(taskId);
+                if (selectedTaskText != null)
+                    selectedTaskText.text = $"Selected Task: {mission.missionName}";
+                if (selectedTaskDescriptionText != null)
+                    selectedTaskDescriptionText.text = mission.missionDescription;
+                if (selectedTaskObjectivesText != null)
+                {
+                    if (mission.tasks != null && mission.tasks.Count > 0)
+                        selectedTaskObjectivesText.text = string.Join("\n", mission.tasks.Select(t => t.taskName));
+                    else
+                        selectedTaskObjectivesText.text = "No objectives for this mission.";
+                }
+
+                // Unique logic for each mission/task
+                if (goBagPanel != null) goBagPanel.SetActive(false);
+                if (circuitBreakerPanel != null) circuitBreakerPanel.SetActive(false);
+
+                if (mission.missionId == "before_01") // Preparing Go Bag
+                {
+                    if (goBagPanel != null) goBagPanel.SetActive(true);
+                    if (goBagManager != null) goBagManager.gameObject.SetActive(true);
+                    if (circuitBreakerManager != null) circuitBreakerManager.gameObject.SetActive(false);
+                    Debug.Log("PreparingGoBagManager is running");
+                }
+                else if (mission.missionId == "before_02") // Circuit Breaker
+                {
+                    if (circuitBreakerPanel != null) circuitBreakerPanel.SetActive(true);
+                    if (circuitBreakerManager != null) circuitBreakerManager.gameObject.SetActive(true);
+                    if (goBagManager != null) goBagManager.gameObject.SetActive(false);
+                    Debug.Log("CircuitBreakerManager is running");
+                }
             }
-            else
+        else
+        {
+            if (selectedTaskText != null)
+                selectedTaskText.text = "No mission selected.";
+            if (selectedTaskDescriptionText != null)
+                selectedTaskDescriptionText.text = "";
+            if (selectedTaskObjectivesText != null)
+                selectedTaskObjectivesText.text = "";
+            if (goBagPanel != null) goBagPanel.SetActive(false);
+            if (circuitBreakerPanel != null) circuitBreakerPanel.SetActive(false);
+        }
+
+        // Deactivate all triggers first
+        if (missionTriggers != null)
+        {
+            foreach (var trig in missionTriggers)
             {
-                // No AR needed, complete directly
-                base.OnTriggerActivated(taskId);
+                if (trig.triggerObject != null)
+                    trig.triggerObject.SetActive(false);
+            }
+        }
+        // Activate only the trigger for the selected mission
+        if (mission != null && missionTriggers != null)
+        {
+            foreach (var trig in missionTriggers)
+            {
+                if (trig.missionId == mission.missionId && trig.triggerObject != null)
+                {
+                    trig.triggerObject.SetActive(true);
+                    break;
+                }
             }
         }
     }
 
     /// <summary>
-    /// Determines if a task should launch AR mode
+    /// Starts the AR mission phase. Called by ARMissionTrigger.
     /// </summary>
-    private bool ShouldStartARForTask(string taskId)
+    public void StartARMission()
     {
-        string id = taskId.ToLower();
-        return id == "go_bag" || id == "gobag" || id == "prepare_gobag" || id == "emergency_kit";
-    }
+        Debug.Log("AR Mission Started");
 
-    /// <summary>
-    /// Start the appropriate AR experience for the given task.
-    /// </summary>
-    private void StartARForTask(string taskId)
-    {
-        Debug.Log($"BeforeMissionManager: Starting AR for task - {taskId}");
+        // Hide normal UI panels
+        if (preparationUI != null)
+            preparationUI.SetActive(false);
+        if (inventoryPanel != null)
+            inventoryPanel.SetActive(false);
+        if (gameUI != null)
+            gameUI.SetActive(false);
 
-        switch (taskId.ToLower())
+        // Hide all task panels
+        if (goBagPanel != null) goBagPanel.SetActive(false);
+        if (circuitBreakerPanel != null) circuitBreakerPanel.SetActive(false);
+
+        // Switch cameras
+        if (normalCamera != null)
+            normalCamera.gameObject.SetActive(false);
+        if (arSession != null)
+            arSession.SetActive(true);
+        if (arSessionRoot != null)
+            arSessionRoot.SetActive(true);
+        if (arCamera != null)
+            arCamera.gameObject.SetActive(true);
+
+        // Reset AR mission system if needed
+        if (ARMissionManager.Instance != null)
         {
-            case "go_bag":
-            case "gobag":
-            case "prepare_gobag":
-            case "emergency_kit":
-                StartGoBagPackingAR();
-                break;
-
-            // Add more task types here for future Before missions
-            // case "circuit_breaker":
-            //     StartCircuitBreakerAR();
-            //     break;
-
-            default:
-                Debug.LogWarning($"BeforeMissionManager: Unknown AR task ID - {taskId}");
-                // Fall back to base behavior
-                base.OnTriggerActivated(taskId);
-                break;
+            // Optional: reset values if needed later
         }
     }
 
-    #endregion
-
-    #region Legacy Methods
-
     /// <summary>
-    /// Check if player has collected all required items for emergency kit
+    /// Ends AR mission and returns to normal gameplay.
     /// </summary>
-    public bool IsEmergencyKitComplete()
+    public void EndARMission()
     {
-        if (goBagARHandler != null)
-        {
-            return goBagARHandler.IsCompleted;
-        }
+        if (arSession != null)
+            arSession.SetActive(false);
 
-        // Fallback to base objective checking
-        if (CurrentTask == null) return false;
+        if (arSessionRoot != null)
+            arSessionRoot.SetActive(false);
 
-        foreach (var objective in CurrentTask.objectives)
-        {
-            if (!objective.isCompleted)
-                return false;
-        }
-        return true;
+        if (arCamera != null)
+            arCamera.gameObject.SetActive(false);
+
+        if (normalCamera != null)
+            normalCamera.gameObject.SetActive(true);
+
+        if (preparationUI != null)
+            preparationUI.SetActive(true);
+
+        if (gameUI != null)
+            gameUI.SetActive(true);
     }
 
     /// <summary>
@@ -236,11 +212,10 @@ public class BeforeMissionManager : MissionSceneManager
             inventoryPanel.SetActive(false);
     }
 
-    #endregion
-
     protected override void OnDestroy()
     {
-        UnsubscribeFromARHandlers();
         base.OnDestroy();
+        if (Instance == this)
+            Instance = null;
     }
 }

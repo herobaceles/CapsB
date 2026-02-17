@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
 using TMPro;
 using System.Collections;
 
@@ -8,6 +7,7 @@ public class OnboardingManager : MonoBehaviour
 {
     [Header("Panels")]
     [SerializeField] private GameObject onboardingPanel;
+    [SerializeField] private GameObject mainMenuPanel;
     [SerializeField] private GameObject nameInputPanel;
     [SerializeField] private GameObject genderSelectPanel;
 
@@ -24,41 +24,38 @@ public class OnboardingManager : MonoBehaviour
     [SerializeField] private int minNameLength = 2;
     [SerializeField] private int maxNameLength = 20;
 
-    private string enteredName = "";
+    private string enteredName;
     private PlayerData.Gender selectedGender = PlayerData.Gender.NotSpecified;
-    private UnityAction onOnboardingComplete;
+    private bool onboardingStarted;
 
     private void Start()
     {
         SetupButtons();
-        
-        // Hide all panels at start - onboarding triggered by MainMenuManager
-        HideAllPanels();
+
+        if (PlayerData.Instance != null && PlayerData.Instance.IsFirstTimePlaying())
+        {
+            StartOnboarding();
+        }
+        else
+        {
+            SkipToMainMenu();
+        }
     }
 
     private void SetupButtons()
     {
-        if (submitNameButton != null)
-            submitNameButton.onClick.AddListener(OnSubmitName);
-
-        if (maleButton != null)
-            maleButton.onClick.AddListener(() => OnSelectGender(PlayerData.Gender.Male));
-        if (femaleButton != null)
-            femaleButton.onClick.AddListener(() => OnSelectGender(PlayerData.Gender.Female));
+        submitNameButton?.onClick.AddListener(OnSubmitName);
+        maleButton?.onClick.AddListener(() => OnSelectGender(PlayerData.Gender.Male));
+        femaleButton?.onClick.AddListener(() => OnSelectGender(PlayerData.Gender.Female));
     }
 
-    /// <summary>
-    /// Start the onboarding flow. Called by MainMenuManager when player clicks Start.
-    /// </summary>
-    /// <param name="onComplete">Callback when onboarding finishes</param>
-    public void StartOnboarding(UnityAction onComplete = null)
+    private void StartOnboarding()
     {
-        onOnboardingComplete = onComplete;
-        
-        HideAllPanels();
+        if (onboardingStarted) return;
+        onboardingStarted = true;
 
-        if (onboardingPanel != null)
-            onboardingPanel.SetActive(true);
+        HideAllPanels();
+        onboardingPanel?.SetActive(true);
 
         StartCoroutine(PlayIntroSequence());
     }
@@ -78,15 +75,14 @@ public class OnboardingManager : MonoBehaviour
 
     private void ShowNameInput()
     {
-        if (nameInputPanel != null)
-            nameInputPanel.SetActive(true);
+        nameInputPanel?.SetActive(true);
 
         if (nameErrorText != null)
             nameErrorText.gameObject.SetActive(false);
 
         if (nameInputField != null)
         {
-            nameInputField.text = "";
+            nameInputField.text = string.Empty;
             nameInputField.Select();
         }
     }
@@ -105,13 +101,13 @@ public class OnboardingManager : MonoBehaviour
 
         if (name.Length < minNameLength)
         {
-            ShowError("Name must be at least " + minNameLength + " characters");
+            ShowError($"Name must be at least {minNameLength} characters");
             return;
         }
 
         if (name.Length > maxNameLength)
         {
-            ShowError("Name must be less than " + maxNameLength + " characters");
+            ShowError($"Name must be less than {maxNameLength} characters");
             return;
         }
 
@@ -122,12 +118,10 @@ public class OnboardingManager : MonoBehaviour
         }
 
         enteredName = name;
-
-        if (nameInputPanel != null)
-            nameInputPanel.SetActive(false);
+        nameInputPanel?.SetActive(false);
 
         ProdDialogueManager.Instance.CreateSequence()
-            .AddProfessorLine("Nice to meet you, " + enteredName + "!")
+            .AddProfessorLine($"Nice to meet you, {enteredName}!")
             .AddProfessorLine("Now, please select your character.")
             .OnComplete(ShowGenderSelection)
             .Play();
@@ -135,31 +129,27 @@ public class OnboardingManager : MonoBehaviour
 
     private void ShowError(string message)
     {
-        if (nameErrorText != null)
-        {
-            nameErrorText.text = message;
-            nameErrorText.gameObject.SetActive(true);
-        }
+        if (nameErrorText == null) return;
+
+        nameErrorText.text = message;
+        nameErrorText.gameObject.SetActive(true);
     }
 
     private void ShowGenderSelection()
     {
-        if (genderSelectPanel != null)
-            genderSelectPanel.SetActive(true);
+        genderSelectPanel?.SetActive(true);
     }
 
     private void OnSelectGender(PlayerData.Gender gender)
     {
         selectedGender = gender;
-
-        if (genderSelectPanel != null)
-            genderSelectPanel.SetActive(false);
+        genderSelectPanel?.SetActive(false);
 
         string characterType = gender == PlayerData.Gender.Male ? "male" : "female";
 
         ProdDialogueManager.Instance.CreateSequence()
-            .AddProfessorLine("Great choice! Your " + characterType + " character is ready.")
-            .AddProfessorLine("Welcome aboard, " + enteredName + "!")
+            .AddProfessorLine($"Great choice! Your {characterType} character is ready.")
+            .AddProfessorLine($"Welcome aboard, {enteredName}!")
             .AddProfessorLine("You're about to learn important skills that could save lives during a flood emergency.")
             .AddProfessorLine("Are you ready to become BaHanda? Let's begin!")
             .OnComplete(CompleteOnboarding)
@@ -168,34 +158,36 @@ public class OnboardingManager : MonoBehaviour
 
     private void CompleteOnboarding()
     {
-        // Save player data
-        if (PlayerData.Instance != null)
-        {
-            PlayerData.Instance.SaveOnboardingData(enteredName, selectedGender);
-        }
+        PlayerData.Instance?.SaveOnboardingData(enteredName, selectedGender);
+        StartCoroutine(TransitionToMainMenu());
+    }
 
-        // Hide onboarding panels
+    private IEnumerator TransitionToMainMenu()
+    {
+        yield return new WaitForSeconds(0.3f);
+
         HideAllPanels();
-
-        // Invoke callback to proceed to game
-        onOnboardingComplete?.Invoke();
-        onOnboardingComplete = null;
+        mainMenuPanel?.SetActive(true);
     }
 
     private void HideAllPanels()
     {
-        if (onboardingPanel != null) onboardingPanel.SetActive(false);
-        if (nameInputPanel != null) nameInputPanel.SetActive(false);
-        if (genderSelectPanel != null) genderSelectPanel.SetActive(false);
+        onboardingPanel?.SetActive(false);
+        nameInputPanel?.SetActive(false);
+        genderSelectPanel?.SetActive(false);
+        mainMenuPanel?.SetActive(false);
     }
 
-    /// <summary>
-    /// Reset player data and restart onboarding (for testing)
-    /// </summary>
-    public void ResetAndRestartOnboarding(UnityAction onComplete = null)
+    private void SkipToMainMenu()
     {
-        if (PlayerData.Instance != null)
-            PlayerData.Instance.ResetAllData();
-        StartOnboarding(onComplete);
+        HideAllPanels();
+        mainMenuPanel?.SetActive(true);
+    }
+
+    public void ResetAndRestartOnboarding()
+    {
+        PlayerData.Instance?.ResetAllData();
+        onboardingStarted = false;
+        StartOnboarding();
     }
 }

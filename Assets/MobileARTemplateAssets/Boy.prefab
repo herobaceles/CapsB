@@ -2077,6 +2077,8 @@ MonoBehaviour:
   moveSpeed: 1.5
   rotateSpeed: 12
   gravity: -9.81
+  animator: {fileID: 0}
+  speedParam: Speed
 --- !u!143 &7817714065044219431
 CharacterController:
   m_ObjectHideFlags: 0

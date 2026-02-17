@@ -311,7 +311,7 @@ public abstract class MissionSceneManager : MonoBehaviour
 
         // Skip dialogue - show UI directly
         // TODO: Add DialoguePanel to mission scenes if dialogue is needed
-        ShowMissionCompleteUI();
+        // ShowMissionCompleteUI(); // Disabled for setup
 
         OnMissionCompleted?.Invoke(currentMission);
     }
