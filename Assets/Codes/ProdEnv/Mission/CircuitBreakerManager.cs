@@ -11,10 +11,6 @@ public class CircuitBreakerManager : MonoBehaviour
     private void OnDisable()
     {
         StopAllCoroutines();
-        if (dialoguePanel != null)
-            dialoguePanel.SetActive(false);
-        if (nextButton != null)
-            nextButton.SetActive(false);
     }
     public static CircuitBreakerManager Instance { get; private set; }
     private System.Action onTaskComplete;
@@ -24,26 +20,10 @@ public class CircuitBreakerManager : MonoBehaviour
     [SerializeField] private TMPro.TextMeshProUGUI achievementText;
 
 
-    [Header("Dialogue UI")]
-    [SerializeField] private GameObject dialoguePanel;
-    [SerializeField] private TextMeshProUGUI dialogueText;
-    [SerializeField] private GameObject nextButton;
-    [SerializeField] private GameObject prevButton;
-
-    [Header("Dialogue Content")]
-    [TextArea(2, 5)]
-    public List<string> dialogueLines = new List<string>();
-
-    private int currentLine = 0;
-
-    private void Awake()
-    {
-        Instance = this;
-    }
+    // Dialogue handled by ProdDialogueManager
 
     private void OnEnable()
     {
-        currentLine = 0;
         ShowInstructionDialogue();
     }
 
@@ -51,39 +31,12 @@ public class CircuitBreakerManager : MonoBehaviour
 
     private void ShowInstructionDialogue()
     {
-        dialogueLines.Clear();
-        dialogueLines.Add("The flood is coming! You must secure the circuit breaker to prevent electrical hazards.");
-        dialogueLines.Add("Find the circuit breaker and turn it off before the water rises.");
-        currentLine = 0;
-        if (dialoguePanel != null)
-            dialoguePanel.SetActive(true);
-        if (dialogueText != null && dialogueLines.Count > 0)
-            dialogueText.text = dialogueLines[currentLine];
-        if (nextButton != null)
+        var lines = new List<ProdDialogueLine>
         {
-            nextButton.SetActive(true);
-            var btn = nextButton.GetComponent<UnityEngine.UI.Button>();
-            if (btn != null)
-            {
-                btn.onClick.RemoveAllListeners();
-                btn.onClick.AddListener(() => {
-                    currentLine++;
-                    if (currentLine < dialogueLines.Count)
-                    {
-                        dialogueText.text = dialogueLines[currentLine];
-                    }
-                    else
-                    {
-                        if (dialoguePanel != null)
-                            dialoguePanel.SetActive(false);
-                        if (nextButton != null)
-                            nextButton.SetActive(false);
-                        // Start the actual task logic here
-                        StartTask();
-                    }
-                });
-            }
-        }
+            new ProdDialogueLine("Professor Lingap", "The flood is coming! You must secure the circuit breaker to prevent electrical hazards."),
+            new ProdDialogueLine("Professor Lingap", "Find the circuit breaker and turn it off before the water rises.")
+        };
+        ProdDialogueManager.Instance.ShowDialogueSequence(lines, StartTask);
     }
 
     // Call this when the player completes the circuit breaker task
@@ -95,8 +48,6 @@ public class CircuitBreakerManager : MonoBehaviour
 
     private void ShowAchievementPanel()
     {
-        if (dialoguePanel != null)
-            dialoguePanel.SetActive(false);
         if (achievementPanel != null)
             achievementPanel.SetActive(true);
         if (achievementText != null)

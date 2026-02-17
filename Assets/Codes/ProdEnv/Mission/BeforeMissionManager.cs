@@ -28,6 +28,7 @@ public class BeforeMissionManager : MissionSceneManager
         [Header("Task Panels")]
         [SerializeField] private GameObject goBagPanel;
         [SerializeField] private GameObject circuitBreakerPanel;
+        [SerializeField] private GameObject appliancesPanel;
 
     [Header("AR Mission")]
     [SerializeField] private GameObject arSession;
@@ -63,8 +64,10 @@ public class BeforeMissionManager : MissionSceneManager
             var mission = MissionSelectManager.SelectedMission;
             var goBagManager = GameObject.FindObjectOfType<PreparingGoBagManager>(true);
             var circuitBreakerManager = GameObject.FindObjectOfType<CircuitBreakerManager>(true);
+            var appliancesManager = GameObject.FindObjectOfType<AppliancesTaskManager>(true);
             if (goBagManager != null) goBagManager.gameObject.SetActive(false);
             if (circuitBreakerManager != null) circuitBreakerManager.gameObject.SetActive(false);
+            if (appliancesManager != null) appliancesManager.gameObject.SetActive(false);
 
             if (mission != null)
             {
@@ -83,12 +86,14 @@ public class BeforeMissionManager : MissionSceneManager
                 // Unique logic for each mission/task
                 if (goBagPanel != null) goBagPanel.SetActive(false);
                 if (circuitBreakerPanel != null) circuitBreakerPanel.SetActive(false);
+                if (appliancesPanel != null) appliancesPanel.SetActive(false);
 
                 if (mission.missionId == "before_01") // Preparing Go Bag
                 {
                     if (goBagPanel != null) goBagPanel.SetActive(true);
                     if (goBagManager != null) goBagManager.gameObject.SetActive(true);
                     if (circuitBreakerManager != null) circuitBreakerManager.gameObject.SetActive(false);
+                    if (appliancesManager != null) appliancesManager.gameObject.SetActive(false);
                     Debug.Log("PreparingGoBagManager is running");
                 }
                 else if (mission.missionId == "before_02") // Circuit Breaker
@@ -96,7 +101,17 @@ public class BeforeMissionManager : MissionSceneManager
                     if (circuitBreakerPanel != null) circuitBreakerPanel.SetActive(true);
                     if (circuitBreakerManager != null) circuitBreakerManager.gameObject.SetActive(true);
                     if (goBagManager != null) goBagManager.gameObject.SetActive(false);
+                    if (appliancesManager != null) appliancesManager.gameObject.SetActive(false);
                     Debug.Log("CircuitBreakerManager is running");
+                }
+                else if (mission.missionId == "before_03") // Securing Appliances
+                {
+                    if (appliancesPanel != null) appliancesPanel.SetActive(true);
+                    if (appliancesManager != null) appliancesManager.gameObject.SetActive(true);
+                    if (goBagManager != null) goBagManager.gameObject.SetActive(false);
+                    if (circuitBreakerManager != null) circuitBreakerManager.gameObject.SetActive(false);
+                    // appliancesManager?.StartAppliancesTask(); // No longer needed; AppliancesTaskManager handles intro in Start()
+                    Debug.Log("AppliancesTaskManager is running");
                 }
             }
         else
@@ -109,6 +124,7 @@ public class BeforeMissionManager : MissionSceneManager
                 selectedTaskObjectivesText.text = "";
             if (goBagPanel != null) goBagPanel.SetActive(false);
             if (circuitBreakerPanel != null) circuitBreakerPanel.SetActive(false);
+            if (appliancesPanel != null) appliancesPanel.SetActive(false);
         }
 
         // Deactivate all triggers first
@@ -128,7 +144,7 @@ public class BeforeMissionManager : MissionSceneManager
                 if (trig.missionId == mission.missionId && trig.triggerObject != null)
                 {
                     trig.triggerObject.SetActive(true);
-                    break;
+                    Debug.Log($"Activating trigger: {trig.triggerObject.name}");
                 }
             }
         }

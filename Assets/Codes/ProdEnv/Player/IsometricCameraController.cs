@@ -1,4 +1,7 @@
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
+using UnityEngine.InputSystem;
+#endif
 
 /// <summary>
 /// Isometric camera that follows the player.
@@ -11,8 +14,8 @@ public class IsometricCameraController : MonoBehaviour
     [SerializeField] private bool autoFindPlayer = true;
 
     [Header("Isometric Settings")]
-    [SerializeField] private float distance = 10f;
-    [SerializeField] private float height = 10f;
+    [SerializeField] private float distance = 6f; // Default closer distance
+    [SerializeField] private float height = 6f;   // Default closer height
     [SerializeField] private float angle = 45f; // Rotation around Y axis
 
     [Header("Following")]
@@ -32,7 +35,6 @@ public class IsometricCameraController : MonoBehaviour
     [SerializeField] private float zoomSpeed = 2f;
 
     // State
-    private Vector3 currentLookAhead;
     private Vector3 currentPosition;
     private IsometricPlayerController playerController;
 
@@ -52,7 +54,7 @@ public class IsometricCameraController : MonoBehaviour
         if (target != null)
         {
             // Initialize position immediately
-            currentPosition = CalculateDesiredPosition();
+            currentPosition = CalculateDesiredPositionNoLookAhead();
             transform.position = currentPosition;
             LookAtTarget();
         }
@@ -85,20 +87,9 @@ public class IsometricCameraController : MonoBehaviour
 
     private void FollowTarget()
     {
-        // Calculate look ahead based on player movement
-        if (playerController != null && playerController.IsMoving)
-        {
-            Vector3 velocity = playerController.Velocity.normalized;
-            Vector3 targetLookAhead = velocity * lookAheadDistance;
-            currentLookAhead = Vector3.Lerp(currentLookAhead, targetLookAhead, lookAheadSpeed * Time.deltaTime);
-        }
-        else
-        {
-            currentLookAhead = Vector3.Lerp(currentLookAhead, Vector3.zero, lookAheadSpeed * Time.deltaTime);
-        }
-
+        // Remove look ahead for wobble-free camera
         // Calculate desired position
-        Vector3 desiredPosition = CalculateDesiredPosition();
+        Vector3 desiredPosition = CalculateDesiredPositionNoLookAhead();
 
         // Apply bounds if enabled
         if (useBounds)
@@ -112,7 +103,7 @@ public class IsometricCameraController : MonoBehaviour
         transform.position = currentPosition;
     }
 
-    private Vector3 CalculateDesiredPosition()
+    private Vector3 CalculateDesiredPositionNoLookAhead()
     {
         // Calculate offset based on isometric angle
         float rad = angle * Mathf.Deg2Rad;
@@ -121,47 +112,39 @@ public class IsometricCameraController : MonoBehaviour
             height,
             Mathf.Cos(rad) * distance
         );
-
-        // Target position with look ahead
-        Vector3 targetPos = target.position + currentLookAhead;
-
+        // No look ahead
+        Vector3 targetPos = target.position;
         return targetPos + offset;
     }
 
     private void LookAtTarget()
     {
-        Vector3 lookTarget = target.position + currentLookAhead;
-        transform.LookAt(lookTarget);
+        // No look ahead for stable camera
+        transform.LookAt(target.position);
     }
 
     private void HandleZoom()
     {
-        if (!allowZoom) return;
-
-        // Pinch zoom for mobile
-        if (Input.touchCount == 2)
+#if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
+        // Input System zoom (mouse scroll)
+        if (Mouse.current != null)
         {
-            Touch touch0 = Input.GetTouch(0);
-            Touch touch1 = Input.GetTouch(1);
-
-            Vector2 touch0PrevPos = touch0.position - touch0.deltaPosition;
-            Vector2 touch1PrevPos = touch1.position - touch1.deltaPosition;
-
-            float prevDistance = (touch0PrevPos - touch1PrevPos).magnitude;
-            float currentDistance = (touch0.position - touch1.position).magnitude;
-
-            float delta = prevDistance - currentDistance;
-            distance = Mathf.Clamp(distance + delta * zoomSpeed * 0.01f, minDistance, maxDistance);
-            height = distance; // Keep height proportional
+            float scroll = Mouse.current.scroll.ReadValue().y;
+            if (Mathf.Abs(scroll) > 0.01f)
+            {
+                distance = Mathf.Clamp(distance - scroll * zoomSpeed * 0.1f, minDistance, maxDistance);
+                height = distance;
+            }
         }
-
-        // Scroll wheel for editor
+#else
+        // Legacy Input zoom (mouse scroll)
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         if (Mathf.Abs(scroll) > 0.01f)
         {
             distance = Mathf.Clamp(distance - scroll * zoomSpeed * 10f, minDistance, maxDistance);
             height = distance;
         }
+#endif
     }
 
     /// <summary>
@@ -188,8 +171,7 @@ public class IsometricCameraController : MonoBehaviour
     {
         if (target == null) return;
 
-        currentLookAhead = Vector3.zero;
-        currentPosition = CalculateDesiredPosition();
+        currentPosition = CalculateDesiredPositionNoLookAhead();
         transform.position = currentPosition;
         LookAtTarget();
     }
@@ -224,7 +206,7 @@ public class IsometricCameraController : MonoBehaviour
 
         // Draw camera setup
         Gizmos.color = Color.cyan;
-        Vector3 desiredPos = CalculateDesiredPosition();
+        Vector3 desiredPos = CalculateDesiredPositionNoLookAhead();
         Gizmos.DrawLine(target.position, desiredPos);
         Gizmos.DrawWireSphere(desiredPos, 0.5f);
 

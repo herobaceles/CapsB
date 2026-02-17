@@ -12,15 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08d18cca6f19690448d81eb0c24d5ca0, type: 3}
   m_Name: Mission_Before_03
   m_EditorClassIdentifier: 
-  missionId: 
-  missionName: 
-  missionDescription: 
+  missionId: before_03
+  missionName: Securing Applicenes
+  missionDescription: Securing the appliencess into the safe places
   missionIcon: {fileID: 0}
   phase: 0
   missionSceneName: 
   isLocked: 0
   requiredMissionId: 
-  sortOrder: 0
+  sortOrder: 3
   tasks: []
   introDialogue: []
   completionMessage: Mission Complete! Great job!

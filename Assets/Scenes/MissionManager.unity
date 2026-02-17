@@ -4221,6 +4221,7 @@ MonoBehaviour:
   allMissions:
   - {fileID: 11400000, guid: 7c621870b30293146aa8b7889be19bab, type: 2}
   - {fileID: 11400000, guid: 0315983ebffba294b9424e2962b5e9c2, type: 2}
+  - {fileID: 11400000, guid: 0cb1393a62a5286439b3f58c0fa2e362, type: 2}
 --- !u!4 &1854156007
 Transform:
   m_ObjectHideFlags: 0

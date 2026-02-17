@@ -5,6 +5,13 @@ using UnityEngine.EventSystems;
 
 public class Joystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
+    // Call this to reset the joystick to center and clear input
+    public void ResetJoystick()
+    {
+        input = Vector2.zero;
+        if (handle != null)
+            handle.anchoredPosition = Vector2.zero;
+    }
     public float Horizontal { get { return (snapX) ? SnapFloat(input.x, AxisOptions.Horizontal) : input.x; } }
     public float Vertical { get { return (snapY) ? SnapFloat(input.y, AxisOptions.Vertical) : input.y; } }
     public Vector2 Direction { get { return new Vector2(Horizontal, Vertical); } }

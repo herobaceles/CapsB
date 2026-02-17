@@ -6,6 +6,10 @@ using UnityEngine.InputSystem;
 
 public class ARMissionManager : MonoBehaviour
 {
+    // --- Breaker AR Placement ---
+    [Header("Breaker AR Placement")]
+    public GameObject breakerPrefabToPlace; // Assign in inspector (breaker prefab)
+    private bool allowBreakerPlacement = false;
     [Header("Achievements UI")]
     public GameObject achievementsPanel; // Assign panel in inspector
     public TMPro.TextMeshProUGUI achievementText; // Assign achievement text child
@@ -100,27 +104,81 @@ public class ARMissionManager : MonoBehaviour
 
 void Update()
 {
-    // Prevent player movement if locked
-    if (movementLocked)
+    // Only run for Go Bag or Breaker mission
+    if (BeforeMissionManager.Instance == null || MissionSelectManager.SelectedMission == null)
         return;
 
-    if (BeforeMissionManager.Instance == null)
-        return;
+    string missionId = MissionSelectManager.SelectedMission.missionId;
 
-    if (missionPlaced)
-        return;
-
-    // Use Unity Input System for both mouse and touch
-    if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+    // Go Bag AR logic
+    if (missionId == "before_01")
     {
-        TryPlaceMission(Mouse.current.position.ReadValue());
+        // Prevent player movement if locked
+        if (movementLocked)
+            return;
+
+        if (missionPlaced)
+            return;
+
+        // Use Unity Input System for both mouse and touch
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            // Prevent AR placement if pointer is over UI
+            if (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+                return;
+            TryPlaceMission(Mouse.current.position.ReadValue());
+        }
+        else if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
+        {
+            // Prevent AR placement if touch is over UI
+            int fingerId = 0; // primary touch
+            if (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(fingerId))
+                return;
+            TryPlaceMission(Touchscreen.current.primaryTouch.position.ReadValue());
+        }
+        return;
     }
-    else if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
+
+    // Breaker AR logic (tap to place breaker prefab)
+    if (missionId == "before_02" && allowBreakerPlacement && breakerPrefabToPlace != null)
     {
-        TryPlaceMission(Touchscreen.current.primaryTouch.position.ReadValue());
-    }                                                       
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            if (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+                return;
+            TryPlaceBreaker(Mouse.current.position.ReadValue());
+        }
+        else if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
+        {
+            int fingerId = 0;
+            if (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(fingerId))
+                return;
+            TryPlaceBreaker(Touchscreen.current.primaryTouch.position.ReadValue());
+        }
+    }
+
+
+
 }
 
+    public void EnableBreakerPlacement(GameObject breakerPrefab)
+    {
+        breakerPrefabToPlace = breakerPrefab;
+        allowBreakerPlacement = true;
+    }
+
+    void TryPlaceBreaker(Vector2 screenPosition)
+    {
+        if (raycastManager.Raycast(screenPosition, hits, TrackableType.PlaneWithinPolygon))
+        {
+            Pose hitPose = hits[0].pose;
+            // Set rotation to x=0, y=90, z=0
+            Quaternion spawnRotation = Quaternion.Euler(0, 90, 0);
+            Instantiate(breakerPrefabToPlace, hitPose.position, spawnRotation);
+            allowBreakerPlacement = false;
+            Debug.Log("Breaker prefab placed in AR.");
+        }
+    }
 
     void TryPlaceMission(Vector2 touchPosition)
     {
@@ -234,10 +292,10 @@ void Update()
         }
     }
 
-    public void ItemCollected()
+
+    void ItemCollected()
     {
         collectedItems++;
-
         if (collectedItems >= totalItems)
         {
             MissionComplete();
@@ -258,9 +316,15 @@ void Update()
         if (achievementText != null)
             achievementText.text = "Mission Complete!";
 
-        // Show completion dialogue and achievement
-        if (PreparingGoBagManager.Instance != null)
-            PreparingGoBagManager.Instance.ShowCompletionDialogueAndAchievement();
+        // Show completion dialogue and achievement for the correct mission
+        if (BeforeMissionManager.Instance != null && MissionSelectManager.SelectedMission != null)
+        {
+            var missionId = MissionSelectManager.SelectedMission.missionId;
+            if (missionId == "before_01" && PreparingGoBagManager.Instance != null)
+                PreparingGoBagManager.Instance.ShowCompletionDialogueAndAchievement();
+            else if (missionId == "before_02" && BreakerTaskManager.Instance != null)
+                BreakerTaskManager.Instance.CompleteBreakerTask();
+        }
 
         // Unlock movement
         movementLocked = false;
