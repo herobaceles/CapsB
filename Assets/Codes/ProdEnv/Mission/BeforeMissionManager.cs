@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
@@ -7,28 +7,23 @@ using System.Collections.Generic;
 /// Examples: Packing emergency bags, securing the home, planning evacuation routes.
 /// Integrates with AR handlers for immersive experiences.
 /// </summary>
-[System.Serializable]
-public class MissionTrigger
-{
-    public string missionId;         // e.g., "before_01"
-    public GameObject triggerObject; // The trigger GameObject for this mission
-}
-
 public class BeforeMissionManager : MissionSceneManager
 {
-    public new static BeforeMissionManager Instance { get; private set; }
+    public static BeforeMissionManager Instance { get; private set; }
+
+    [System.Serializable]
+    private class MissionTriggerBinding
+    {
+        [SerializeField] private string missionId;
+        [SerializeField] private List<GameObject> triggerObjects = new List<GameObject>();
+
+        public string MissionId => missionId;
+        public List<GameObject> TriggerObjects => triggerObjects;
+    }
 
     [Header("Before Phase Specific")]
     [SerializeField] private GameObject preparationUI;
     [SerializeField] private GameObject inventoryPanel;
-    [Header("Task Info UI")]
-    [SerializeField] private TMPro.TextMeshProUGUI selectedTaskText; // Assign in inspector: TextMeshProUGUI above main panel
-    [SerializeField] private TMPro.TextMeshProUGUI selectedTaskDescriptionText; // Assign in inspector: TextMeshProUGUI for description
-    [SerializeField] private TMPro.TextMeshProUGUI selectedTaskObjectivesText; // Assign in inspector: TextMeshProUGUI for objectives/tasks
-        [Header("Task Panels")]
-        [SerializeField] private GameObject goBagPanel;
-        [SerializeField] private GameObject circuitBreakerPanel;
-        [SerializeField] private GameObject appliancesPanel;
 
     [Header("AR Mission")]
     [SerializeField] private GameObject arSession;
@@ -39,8 +34,8 @@ public class BeforeMissionManager : MissionSceneManager
     [Header("UI Panels")]
     [SerializeField] private GameObject gameUI;
 
-    [Header("Mission Triggers")]
-    public List<MissionTrigger> missionTriggers;
+    [Header("Mission Trigger Bindings")]
+    [SerializeField] private List<MissionTriggerBinding> missionTriggerBindings = new List<MissionTriggerBinding>();
 
     protected override void Awake()
     {
@@ -52,6 +47,8 @@ public class BeforeMissionManager : MissionSceneManager
     {
         base.Start();
 
+        ApplyMissionTriggerBindings();
+
         // Show preparation UI by default
         if (preparationUI != null)
             preparationUI.SetActive(true);
@@ -59,131 +56,86 @@ public class BeforeMissionManager : MissionSceneManager
         // Ensure AR camera is disabled at scene start
         if (arCamera != null)
             arCamera.gameObject.SetActive(false);
-        
-        // Set the selected task text UI
-            var mission = MissionSelectManager.SelectedMission;
-            var goBagManager = GameObject.FindObjectOfType<PreparingGoBagManager>(true);
-            var circuitBreakerManager = GameObject.FindObjectOfType<CircuitBreakerManager>(true);
-            var appliancesManager = GameObject.FindObjectOfType<AppliancesTaskManager>(true);
-            if (goBagManager != null) goBagManager.gameObject.SetActive(false);
-            if (circuitBreakerManager != null) circuitBreakerManager.gameObject.SetActive(false);
-            if (appliancesManager != null) appliancesManager.gameObject.SetActive(false);
+    }
 
-            if (mission != null)
+    private void ApplyMissionTriggerBindings()
+    {
+        if (missionTriggerBindings == null || missionTriggerBindings.Count == 0)
+            return;
+
+        string activeMissionId = currentMission != null ? currentMission.missionId : null;
+        bool hasActiveMission = !string.IsNullOrWhiteSpace(activeMissionId);
+
+        foreach (var binding in missionTriggerBindings)
+        {
+            if (binding == null || binding.TriggerObjects == null)
+                continue;
+
+            bool shouldEnable = hasActiveMission &&
+                                !string.IsNullOrWhiteSpace(binding.MissionId) &&
+                                string.Equals(binding.MissionId.Trim(), activeMissionId.Trim(), System.StringComparison.OrdinalIgnoreCase);
+
+            foreach (var triggerObject in binding.TriggerObjects)
             {
-                if (selectedTaskText != null)
-                    selectedTaskText.text = $"Selected Task: {mission.missionName}";
-                if (selectedTaskDescriptionText != null)
-                    selectedTaskDescriptionText.text = mission.missionDescription;
-                if (selectedTaskObjectivesText != null)
-                {
-                    if (mission.tasks != null && mission.tasks.Count > 0)
-                        selectedTaskObjectivesText.text = string.Join("\n", mission.tasks.Select(t => t.taskName));
-                    else
-                        selectedTaskObjectivesText.text = "No objectives for this mission.";
-                }
-
-                // Unique logic for each mission/task
-                if (goBagPanel != null) goBagPanel.SetActive(false);
-                if (circuitBreakerPanel != null) circuitBreakerPanel.SetActive(false);
-                if (appliancesPanel != null) appliancesPanel.SetActive(false);
-
-                if (mission.missionId == "before_01") // Preparing Go Bag
-                {
-                    if (goBagPanel != null) goBagPanel.SetActive(true);
-                    if (goBagManager != null) goBagManager.gameObject.SetActive(true);
-                    if (circuitBreakerManager != null) circuitBreakerManager.gameObject.SetActive(false);
-                    if (appliancesManager != null) appliancesManager.gameObject.SetActive(false);
-                    Debug.Log("PreparingGoBagManager is running");
-                }
-                else if (mission.missionId == "before_02") // Circuit Breaker
-                {
-                    if (circuitBreakerPanel != null) circuitBreakerPanel.SetActive(true);
-                    if (circuitBreakerManager != null) circuitBreakerManager.gameObject.SetActive(true);
-                    if (goBagManager != null) goBagManager.gameObject.SetActive(false);
-                    if (appliancesManager != null) appliancesManager.gameObject.SetActive(false);
-                    Debug.Log("CircuitBreakerManager is running");
-                }
-                else if (mission.missionId == "before_03") // Securing Appliances
-                {
-                    if (appliancesPanel != null) appliancesPanel.SetActive(true);
-                    if (appliancesManager != null) appliancesManager.gameObject.SetActive(true);
-                    if (goBagManager != null) goBagManager.gameObject.SetActive(false);
-                    if (circuitBreakerManager != null) circuitBreakerManager.gameObject.SetActive(false);
-                    // appliancesManager?.StartAppliancesTask(); // No longer needed; AppliancesTaskManager handles intro in Start()
-                    Debug.Log("AppliancesTaskManager is running");
-                }
+                if (triggerObject != null)
+                    triggerObject.SetActive(shouldEnable);
             }
+        }
+
+        if (hasActiveMission)
+        {
+            Debug.Log($"BeforeMissionManager: Applied mission trigger bindings for mission '{activeMissionId}'.");
+        }
         else
         {
-            if (selectedTaskText != null)
-                selectedTaskText.text = "No mission selected.";
-            if (selectedTaskDescriptionText != null)
-                selectedTaskDescriptionText.text = "";
-            if (selectedTaskObjectivesText != null)
-                selectedTaskObjectivesText.text = "";
-            if (goBagPanel != null) goBagPanel.SetActive(false);
-            if (circuitBreakerPanel != null) circuitBreakerPanel.SetActive(false);
-            if (appliancesPanel != null) appliancesPanel.SetActive(false);
-        }
-
-        // Deactivate all triggers first
-        if (missionTriggers != null)
-        {
-            foreach (var trig in missionTriggers)
-            {
-                if (trig.triggerObject != null)
-                    trig.triggerObject.SetActive(false);
-            }
-        }
-        // Activate only the trigger for the selected mission
-        if (mission != null && missionTriggers != null)
-        {
-            foreach (var trig in missionTriggers)
-            {
-                if (trig.missionId == mission.missionId && trig.triggerObject != null)
-                {
-                    trig.triggerObject.SetActive(true);
-                    Debug.Log($"Activating trigger: {trig.triggerObject.name}");
-                }
-            }
+            Debug.LogWarning("BeforeMissionManager: No active mission found while applying mission trigger bindings. All bound triggers were disabled.");
         }
     }
 
+    protected override IEnumerator BeginMissionSequence()
+    {
+        // Wait for PreparingGoBagManager cutscene to finish before starting mission tasks
+        if (PreparingGoBagManager.Instance != null && PreparingGoBagManager.Instance.IsCutscenePlaying)
+        {
+            Debug.Log("BeforeMissionManager: Waiting for cutscene to finish...");
+            yield return new WaitUntil(() => !PreparingGoBagManager.Instance.IsCutscenePlaying);
+            Debug.Log("BeforeMissionManager: Cutscene finished, starting mission.");
+        }
+
+        yield return base.BeginMissionSequence();
+    }
+
     /// <summary>
-    /// Starts the AR mission phase. Called by ARMissionTrigger.
+    /// Starts the AR mission phase.
+    /// Called by ARMissionTrigger.
     /// </summary>
     public void StartARMission()
     {
         Debug.Log("AR Mission Started");
 
-        // Hide normal UI panels
+        // Hide normal UI
         if (preparationUI != null)
             preparationUI.SetActive(false);
+
         if (inventoryPanel != null)
             inventoryPanel.SetActive(false);
+
         if (gameUI != null)
             gameUI.SetActive(false);
 
-        // Hide all task panels
-        if (goBagPanel != null) goBagPanel.SetActive(false);
-        if (circuitBreakerPanel != null) circuitBreakerPanel.SetActive(false);
-
-        // Switch cameras
+        // Disable normal gameplay camera
         if (normalCamera != null)
             normalCamera.gameObject.SetActive(false);
+
+        // Enable AR systems
         if (arSession != null)
             arSession.SetActive(true);
+
         if (arSessionRoot != null)
             arSessionRoot.SetActive(true);
+
         if (arCamera != null)
             arCamera.gameObject.SetActive(true);
-
-        // Reset AR mission system if needed
-        if (ARMissionManager.Instance != null)
-        {
-            // Optional: reset values if needed later
-        }
     }
 
     /// <summary>

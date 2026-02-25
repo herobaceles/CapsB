@@ -15,6 +15,11 @@ public class MainMenuManager : MonoBehaviour
     [Header("Onboarding")]
     [SerializeField] private OnboardingManager onboardingManager;
 
+    [Header("Reset Confirmation")]
+    [SerializeField] private GameObject resetConfirmPanel;
+    [SerializeField] private Button confirmResetButton;
+    [SerializeField] private Button cancelResetButton;
+
     private void Start()
     {
         Debug.Log("MainMenuManager: Ready");
@@ -34,13 +39,33 @@ public class MainMenuManager : MonoBehaviour
             if (onboardingManager != null)
                 Debug.Log("MainMenuManager: Found OnboardingManager automatically");
         }
+
+        // Wire reset confirmation UI
+        if (resetConfirmPanel != null)
+            resetConfirmPanel.SetActive(false);
+        if (confirmResetButton != null)
+            confirmResetButton.onClick.AddListener(ConfirmResetProgress);
+        if (cancelResetButton != null)
+            cancelResetButton.onClick.AddListener(CancelResetProgress);
     }
 
     // Called when "Play" button is clicked
     public void PlayGame()
     {
         Debug.Log("MainMenuManager: PlayGame clicked!");
-        
+
+        // If first-time player, start onboarding instead of jumping to gameplay
+        if (PlayerData.Instance != null && PlayerData.Instance.IsFirstTimePlaying())
+        {
+            if (onboardingManager != null)
+            {
+                onboardingManager.BeginOnboardingFlow();
+                return;
+            }
+            Debug.LogWarning("MainMenuManager: Player is new but OnboardingManager is missing; proceeding to main game.");
+        }
+
+        // Continue game (load last mission or main mission scene)
         string sceneName = "MissionManager";
         if (Application.CanStreamedLevelBeLoaded(sceneName))
         {
@@ -111,5 +136,41 @@ public class MainMenuManager : MonoBehaviour
 #else
         Application.Quit(); // Quit the build
 #endif
+    }
+    // Called when "Reset" button is clicked - shows confirmation if available
+    public void ResetProgress()
+    {
+        Debug.Log("MainMenuManager: ResetProgress clicked");
+        if (resetConfirmPanel != null)
+        {
+            resetConfirmPanel.SetActive(true);
+            return;
+        }
+
+        ConfirmResetProgress();
+    }
+
+    private void ConfirmResetProgress()
+    {
+        PlayerData.Instance?.ResetAllData();
+        if (resetConfirmPanel != null)
+            resetConfirmPanel.SetActive(false);
+
+        if (onboardingManager != null)
+        {
+            // Just reset UI; onboarding will start next time Play is pressed
+            onboardingManager.ResetOnboardingUI();
+        }
+        else
+        {
+            // Fallback: reload the current scene to ensure UI resets
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+    }
+
+    private void CancelResetProgress()
+    {
+        if (resetConfirmPanel != null)
+            resetConfirmPanel.SetActive(false);
     }
 }

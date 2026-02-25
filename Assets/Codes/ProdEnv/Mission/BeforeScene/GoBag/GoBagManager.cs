@@ -316,7 +316,26 @@ void Update()
         if (achievementText != null)
             achievementText.text = "Mission Complete!";
 
-        // Show completion dialogue and achievement for the correct mission
+        // Unlock movement
+        movementLocked = false;
+    }
+
+    private bool hasProceeded = false;
+
+    // Call this from Proceed button
+    public void ProceedToWorld()
+    {
+        if (hasProceeded) return;
+        hasProceeded = true;
+
+        if (achievementsPanel != null)
+            achievementsPanel.SetActive(false);
+        if (missionCompleteUI != null)
+            missionCompleteUI.SetActive(false);
+        if (BeforeMissionManager.Instance != null)
+            BeforeMissionManager.Instance.EndARMission();
+
+        // Show completion dialogue AFTER returning to normal camera so the UI is visible
         if (BeforeMissionManager.Instance != null && MissionSelectManager.SelectedMission != null)
         {
             var missionId = MissionSelectManager.SelectedMission.missionId;
@@ -325,20 +344,6 @@ void Update()
             else if (missionId == "before_02" && BreakerTaskManager.Instance != null)
                 BreakerTaskManager.Instance.CompleteBreakerTask();
         }
-
-        // Unlock movement
-        movementLocked = false;
-    }
-
-    // Call this from Proceed button
-    public void ProceedToWorld()
-    {
-        if (achievementsPanel != null)
-            achievementsPanel.SetActive(false);
-        if (missionCompleteUI != null)
-            missionCompleteUI.SetActive(true);
-        if (BeforeMissionManager.Instance != null)
-            BeforeMissionManager.Instance.EndARMission();
     }
 
     // Call this from Replay button

@@ -1,3 +1,5 @@
+
+using UnityEngine;
 using UnityEngine;
 
 /// <summary>
@@ -185,7 +187,20 @@ public class IsometricPlayerController : MonoBehaviour
             animator.SetFloat(speedParameter, speed);
 
         if (!string.IsNullOrEmpty(isMovingParameter))
-            animator.SetBool(isMovingParameter, IsMoving);
+        {
+            // Only set if parameter exists
+            bool hasIsMoving = false;
+            foreach (var param in animator.parameters)
+            {
+                if (param.name == isMovingParameter && param.type == AnimatorControllerParameterType.Bool)
+                {
+                    hasIsMoving = true;
+                    break;
+                }
+            }
+            if (hasIsMoving)
+                animator.SetBool(isMovingParameter, IsMoving);
+        }
     }
 
     /// <summary>

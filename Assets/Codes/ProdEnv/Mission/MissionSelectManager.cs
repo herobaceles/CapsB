@@ -164,6 +164,9 @@ public class MissionSelectManager : MonoBehaviour
 
         // Default to Before phase
         SwitchToPhase(MissionPhase.Before);
+
+        // If we have saved progress, try to resume that mission automatically
+        TryResumeLastMission();
     }
 
     #region Phase Switching
@@ -375,6 +378,9 @@ public class MissionSelectManager : MonoBehaviour
             return;
         }
 
+        // Persist last mission id for resume
+        PlayerData.Instance?.SaveLastMission(GetMissionNumericId(mission));
+
         SelectedMission = mission;
         Debug.Log($"MissionSelectManager: Starting mission - {mission.missionName}");
 
@@ -477,6 +483,61 @@ public class MissionSelectManager : MonoBehaviour
 
             yield return null;
         }
+    }
+
+    private void TryResumeLastMission()
+    {
+        if (PlayerData.Instance == null) return;
+        int lastId = PlayerData.Instance.LastMissionId;
+        if (lastId <= 0) return;
+
+        MissionData mission = FindMissionBySavedId(lastId);
+        if (mission == null)
+        {
+            Debug.Log($"MissionSelectManager: No mission matches saved id {lastId}, showing list.");
+            return;
+        }
+
+        if (IsMissionLocked(mission))
+        {
+            Debug.Log($"MissionSelectManager: Saved mission {mission.missionName} is locked, showing list.");
+            return;
+        }
+
+        Debug.Log($"MissionSelectManager: Resuming last mission: {mission.missionName}");
+        SelectMission(mission);
+        StartMission(mission);
+    }
+
+    private MissionData FindMissionBySavedId(int savedId)
+    {
+        if (allMissions == null) return null;
+
+        // Try numeric missionId match first
+        foreach (var mission in allMissions)
+        {
+            if (mission == null) continue;
+            if (int.TryParse(mission.missionId, out int mid) && mid == savedId)
+                return mission;
+        }
+
+        // Fallback: match sortOrder
+        foreach (var mission in allMissions)
+        {
+            if (mission == null) continue;
+            if (mission.sortOrder == savedId)
+                return mission;
+        }
+
+        return null;
+    }
+
+    private int GetMissionNumericId(MissionData mission)
+    {
+        if (mission == null) return 0;
+        if (int.TryParse(mission.missionId, out int mid))
+            return mid;
+        return mission.sortOrder;
     }
 
     #endregion

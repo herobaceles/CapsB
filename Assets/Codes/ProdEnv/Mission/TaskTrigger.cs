@@ -32,7 +32,7 @@ public class TaskTrigger : MonoBehaviour
     public UnityEvent OnPlayerEntered;
     public UnityEvent OnPlayerExited;
     public UnityEvent OnTaskCompleted;
-
+    
     private Collider triggerCollider;
     private bool isActive = false;
     private bool isCompleted = false;

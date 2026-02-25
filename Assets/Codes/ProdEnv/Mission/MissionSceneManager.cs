@@ -15,8 +15,21 @@ public abstract class MissionSceneManager : MonoBehaviour
 {
     public static MissionSceneManager Instance { get; protected set; }
 
+    [System.Serializable]
+    public class MissionTriggerBinding
+    {
+        public string missionId;
+        // Allow designers to assign GameObjects (with TaskTrigger component) in the inspector
+        public List<GameObject> triggerObjects = new List<GameObject>();
+    }
+
     [Header("Mission")]
     [SerializeField] protected MissionData fallbackMission;
+    [SerializeField] protected TMP_Text missionNameText;
+
+    [Header("Mission Trigger Bindings")]
+    [SerializeField] private bool useManualBindings = false;
+    [SerializeField] private List<MissionTriggerBinding> missionTriggerBindings = new List<MissionTriggerBinding>();
 
     [Header("Task UI")]
     [SerializeField] protected GameObject taskPanel;
@@ -83,8 +96,58 @@ public abstract class MissionSceneManager : MonoBehaviour
     protected virtual void Start()
     {
         SetupUI();
+
+        // Ensure all TaskTrigger components in the scene are registered so
+        // mission bindings can reference them even if their GameObjects are
+        // inactive in the hierarchy at authoring time.
+        RegisterAllSceneTriggers();
+
         LoadMission();
         StartCoroutine(BeginMissionSequence());
+
+        // Some TaskTrigger components register themselves in Start/Awake.
+        // If ApplyMissionBindings runs before those registrations, bindings
+        // can miss matches. Re-run filtering one frame later to ensure
+        // triggers have had a chance to register.
+        StartCoroutine(EnsureBindingsAfterRegistration());
+    }
+
+    /// <summary>
+    /// Finds all TaskTrigger components in the scene (including inactive)
+    /// and registers them with this manager. This avoids missing registrations
+    /// when manual bindings reference prefab instances or inactive objects.
+    /// </summary>
+    protected void RegisterAllSceneTriggers()
+    {
+        TaskTrigger[] allTriggers = Resources.FindObjectsOfTypeAll<TaskTrigger>();
+        if (allTriggers == null || allTriggers.Length == 0)
+            return;
+
+        foreach (var tt in allTriggers)
+        {
+            // Only consider scene objects (not assets)
+            if (tt.gameObject.scene.isLoaded)
+            {
+                RegisterTrigger(tt);
+            }
+        }
+
+        // Debug: list registered trigger keys
+        if (registeredTriggers.Count > 0)
+        {
+            var keys = string.Join(", ", new List<string>(registeredTriggers.Keys).ToArray());
+            Debug.Log($"MissionSceneManager: Registered scene triggers ({registeredTriggers.Count}): {keys}");
+        }
+    }
+
+    private System.Collections.IEnumerator EnsureBindingsAfterRegistration()
+    {
+        // Wait one frame to allow other components' Start() to run and register
+        // with this manager.
+        yield return null;
+
+        Debug.Log("MissionSceneManager: Re-running FilterTriggersForCurrentMission after one frame to ensure registration");
+        FilterTriggersForCurrentMission();
     }
 
     protected virtual void Update()
@@ -127,7 +190,7 @@ public abstract class MissionSceneManager : MonoBehaviour
         if (restartButton != null)
             restartButton.onClick.AddListener(OnReplayClicked);
         if (quitButton != null)
-            quitButton.onClick.AddListener(ReturnToMissionSelect);
+            quitButton.onClick.AddListener(ReturnToMainMenu);
     }
 
     protected virtual void LoadMission()
@@ -147,6 +210,15 @@ public abstract class MissionSceneManager : MonoBehaviour
         {
             Debug.LogError($"{GetType().Name}: No mission to load!");
         }
+
+        UpdateMissionHeader();
+        FilterTriggersForCurrentMission();
+    }
+
+    protected void UpdateMissionHeader()
+    {
+        if (missionNameText != null)
+            missionNameText.text = currentMission != null ? currentMission.missionName : "Mission";
     }
 
     #endregion
@@ -197,6 +269,7 @@ public abstract class MissionSceneManager : MonoBehaviour
 
         if (currentMission.tasks.Count > 0)
         {
+            FilterTriggersForCurrentMission();
             StartTask(0);
         }
         else
@@ -229,7 +302,8 @@ public abstract class MissionSceneManager : MonoBehaviour
         // Update UI
         UpdateTaskUI();
 
-        // Activate trigger for this task
+        // Activate only this task's trigger
+        DeactivateAllTriggers();
         ActivateTaskTrigger(currentTask.taskId);
 
         // Show start dialogue
@@ -427,6 +501,109 @@ public abstract class MissionSceneManager : MonoBehaviour
 
     #endregion
 
+    #region Trigger Filtering
+
+    protected void DeactivateAllTriggers()
+    {
+        foreach (var kvp in registeredTriggers)
+        {
+            kvp.Value.SetActive(false);
+        }
+    }
+
+    protected void FilterTriggersForCurrentMission()
+    {
+        DeactivateAllTriggers();
+
+        if (currentMission == null)
+        {
+            Debug.LogWarning($"{GetType().Name}: FilterTriggersForCurrentMission called but currentMission is null");
+            return;
+        }
+
+        Debug.Log($"{GetType().Name}: Filtering triggers for mission '{currentMission.missionId}' (useManualBindings={useManualBindings})");
+
+        if (useManualBindings && ApplyMissionBindings())
+        {
+            Debug.Log($"{GetType().Name}: Applied manual bindings for mission '{currentMission.missionId}'");
+            return;
+        }
+
+        foreach (var kvp in registeredTriggers)
+        {
+            bool belongs = IsTaskInCurrentMission(kvp.Key);
+            kvp.Value.SetActive(false);
+            kvp.Value.gameObject.SetActive(belongs);
+        }
+    }
+
+    protected bool ApplyMissionBindings()
+    {
+        if (missionTriggerBindings == null || missionTriggerBindings.Count == 0)
+            return false;
+
+        foreach (var binding in missionTriggerBindings)
+        {
+            if (string.IsNullOrEmpty(binding.missionId) || binding.missionId != currentMission.missionId)
+                continue;
+
+            // Resolve triggers from the assigned GameObjects by taskId (string) to avoid
+            // reference mismatches between prefab assets and runtime instances.
+            var bindingTaskIds = new HashSet<string>();
+            if (binding.triggerObjects != null)
+            {
+                foreach (var go in binding.triggerObjects)
+                {
+                    if (go == null) continue;
+                    var tt = go.GetComponent<TaskTrigger>();
+                    if (tt != null && !string.IsNullOrEmpty(tt.TaskId))
+                        bindingTaskIds.Add(tt.TaskId);
+                }
+            }
+
+                    // Debug: show which taskIds were collected from the binding and which registered triggers exist
+                    var bindingIdsList = bindingTaskIds.Count > 0 ? string.Join(", ", new List<string>(bindingTaskIds).ToArray()) : "(none)";
+                    var registeredList = registeredTriggers.Count > 0 ? string.Join(", ", new List<string>(registeredTriggers.Keys).ToArray()) : "(none)";
+                    Debug.Log($"ApplyMissionBindings: binding.missionId={binding.missionId}, bindingTaskIds=[{bindingIdsList}], registeredTriggers=[{registeredList}]");
+
+                    // Find all TaskTrigger instances in the loaded scene(s) and enable only those
+                    // whose TaskId is in the binding set. This avoids relying on registration order.
+                    TaskTrigger[] sceneTriggers = Resources.FindObjectsOfTypeAll<TaskTrigger>();
+                    foreach (var tt in sceneTriggers)
+                    {
+                        if (tt == null) continue;
+
+                        // Only consider scene objects (exclude assets/prefabs not in any loaded scene)
+                        if (!tt.gameObject.scene.isLoaded) continue;
+
+                        bool shouldBeActive = !string.IsNullOrEmpty(tt.TaskId) && bindingTaskIds.Contains(tt.TaskId);
+                        tt.SetActive(false);
+                        tt.gameObject.SetActive(shouldBeActive);
+
+                        if (shouldBeActive)
+                            Debug.Log($"ApplyMissionBindings: Activating scene trigger for taskId '{tt.TaskId}' on '{tt.gameObject.name}'");
+                    }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    protected bool IsTaskInCurrentMission(string taskId)
+    {
+        if (currentMission?.tasks == null) return false;
+
+        foreach (var task in currentMission.tasks)
+        {
+            if (task.taskId == taskId)
+                return true;
+        }
+        return false;
+    }
+
+    #endregion
+
     #region UI
 
     protected virtual void UpdateTaskUI()
@@ -518,6 +695,12 @@ public abstract class MissionSceneManager : MonoBehaviour
             PauseMission();
     }
 
+    // Exposed for UI Pause button
+    public void ShowPauseMenu()
+    {
+        PauseMission();
+    }
+
     public virtual void PauseMission()
     {
         isPaused = true;
@@ -572,6 +755,7 @@ public abstract class MissionSceneManager : MonoBehaviour
         Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenuProd");
     }
+
 
     #endregion
 

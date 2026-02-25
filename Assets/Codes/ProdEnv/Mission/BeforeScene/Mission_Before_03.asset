@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: Mission_Before_03
   m_EditorClassIdentifier: 
   missionId: before_03
-  missionName: Securing Applicenes
-  missionDescription: Securing the appliencess into the safe places
+  missionName: Secure the appliences
+  missionDescription: Securing the Appliences
   missionIcon: {fileID: 0}
   phase: 0
-  missionSceneName: 
-  isLocked: 0
-  requiredMissionId: 
-  sortOrder: 3
+  missionSceneName: BeforeMission
+  isLocked: 1
+  requiredMissionId: before_01
+  sortOrder: 2
   tasks: []
   introDialogue: []
   completionMessage: Mission Complete! Great job!

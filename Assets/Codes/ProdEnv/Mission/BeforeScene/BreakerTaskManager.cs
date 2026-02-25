@@ -86,7 +86,37 @@ public class BreakerTaskManager : MonoBehaviour
         if (taskComplete)
             return;
         taskComplete = true;
-        ShowAchievementPanel(onComplete);
+
+        // First, end AR and return to the normal scene
+        if (BeforeMissionManager.Instance != null)
+            BeforeMissionManager.Instance.EndARMission();
+
+        // Now show completion dialogue (player is back in the scene with normal camera)
+        var lines = new List<ProdDialogueLine>
+        {
+            new ProdDialogueLine("Professor Lingap", "Well done! Turning off the circuit breaker before a flood is critical. Floodwater conducts electricity — leaving it on can cause electrocution, fires, or damage to your appliances."),
+            new ProdDialogueLine("Professor Lingap", "Always remember: before evacuating, switch off the main breaker. It could save lives!")
+        };
+
+        if (ProdDialogueManager.Instance != null)
+        {
+            ProdDialogueManager.Instance.ShowDialogueSequence(lines, () =>
+            {
+                if (BeforeMissionManager.Instance != null && BeforeMissionManager.Instance.IsMissionActive)
+                {
+                    BeforeMissionManager.Instance.CompleteCurrentTask();
+                }
+                onComplete?.Invoke();
+            });
+        }
+        else
+        {
+            if (BeforeMissionManager.Instance != null && BeforeMissionManager.Instance.IsMissionActive)
+            {
+                BeforeMissionManager.Instance.CompleteCurrentTask();
+            }
+            onComplete?.Invoke();
+        }
     }
 
     private void ShowAchievementPanel(UnityAction onComplete = null)

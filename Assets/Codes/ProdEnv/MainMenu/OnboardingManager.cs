@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class OnboardingManager : MonoBehaviour
 {
@@ -23,6 +24,7 @@ public class OnboardingManager : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private int minNameLength = 2;
     [SerializeField] private int maxNameLength = 20;
+    [SerializeField] private string missionSceneName = "MissionManager";
 
     private string enteredName;
     private PlayerData.Gender selectedGender = PlayerData.Gender.NotSpecified;
@@ -31,15 +33,22 @@ public class OnboardingManager : MonoBehaviour
     private void Start()
     {
         SetupButtons();
+        // Do not auto-start onboarding; main menu controls when to begin
+        onboardingPanel?.SetActive(false);
+        nameInputPanel?.SetActive(false);
+        genderSelectPanel?.SetActive(false);
+    }
 
-        if (PlayerData.Instance != null && PlayerData.Instance.IsFirstTimePlaying())
-        {
-            StartOnboarding();
-        }
-        else
+    // Entry point triggered by MainMenuManager when Play is pressed
+    public void BeginOnboardingFlow()
+    {
+        if (onboardingStarted) return;
+        if (PlayerData.Instance != null && !PlayerData.Instance.IsFirstTimePlaying())
         {
             SkipToMainMenu();
+            return;
         }
+        StartOnboarding();
     }
 
     private void SetupButtons()
@@ -159,15 +168,24 @@ public class OnboardingManager : MonoBehaviour
     private void CompleteOnboarding()
     {
         PlayerData.Instance?.SaveOnboardingData(enteredName, selectedGender);
-        StartCoroutine(TransitionToMainMenu());
+        StartCoroutine(LoadMissionScene());
     }
 
-    private IEnumerator TransitionToMainMenu()
+    private IEnumerator LoadMissionScene()
     {
         yield return new WaitForSeconds(0.3f);
 
-        HideAllPanels();
-        mainMenuPanel?.SetActive(true);
+        string sceneName = string.IsNullOrEmpty(missionSceneName) ? "MissionManager" : missionSceneName;
+        if (Application.CanStreamedLevelBeLoaded(sceneName))
+        {
+            SceneManager.LoadScene(sceneName);
+        }
+        else
+        {
+            Debug.LogError($"OnboardingManager: Scene '{sceneName}' not found. Showing main menu instead.");
+            HideAllPanels();
+            mainMenuPanel?.SetActive(true);
+        }
     }
 
     private void HideAllPanels()
@@ -189,5 +207,14 @@ public class OnboardingManager : MonoBehaviour
         PlayerData.Instance?.ResetAllData();
         onboardingStarted = false;
         StartOnboarding();
+    }
+
+    // Reset state and UI without starting onboarding; use when clearing progress from main menu
+    public void ResetOnboardingUI()
+    {
+        onboardingStarted = false;
+        StopAllCoroutines();
+        HideAllPanels();
+        mainMenuPanel?.SetActive(true);
     }
 }

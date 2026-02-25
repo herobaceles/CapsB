@@ -33,8 +33,7 @@ public class CircuitBreakerManager : MonoBehaviour
     {
         var lines = new List<ProdDialogueLine>
         {
-            new ProdDialogueLine("Professor Lingap", "The flood is coming! You must secure the circuit breaker to prevent electrical hazards."),
-            new ProdDialogueLine("Professor Lingap", "Find the circuit breaker and turn it off before the water rises.")
+            new ProdDialogueLine("Professor Lingap", "Now for your next task is to find the circuit breaker. It is near the door.")
         };
         ProdDialogueManager.Instance.ShowDialogueSequence(lines, StartTask);
     }
