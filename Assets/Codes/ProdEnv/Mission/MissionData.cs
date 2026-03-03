@@ -44,14 +44,29 @@ public class MissionData : ScriptableObject
     [TextArea(2, 3)]
     public string[] introDialogue;
 
+    [Header("Start Quiz (Optional)")]
+    public MissionQuizData startQuiz;
+
     [Header("Completion")]
     [TextArea(2, 4)]
     public string completionMessage = "Mission Complete! Great job!";
-    public int rewardPoints = 100;
 
     [Header("Unlocks On Complete")]
     [Tooltip("Mission ID to unlock when this mission is completed")]
     public string unlocksMissionId;
+}
+
+[System.Serializable]
+public class MissionQuizData
+{
+    [TextArea(2, 4)]
+    public string question;
+
+    [Tooltip("Multiple choice options shown to the player")]
+    public string[] options = new string[3];
+
+    [Tooltip("Zero-based index of the correct option")]
+    public int correctOptionIndex = 0;
 }
 
 /// <summary>
@@ -83,8 +98,6 @@ public class TaskData
     [Header("Objectives (for multi-objective tasks)")]
     public List<ObjectiveData> objectives = new List<ObjectiveData>();
 
-    [Header("Rewards")]
-    public int pointsReward = 10;
 }
 
 /// <summary>

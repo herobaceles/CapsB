@@ -21,8 +21,26 @@ MonoBehaviour:
   isLocked: 1
   requiredMissionId: before_01
   sortOrder: 2
-  tasks: []
+  tasks:
+  - taskId: before_02_secure_circuit_breaker
+    taskName: Secure Circuit Breaker
+    taskDescription: Find and switch off the main circuit breaker before flooding
+      starts.
+    taskIcon: {fileID: 0}
+    taskType: 6
+    isOptional: 0
+    showDialogueOnStart: 0
+    startDialogue: []
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    objectives: []
   introDialogue: []
+  startQuiz:
+    question: What Do you need to turn off
+    options:
+    - Lights
+    - PS5
+    - Cuircuit Breaker
+    correctOptionIndex: 2
   completionMessage: Mission Complete! Great job!
-  rewardPoints: 100
-  unlocksMissionId: 
+  unlocksMissionId: before_03

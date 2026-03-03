@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08d18cca6f19690448d81eb0c24d5ca0, type: 3}
+  m_Name: Mission_During_01
+  m_EditorClassIdentifier: 
+  missionId: during_01
+  missionName: Navigate Flood Hazards
+  missionDescription: Navigate the barangay map, clear each flood zone, and reach the evacuation center safely.
+  missionIcon: {fileID: 0}
+  phase: 1
+  missionSceneName: DuringMission
+  isLocked: 0
+  requiredMissionId: 
+  sortOrder: 1
+  tasks:
+  - taskId: during_01_zone_entry
+    taskName: Enter First Flood Zone
+    taskDescription: Approach the first highlighted flood zone and analyze the hazards before proceeding.
+    taskIcon: {fileID: 0}
+    taskType: 6
+    isOptional: 0
+    showDialogueOnStart: 0
+    startDialogue: []
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    objectives: []
+  - taskId: during_01_zone_mid
+    taskName: Cross Midtown Floodway
+    taskDescription: Choose the safest route through the fast-moving water and debris.
+    taskIcon: {fileID: 0}
+    taskType: 6
+    isOptional: 0
+    showDialogueOnStart: 0
+    startDialogue: []
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    objectives: []
+  - taskId: during_01_zone_final
+    taskName: Reach Evacuation Center
+    taskDescription: Clear the final flood zone and tap the evacuation center marker to finish the mission.
+    taskIcon: {fileID: 0}
+    taskType: 6
+    isOptional: 0
+    showDialogueOnStart: 0
+    startDialogue: []
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    objectives: []
+  introDialogue: []
+  startQuiz:
+    question: What is the safest goal during a flood?
+    options:
+    - Move calmly toward the designated evacuation center.
+    - Stay near floodwaters to monitor the situation.
+    - Wait on the street for updates.
+    correctOptionIndex: 0
+  completionMessage: Mission Complete! You arrived at the evacuation center.
+  rewardPoints: 150
+  unlocksMissionId: 

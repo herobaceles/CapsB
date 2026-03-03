@@ -22,6 +22,7 @@ public class MainMenuManager : MonoBehaviour
 
     private void Start()
     {
+        AppSceneLoader.EnsureExists();
         Debug.Log("MainMenuManager: Ready");
         
         // Show main menu panel
@@ -69,7 +70,7 @@ public class MainMenuManager : MonoBehaviour
         string sceneName = "MissionManager";
         if (Application.CanStreamedLevelBeLoaded(sceneName))
         {
-            StartCoroutine(LoadSceneAsync(sceneName));
+            LoadSceneAsync(sceneName);
         }
         else
         {
@@ -77,45 +78,25 @@ public class MainMenuManager : MonoBehaviour
         }
     }
 
-    private IEnumerator LoadSceneAsync(string sceneName)
+    private void LoadSceneAsync(string sceneName)
     {
         // Show loading panel
         if (loadingPanel != null)
             loadingPanel.SetActive(true);
 
-        // Start async loading
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
-        asyncLoad.allowSceneActivation = false;
-
-        // Update progress while loading
-        while (!asyncLoad.isDone)
-        {
-            // Progress goes from 0 to 0.9 while loading, then jumps to 1 when activated
-            float progress = Mathf.Clamp01(asyncLoad.progress / 0.9f);
-
-            // Update progress bar
-            if (progressBar != null)
-                progressBar.value = progress;
-
-            // Update progress text
-            if (progressText != null)
-                progressText.text = $"{(progress * 100f):0}%";
-
-            // When loading is complete (progress reaches 0.9), activate the scene
-            if (asyncLoad.progress >= 0.9f)
+        AppSceneLoader.EnsureExists();
+        AppSceneLoader.Instance.LoadSceneSingleAsync(
+            sceneName,
+            progress =>
             {
-                // Optional: wait a moment so player sees 100%
                 if (progressBar != null)
-                    progressBar.value = 1f;
+                    progressBar.value = progress;
+
                 if (progressText != null)
-                    progressText.text = "100%";
-
-                yield return new WaitForSeconds(0.5f);
-                asyncLoad.allowSceneActivation = true;
-            }
-
-            yield return null;
-        }
+                    progressText.text = $"{(progress * 100f):0}%";
+            },
+            null,
+            0.5f);
     }
 
     // Called when "Settings" button is clicked
@@ -164,7 +145,8 @@ public class MainMenuManager : MonoBehaviour
         else
         {
             // Fallback: reload the current scene to ensure UI resets
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            AppSceneLoader.EnsureExists();
+            AppSceneLoader.Instance.LoadSceneSingle(SceneManager.GetActiveScene().name);
         }
     }
 

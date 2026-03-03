@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 public class BreakerTaskManager : MonoBehaviour
 {
+    private const string BreakerTaskId = "before_02_secure_circuit_breaker";
     // Call this from the Restart button to restart the AR breaker task
     public void RestartBreakerTask()
     {
@@ -54,6 +55,12 @@ public class BreakerTaskManager : MonoBehaviour
         Instance = this;
     }
 
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
     public void StartBreakerTask()
     {
         if (taskStarted)
@@ -102,21 +109,37 @@ public class BreakerTaskManager : MonoBehaviour
         {
             ProdDialogueManager.Instance.ShowDialogueSequence(lines, () =>
             {
-                if (BeforeMissionManager.Instance != null && BeforeMissionManager.Instance.IsMissionActive)
-                {
-                    BeforeMissionManager.Instance.CompleteCurrentTask();
-                }
+                CompleteExpectedTask();
                 onComplete?.Invoke();
             });
         }
         else
         {
-            if (BeforeMissionManager.Instance != null && BeforeMissionManager.Instance.IsMissionActive)
-            {
-                BeforeMissionManager.Instance.CompleteCurrentTask();
-            }
+            CompleteExpectedTask();
             onComplete?.Invoke();
         }
+    }
+
+    private void CompleteExpectedTask()
+    {
+        var missionManager = BeforeMissionManager.Instance;
+        if (missionManager == null || !missionManager.IsMissionActive)
+            return;
+
+        var currentTask = missionManager.CurrentTask;
+        if (currentTask == null)
+        {
+            Debug.LogWarning("BreakerTaskManager: Cannot complete task because no current task is active.");
+            return;
+        }
+
+        if (!string.Equals(currentTask.taskId, BreakerTaskId, System.StringComparison.OrdinalIgnoreCase))
+        {
+            Debug.LogWarning($"BreakerTaskManager: Current task '{currentTask.taskId}' does not match expected task '{BreakerTaskId}'.");
+            return;
+        }
+
+        missionManager.CompleteCurrentTask();
     }
 
     private void ShowAchievementPanel(UnityAction onComplete = null)

@@ -1,5 +1,3 @@
-
-using UnityEngine;
 using UnityEngine;
 
 /// <summary>
@@ -41,10 +39,12 @@ public class IsometricPlayerController : MonoBehaviour
 
     // Input
     private Vector2 inputDirection;
+    private bool movementEnabled = true;
 
     public bool IsMoving => inputDirection.sqrMagnitude > 0.01f;
     public Vector3 Velocity => currentVelocity;
     public float CurrentSpeed => currentVelocity.magnitude;
+    public bool IsMovementEnabled => movementEnabled;
 
     private void Awake()
     {
@@ -77,6 +77,12 @@ public class IsometricPlayerController : MonoBehaviour
 
     private void GatherInput()
     {
+        if (!movementEnabled)
+        {
+            inputDirection = Vector2.zero;
+            return;
+        }
+
         // Get input from joystick
         if (joystick != null)
         {
@@ -84,11 +90,32 @@ public class IsometricPlayerController : MonoBehaviour
         }
         else
         {
-            // Fallback to keyboard for testing
+            // Fallback to keyboard for testing using new Input System
+            #if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
+            if (UnityEngine.InputSystem.Keyboard.current != null)
+            {
+                float x = 0f;
+                float y = 0f;
+                if (UnityEngine.InputSystem.Keyboard.current.aKey.isPressed || UnityEngine.InputSystem.Keyboard.current.leftArrowKey.isPressed)
+                    x -= 1f;
+                if (UnityEngine.InputSystem.Keyboard.current.dKey.isPressed || UnityEngine.InputSystem.Keyboard.current.rightArrowKey.isPressed)
+                    x += 1f;
+                if (UnityEngine.InputSystem.Keyboard.current.wKey.isPressed || UnityEngine.InputSystem.Keyboard.current.upArrowKey.isPressed)
+                    y += 1f;
+                if (UnityEngine.InputSystem.Keyboard.current.sKey.isPressed || UnityEngine.InputSystem.Keyboard.current.downArrowKey.isPressed)
+                    y -= 1f;
+                inputDirection = new Vector2(x, y);
+            }
+            else
+            {
+                inputDirection = Vector2.zero;
+            }
+            #else
             inputDirection = new Vector2(
                 Input.GetAxisRaw("Horizontal"),
                 Input.GetAxisRaw("Vertical")
             );
+            #endif
         }
 
         // Normalize if magnitude > 1
@@ -118,7 +145,11 @@ public class IsometricPlayerController : MonoBehaviour
         // Convert input to isometric world direction
         moveDirection = ConvertToIsometric(inputDirection);
 
-        // ...existing code...
+        // Debug: Log input and movement
+        if (inputDirection.sqrMagnitude > 0.01f)
+        {
+            Debug.Log($"Input: {inputDirection}, MoveDir: {moveDirection}, CurrentVel: {currentVelocity.magnitude}");
+        }
 
         // Calculate target velocity
         Vector3 targetVelocity = moveDirection * moveSpeed;
@@ -229,6 +260,13 @@ public class IsometricPlayerController : MonoBehaviour
     {
         currentVelocity = Vector3.zero;
         inputDirection = Vector2.zero;
+    }
+
+    public void SetMovementEnabled(bool enabled)
+    {
+        movementEnabled = enabled;
+        if (!movementEnabled)
+            StopMovement();
     }
 
     private void OnDrawGizmosSelected()

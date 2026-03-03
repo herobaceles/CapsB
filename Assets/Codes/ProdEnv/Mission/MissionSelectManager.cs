@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,11 @@ public class MissionSelectManager : MonoBehaviour
     /// </summary>
     public static MissionData SelectedMission { get; private set; }
 
+    public static void SetSelectedMission(MissionData mission)
+    {
+        SelectedMission = mission;
+    }
+
     [Header("Panels")]
     [SerializeField] private GameObject welcomePanel;
     [SerializeField] private GameObject missionSelectPanel;
@@ -32,7 +38,6 @@ public class MissionSelectManager : MonoBehaviour
     [Header("Player Info")]
     [SerializeField] private TMP_Text playerNameText;
     [SerializeField] private TMP_Text playerGreetingText;
-    [SerializeField] private TMP_Text totalPointsText;
 
     [Header("Phase Tabs")]
     [SerializeField] private Button beforeTabButton;
@@ -55,13 +60,17 @@ public class MissionSelectManager : MonoBehaviour
     [SerializeField] private Button startMissionButton;
     [SerializeField] private GameObject completedBadge;
 
-    [Header("Available Missions")]
+    [Header("Mission Sources")]
     [SerializeField] private MissionData[] allMissions;
+    [SerializeField] private bool autoLoadMissionsFromResources = true;
+    [SerializeField] private string missionResourcesFolder = "Missions";
 
     // State
     private MissionPhase currentPhase = MissionPhase.Before;
     private MissionData selectedMission;
     private Dictionary<MissionPhase, List<MissionData>> missionsByPhase;
+    private readonly List<MissionData> aggregatedMissions = new List<MissionData>();
+    private readonly Dictionary<string, MissionData> missionLookup = new Dictionary<string, MissionData>(StringComparer.OrdinalIgnoreCase);
 
     private void Awake()
     {
@@ -111,13 +120,27 @@ public class MissionSelectManager : MonoBehaviour
             { MissionPhase.After, new List<MissionData>() }
         };
 
-        if (allMissions == null) return;
+        aggregatedMissions.Clear();
+        missionLookup.Clear();
 
-        foreach (var mission in allMissions)
+        if (allMissions != null)
         {
-            if (mission != null)
+            foreach (var mission in allMissions)
             {
-                missionsByPhase[mission.phase].Add(mission);
+                RegisterMission(mission);
+            }
+        }
+
+        if (autoLoadMissionsFromResources && !string.IsNullOrWhiteSpace(missionResourcesFolder))
+        {
+            var path = missionResourcesFolder.Trim();
+            if (!string.IsNullOrEmpty(path))
+            {
+                var resourceMissions = Resources.LoadAll<MissionData>(path);
+                foreach (var mission in resourceMissions)
+                {
+                    RegisterMission(mission);
+                }
             }
         }
 
@@ -126,6 +149,34 @@ public class MissionSelectManager : MonoBehaviour
         {
             missionsByPhase[phase] = missionsByPhase[phase].OrderBy(m => m.sortOrder).ToList();
         }
+    }
+
+    private void RegisterMission(MissionData mission)
+    {
+        if (mission == null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(mission.missionId))
+        {
+            Debug.LogWarning("MissionSelectManager: Encountered a mission with no missionId. Skipping entry.");
+            return;
+        }
+
+        if (missionLookup.ContainsKey(mission.missionId))
+        {
+            Debug.LogWarning($"MissionSelectManager: Duplicate mission id '{mission.missionId}' detected. Skipping duplicate entry.");
+            return;
+        }
+
+        missionLookup.Add(mission.missionId, mission);
+        aggregatedMissions.Add(mission);
+
+        if (!missionsByPhase.ContainsKey(mission.phase))
+        {
+            missionsByPhase[mission.phase] = new List<MissionData>();
+        }
+
+        missionsByPhase[mission.phase].Add(mission);
     }
 
     private void DisplayPlayerInfo()
@@ -139,11 +190,6 @@ public class MissionSelectManager : MonoBehaviour
                 playerGreetingText.text = PlayerData.Instance.GetGreeting();
         }
 
-        if (totalPointsText != null)
-        {
-            int totalPoints = PlayerPrefs.GetInt("TotalPoints", 0);
-            totalPointsText.text = $"Total Points: {totalPoints}";
-        }
     }
 
     private IEnumerator ShowWelcome()
@@ -164,9 +210,6 @@ public class MissionSelectManager : MonoBehaviour
 
         // Default to Before phase
         SwitchToPhase(MissionPhase.Before);
-
-        // If we have saved progress, try to resume that mission automatically
-        TryResumeLastMission();
     }
 
     #region Phase Switching
@@ -295,6 +338,34 @@ public class MissionSelectManager : MonoBehaviour
         Debug.Log($"MissionSelectManager: Selected mission - {mission.missionName}");
     }
 
+    private MissionData FindMissionByIdCached(string missionId)
+    {
+        if (string.IsNullOrWhiteSpace(missionId))
+            return null;
+
+        if (missionLookup.TryGetValue(missionId, out var cached))
+            return cached;
+
+        if (allMissions != null)
+        {
+            return allMissions.FirstOrDefault(m => m != null &&
+                string.Equals(m.missionId, missionId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return null;
+    }
+
+    private IEnumerable<MissionData> EnumerateAllKnownMissions()
+    {
+        if (aggregatedMissions.Count > 0)
+            return aggregatedMissions;
+
+        if (allMissions != null)
+            return allMissions.Where(m => m != null);
+
+        return Enumerable.Empty<MissionData>();
+    }
+
     private void UpdateMissionDetails(MissionData mission)
     {
         bool isLocked = IsMissionLocked(mission);
@@ -330,7 +401,7 @@ public class MissionSelectManager : MonoBehaviour
         {
             if (!string.IsNullOrEmpty(mission.requiredMissionId))
             {
-                var requiredMission = allMissions.FirstOrDefault(m => m.missionId == mission.requiredMissionId);
+                var requiredMission = FindMissionByIdCached(mission.requiredMissionId);
                 string requiredName = requiredMission != null ? requiredMission.missionName : mission.requiredMissionId;
                 lockedReasonText.text = $"Complete \"{requiredName}\" to unlock";
             }
@@ -377,9 +448,6 @@ public class MissionSelectManager : MonoBehaviour
             Debug.LogError("MissionSelectManager: Cannot start null mission!");
             return;
         }
-
-        // Persist last mission id for resume
-        PlayerData.Instance?.SaveLastMission(GetMissionNumericId(mission));
 
         SelectedMission = mission;
         Debug.Log($"MissionSelectManager: Starting mission - {mission.missionName}");
@@ -485,61 +553,6 @@ public class MissionSelectManager : MonoBehaviour
         }
     }
 
-    private void TryResumeLastMission()
-    {
-        if (PlayerData.Instance == null) return;
-        int lastId = PlayerData.Instance.LastMissionId;
-        if (lastId <= 0) return;
-
-        MissionData mission = FindMissionBySavedId(lastId);
-        if (mission == null)
-        {
-            Debug.Log($"MissionSelectManager: No mission matches saved id {lastId}, showing list.");
-            return;
-        }
-
-        if (IsMissionLocked(mission))
-        {
-            Debug.Log($"MissionSelectManager: Saved mission {mission.missionName} is locked, showing list.");
-            return;
-        }
-
-        Debug.Log($"MissionSelectManager: Resuming last mission: {mission.missionName}");
-        SelectMission(mission);
-        StartMission(mission);
-    }
-
-    private MissionData FindMissionBySavedId(int savedId)
-    {
-        if (allMissions == null) return null;
-
-        // Try numeric missionId match first
-        foreach (var mission in allMissions)
-        {
-            if (mission == null) continue;
-            if (int.TryParse(mission.missionId, out int mid) && mid == savedId)
-                return mission;
-        }
-
-        // Fallback: match sortOrder
-        foreach (var mission in allMissions)
-        {
-            if (mission == null) continue;
-            if (mission.sortOrder == savedId)
-                return mission;
-        }
-
-        return null;
-    }
-
-    private int GetMissionNumericId(MissionData mission)
-    {
-        if (mission == null) return 0;
-        if (int.TryParse(mission.missionId, out int mid))
-            return mid;
-        return mission.sortOrder;
-    }
-
     #endregion
 
     #region Navigation
@@ -580,11 +593,6 @@ public class MissionSelectManager : MonoBehaviour
         return PlayerPrefs.GetInt($"Mission_{missionId}_Completed", 0) == 1;
     }
 
-    public int GetMissionBestScore(string missionId)
-    {
-        return PlayerPrefs.GetInt($"Mission_{missionId}_Points", 0);
-    }
-
     /// <summary>
     /// Get all missions for a specific phase
     /// </summary>
@@ -601,13 +609,10 @@ public class MissionSelectManager : MonoBehaviour
     public int GetTotalCompletedMissions()
     {
         int count = 0;
-        if (allMissions != null)
+        foreach (var mission in EnumerateAllKnownMissions())
         {
-            foreach (var mission in allMissions)
-            {
-                if (mission != null && IsMissionCompleted(mission.missionId))
-                    count++;
-            }
+            if (mission != null && IsMissionCompleted(mission.missionId))
+                count++;
         }
         return count;
     }
@@ -618,19 +623,14 @@ public class MissionSelectManager : MonoBehaviour
     [ContextMenu("Reset All Progress")]
     public void ResetAllProgress()
     {
-        if (allMissions != null)
+        foreach (var mission in EnumerateAllKnownMissions())
         {
-            foreach (var mission in allMissions)
+            if (mission != null)
             {
-                if (mission != null)
-                {
-                    PlayerPrefs.DeleteKey($"Mission_{mission.missionId}_Completed");
-                    PlayerPrefs.DeleteKey($"Mission_{mission.missionId}_Points");
-                    PlayerPrefs.DeleteKey($"Mission_{mission.missionId}_Unlocked");
-                }
+                PlayerPrefs.DeleteKey($"Mission_{mission.missionId}_Completed");
+                PlayerPrefs.DeleteKey($"Mission_{mission.missionId}_Unlocked");
             }
         }
-        PlayerPrefs.DeleteKey("TotalPoints");
         PlayerPrefs.Save();
         Debug.Log("MissionSelectManager: All progress reset!");
     }

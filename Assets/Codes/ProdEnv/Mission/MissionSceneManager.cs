@@ -15,21 +15,8 @@ public abstract class MissionSceneManager : MonoBehaviour
 {
     public static MissionSceneManager Instance { get; protected set; }
 
-    [System.Serializable]
-    public class MissionTriggerBinding
-    {
-        public string missionId;
-        // Allow designers to assign GameObjects (with TaskTrigger component) in the inspector
-        public List<GameObject> triggerObjects = new List<GameObject>();
-    }
-
     [Header("Mission")]
     [SerializeField] protected MissionData fallbackMission;
-    [SerializeField] protected TMP_Text missionNameText;
-
-    [Header("Mission Trigger Bindings")]
-    [SerializeField] private bool useManualBindings = false;
-    [SerializeField] private List<MissionTriggerBinding> missionTriggerBindings = new List<MissionTriggerBinding>();
 
     [Header("Task UI")]
     [SerializeField] protected GameObject taskPanel;
@@ -46,7 +33,6 @@ public abstract class MissionSceneManager : MonoBehaviour
     [SerializeField] protected GameObject missionCompletePanel;
     [SerializeField] protected TMP_Text missionCompleteTitleText;
     [SerializeField] protected TMP_Text missionCompleteMessageText;
-    [SerializeField] protected TMP_Text missionCompletePointsText;
     [SerializeField] protected Button continueButton;
     [SerializeField] protected Button replayButton;
 
@@ -75,7 +61,6 @@ public abstract class MissionSceneManager : MonoBehaviour
     protected Dictionary<string, TaskTrigger> registeredTriggers = new Dictionary<string, TaskTrigger>();
     protected bool isMissionActive = false;
     protected bool isPaused = false;
-    protected int totalPoints = 0;
     protected List<TaskData> completedTasks = new List<TaskData>();
 
     // Properties
@@ -85,7 +70,6 @@ public abstract class MissionSceneManager : MonoBehaviour
     public int TotalTasks => currentMission?.tasks.Count ?? 0;
     public bool IsMissionActive => isMissionActive;
     public bool IsPaused => isPaused;
-    public int TotalPoints => totalPoints;
     public float Progress => TotalTasks > 0 ? (float)completedTasks.Count / TotalTasks : 0f;
 
     protected virtual void Awake()
@@ -96,58 +80,8 @@ public abstract class MissionSceneManager : MonoBehaviour
     protected virtual void Start()
     {
         SetupUI();
-
-        // Ensure all TaskTrigger components in the scene are registered so
-        // mission bindings can reference them even if their GameObjects are
-        // inactive in the hierarchy at authoring time.
-        RegisterAllSceneTriggers();
-
         LoadMission();
         StartCoroutine(BeginMissionSequence());
-
-        // Some TaskTrigger components register themselves in Start/Awake.
-        // If ApplyMissionBindings runs before those registrations, bindings
-        // can miss matches. Re-run filtering one frame later to ensure
-        // triggers have had a chance to register.
-        StartCoroutine(EnsureBindingsAfterRegistration());
-    }
-
-    /// <summary>
-    /// Finds all TaskTrigger components in the scene (including inactive)
-    /// and registers them with this manager. This avoids missing registrations
-    /// when manual bindings reference prefab instances or inactive objects.
-    /// </summary>
-    protected void RegisterAllSceneTriggers()
-    {
-        TaskTrigger[] allTriggers = Resources.FindObjectsOfTypeAll<TaskTrigger>();
-        if (allTriggers == null || allTriggers.Length == 0)
-            return;
-
-        foreach (var tt in allTriggers)
-        {
-            // Only consider scene objects (not assets)
-            if (tt.gameObject.scene.isLoaded)
-            {
-                RegisterTrigger(tt);
-            }
-        }
-
-        // Debug: list registered trigger keys
-        if (registeredTriggers.Count > 0)
-        {
-            var keys = string.Join(", ", new List<string>(registeredTriggers.Keys).ToArray());
-            Debug.Log($"MissionSceneManager: Registered scene triggers ({registeredTriggers.Count}): {keys}");
-        }
-    }
-
-    private System.Collections.IEnumerator EnsureBindingsAfterRegistration()
-    {
-        // Wait one frame to allow other components' Start() to run and register
-        // with this manager.
-        yield return null;
-
-        Debug.Log("MissionSceneManager: Re-running FilterTriggersForCurrentMission after one frame to ensure registration");
-        FilterTriggersForCurrentMission();
     }
 
     protected virtual void Update()
@@ -190,7 +124,7 @@ public abstract class MissionSceneManager : MonoBehaviour
         if (restartButton != null)
             restartButton.onClick.AddListener(OnReplayClicked);
         if (quitButton != null)
-            quitButton.onClick.AddListener(ReturnToMainMenu);
+            quitButton.onClick.AddListener(ReturnToMissionSelect);
     }
 
     protected virtual void LoadMission()
@@ -210,15 +144,6 @@ public abstract class MissionSceneManager : MonoBehaviour
         {
             Debug.LogError($"{GetType().Name}: No mission to load!");
         }
-
-        UpdateMissionHeader();
-        FilterTriggersForCurrentMission();
-    }
-
-    protected void UpdateMissionHeader()
-    {
-        if (missionNameText != null)
-            missionNameText.text = currentMission != null ? currentMission.missionName : "Mission";
     }
 
     #endregion
@@ -260,7 +185,6 @@ public abstract class MissionSceneManager : MonoBehaviour
     protected virtual void StartMission()
     {
         currentTaskIndex = 0;
-        totalPoints = 0;
         completedTasks.Clear();
         isMissionActive = true;
 
@@ -269,7 +193,6 @@ public abstract class MissionSceneManager : MonoBehaviour
 
         if (currentMission.tasks.Count > 0)
         {
-            FilterTriggersForCurrentMission();
             StartTask(0);
         }
         else
@@ -302,8 +225,7 @@ public abstract class MissionSceneManager : MonoBehaviour
         // Update UI
         UpdateTaskUI();
 
-        // Activate only this task's trigger
-        DeactivateAllTriggers();
+        // Activate trigger for this task
         ActivateTaskTrigger(currentTask.taskId);
 
         // Show start dialogue
@@ -327,8 +249,6 @@ public abstract class MissionSceneManager : MonoBehaviour
 
         Debug.Log($"{GetType().Name}: Completed task - {currentTask.taskName}");
 
-        // Add points
-        totalPoints += currentTask.pointsReward;
         completedTasks.Add(currentTask);
 
         // Deactivate trigger
@@ -368,16 +288,13 @@ public abstract class MissionSceneManager : MonoBehaviour
 
     protected virtual void CompleteMission()
     {
-        Debug.Log($"{GetType().Name}: Mission complete! Total points: {totalPoints}");
+        Debug.Log($"{GetType().Name}: Mission complete!");
 
         isMissionActive = false;
         currentTask = null;
 
-        // Add mission reward
-        int finalPoints = totalPoints + currentMission.rewardPoints;
-
         // Save progress
-        SaveMissionProgress(finalPoints);
+        SaveMissionProgress();
 
         // Hide task panel
         if (taskPanel != null)
@@ -388,6 +305,69 @@ public abstract class MissionSceneManager : MonoBehaviour
         // ShowMissionCompleteUI(); // Disabled for setup
 
         OnMissionCompleted?.Invoke(currentMission);
+
+        if (!TryProceedToNextMission())
+        {
+            ReturnToMissionSelect();
+        }
+    }
+
+    protected virtual bool TryProceedToNextMission()
+    {
+        if (currentMission == null || string.IsNullOrWhiteSpace(currentMission.unlocksMissionId))
+            return false;
+
+        MissionData nextMission = FindMissionById(currentMission.unlocksMissionId);
+        if (nextMission == null)
+        {
+            Debug.LogWarning($"{GetType().Name}: Could not resolve next mission '{currentMission.unlocksMissionId}'. Returning to mission select.");
+            return false;
+        }
+
+        MissionSelectManager.SetSelectedMission(nextMission);
+        string sceneName = ResolveMissionSceneName(nextMission);
+
+        if (string.IsNullOrWhiteSpace(sceneName) || !Application.CanStreamedLevelBeLoaded(sceneName))
+        {
+            Debug.LogWarning($"{GetType().Name}: Next mission scene '{sceneName}' is not loadable. Returning to mission select.");
+            return false;
+        }
+
+        Debug.Log($"{GetType().Name}: Auto-proceeding to next mission '{nextMission.missionId}' in scene '{sceneName}'.");
+        SceneManager.LoadScene(sceneName);
+        return true;
+    }
+
+    protected virtual MissionData FindMissionById(string missionId)
+    {
+        if (string.IsNullOrWhiteSpace(missionId))
+            return null;
+
+        MissionData[] loadedMissions = Resources.FindObjectsOfTypeAll<MissionData>();
+        foreach (var mission in loadedMissions)
+        {
+            if (mission != null && string.Equals(mission.missionId, missionId, System.StringComparison.OrdinalIgnoreCase))
+                return mission;
+        }
+
+        return null;
+    }
+
+    protected virtual string ResolveMissionSceneName(MissionData mission)
+    {
+        if (mission == null)
+            return null;
+
+        if (!string.IsNullOrWhiteSpace(mission.missionSceneName))
+            return mission.missionSceneName;
+
+        return mission.phase switch
+        {
+            MissionPhase.Before => "BeforeMission",
+            MissionPhase.During => "DuringMission",
+            MissionPhase.After => "AfterMission",
+            _ => "BeforeMission"
+        };
     }
 
     /// <summary>
@@ -501,109 +481,6 @@ public abstract class MissionSceneManager : MonoBehaviour
 
     #endregion
 
-    #region Trigger Filtering
-
-    protected void DeactivateAllTriggers()
-    {
-        foreach (var kvp in registeredTriggers)
-        {
-            kvp.Value.SetActive(false);
-        }
-    }
-
-    protected void FilterTriggersForCurrentMission()
-    {
-        DeactivateAllTriggers();
-
-        if (currentMission == null)
-        {
-            Debug.LogWarning($"{GetType().Name}: FilterTriggersForCurrentMission called but currentMission is null");
-            return;
-        }
-
-        Debug.Log($"{GetType().Name}: Filtering triggers for mission '{currentMission.missionId}' (useManualBindings={useManualBindings})");
-
-        if (useManualBindings && ApplyMissionBindings())
-        {
-            Debug.Log($"{GetType().Name}: Applied manual bindings for mission '{currentMission.missionId}'");
-            return;
-        }
-
-        foreach (var kvp in registeredTriggers)
-        {
-            bool belongs = IsTaskInCurrentMission(kvp.Key);
-            kvp.Value.SetActive(false);
-            kvp.Value.gameObject.SetActive(belongs);
-        }
-    }
-
-    protected bool ApplyMissionBindings()
-    {
-        if (missionTriggerBindings == null || missionTriggerBindings.Count == 0)
-            return false;
-
-        foreach (var binding in missionTriggerBindings)
-        {
-            if (string.IsNullOrEmpty(binding.missionId) || binding.missionId != currentMission.missionId)
-                continue;
-
-            // Resolve triggers from the assigned GameObjects by taskId (string) to avoid
-            // reference mismatches between prefab assets and runtime instances.
-            var bindingTaskIds = new HashSet<string>();
-            if (binding.triggerObjects != null)
-            {
-                foreach (var go in binding.triggerObjects)
-                {
-                    if (go == null) continue;
-                    var tt = go.GetComponent<TaskTrigger>();
-                    if (tt != null && !string.IsNullOrEmpty(tt.TaskId))
-                        bindingTaskIds.Add(tt.TaskId);
-                }
-            }
-
-                    // Debug: show which taskIds were collected from the binding and which registered triggers exist
-                    var bindingIdsList = bindingTaskIds.Count > 0 ? string.Join(", ", new List<string>(bindingTaskIds).ToArray()) : "(none)";
-                    var registeredList = registeredTriggers.Count > 0 ? string.Join(", ", new List<string>(registeredTriggers.Keys).ToArray()) : "(none)";
-                    Debug.Log($"ApplyMissionBindings: binding.missionId={binding.missionId}, bindingTaskIds=[{bindingIdsList}], registeredTriggers=[{registeredList}]");
-
-                    // Find all TaskTrigger instances in the loaded scene(s) and enable only those
-                    // whose TaskId is in the binding set. This avoids relying on registration order.
-                    TaskTrigger[] sceneTriggers = Resources.FindObjectsOfTypeAll<TaskTrigger>();
-                    foreach (var tt in sceneTriggers)
-                    {
-                        if (tt == null) continue;
-
-                        // Only consider scene objects (exclude assets/prefabs not in any loaded scene)
-                        if (!tt.gameObject.scene.isLoaded) continue;
-
-                        bool shouldBeActive = !string.IsNullOrEmpty(tt.TaskId) && bindingTaskIds.Contains(tt.TaskId);
-                        tt.SetActive(false);
-                        tt.gameObject.SetActive(shouldBeActive);
-
-                        if (shouldBeActive)
-                            Debug.Log($"ApplyMissionBindings: Activating scene trigger for taskId '{tt.TaskId}' on '{tt.gameObject.name}'");
-                    }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    protected bool IsTaskInCurrentMission(string taskId)
-    {
-        if (currentMission?.tasks == null) return false;
-
-        foreach (var task in currentMission.tasks)
-        {
-            if (task.taskId == taskId)
-                return true;
-        }
-        return false;
-    }
-
-    #endregion
-
     #region UI
 
     protected virtual void UpdateTaskUI()
@@ -671,9 +548,6 @@ public abstract class MissionSceneManager : MonoBehaviour
 
         if (missionCompleteMessageText != null)
             missionCompleteMessageText.text = currentMission.completionMessage;
-
-        if (missionCompletePointsText != null)
-            missionCompletePointsText.text = $"Points: {totalPoints + currentMission.rewardPoints}";
     }
 
     protected virtual void ShowTaskDialogue(string[] lines, System.Action onComplete)
@@ -693,12 +567,6 @@ public abstract class MissionSceneManager : MonoBehaviour
             ResumeMission();
         else
             PauseMission();
-    }
-
-    // Exposed for UI Pause button
-    public void ShowPauseMenu()
-    {
-        PauseMission();
     }
 
     public virtual void PauseMission()
@@ -747,7 +615,7 @@ public abstract class MissionSceneManager : MonoBehaviour
     public virtual void ReturnToMissionSelect()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("MissionSelect");
+        SceneManager.LoadScene("MissionManager");
     }
 
     public virtual void ReturnToMainMenu()
@@ -756,12 +624,11 @@ public abstract class MissionSceneManager : MonoBehaviour
         SceneManager.LoadScene("MainMenuProd");
     }
 
-
     #endregion
 
     #region Save/Load
 
-    protected virtual void SaveMissionProgress(int points)
+    protected virtual void SaveMissionProgress()
     {
         if (currentMission == null) return;
 
@@ -770,17 +637,6 @@ public abstract class MissionSceneManager : MonoBehaviour
         // Mark as completed
         PlayerPrefs.SetInt($"Mission_{missionId}_Completed", 1);
 
-        // Save best score
-        int bestPoints = PlayerPrefs.GetInt($"Mission_{missionId}_Points", 0);
-        if (points > bestPoints)
-        {
-            PlayerPrefs.SetInt($"Mission_{missionId}_Points", points);
-        }
-
-        // Add to total points
-        int totalGamePoints = PlayerPrefs.GetInt("TotalPoints", 0);
-        PlayerPrefs.SetInt("TotalPoints", totalGamePoints + points);
-
         // Unlock next mission if specified
         if (!string.IsNullOrEmpty(currentMission.unlocksMissionId))
         {
@@ -788,7 +644,7 @@ public abstract class MissionSceneManager : MonoBehaviour
         }
 
         PlayerPrefs.Save();
-        Debug.Log($"{GetType().Name}: Progress saved - {missionId} with {points} points");
+        Debug.Log($"{GetType().Name}: Progress saved - {missionId}");
     }
 
     public static bool IsMissionCompleted(string missionId)
@@ -799,11 +655,6 @@ public abstract class MissionSceneManager : MonoBehaviour
     public static bool IsMissionUnlocked(string missionId)
     {
         return PlayerPrefs.GetInt($"Mission_{missionId}_Unlocked", 0) == 1;
-    }
-
-    public static int GetMissionBestScore(string missionId)
-    {
-        return PlayerPrefs.GetInt($"Mission_{missionId}_Points", 0);
     }
 
     #endregion

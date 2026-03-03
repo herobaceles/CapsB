@@ -5,15 +5,6 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/Scenes/SampleScene.unity
-    guid: 4755b35b590504809a7525fd2109c2e2
-  - enabled: 0
-    path: Assets/Scenes/MainMenu.unity
-    guid: e33d09e3a25d65f439dc727c939da9a4
-  - enabled: 0
-    path: Assets/Scenes/BeforeScenario.unity
-    guid: f0bfe93c25dabd74a84512f992b22867
   - enabled: 1
     path: Assets/Scenes/Boot.unity
     guid: 85d8045187ac85049905579d5548e573
@@ -26,6 +17,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/BeforeMission.unity
     guid: 6445b58f31c54b743b4321ef0fc0a42b
+  - enabled: 1
+    path: Assets/Scenes/DuringMission.unity
+    guid: 9ce2f337869b828428292d66ddf78db2
   m_configObjects:
     UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: 6ee72d15cf39dd748a13eac57397b9af, type: 2}
     UnityEditor.XR.ARKit.ARKitSettings: {fileID: 11400000, guid: 0465d33c6aee55f44b0237db8b0e0259, type: 2}

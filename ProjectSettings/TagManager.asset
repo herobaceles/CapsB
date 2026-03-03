@@ -6,6 +6,7 @@ TagManager:
   tags:
   - EmergencyItem
   - Breaker
+  - Flood
   layers:
   - Default
   - TransparentFX

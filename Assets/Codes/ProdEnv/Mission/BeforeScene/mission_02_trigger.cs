@@ -40,8 +40,8 @@ public class ARMission02Trigger : MonoBehaviour
             // Show AR UI for next mission if needed
             if (arMissionUI != null)
             {
-                arMissionUI.SetActive(true);
-                Debug.Log("mission_02_trigger: AR UI activated.");
+                arMissionUI.SetActive(false);
+                Debug.Log("mission_02_trigger: AR UI kept hidden to avoid full-screen overlay.");
             }
 
             // Ensure AR session/camera is enabled (critical for AR to work)

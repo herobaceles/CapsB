@@ -178,7 +178,8 @@ public class OnboardingManager : MonoBehaviour
         string sceneName = string.IsNullOrEmpty(missionSceneName) ? "MissionManager" : missionSceneName;
         if (Application.CanStreamedLevelBeLoaded(sceneName))
         {
-            SceneManager.LoadScene(sceneName);
+            AppSceneLoader.EnsureExists();
+            AppSceneLoader.Instance.LoadSceneSingle(sceneName);
         }
         else
         {

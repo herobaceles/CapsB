@@ -19,10 +19,27 @@ MonoBehaviour:
   phase: 0
   missionSceneName: BeforeMission
   isLocked: 1
-  requiredMissionId: before_01
-  sortOrder: 2
-  tasks: []
+  requiredMissionId: before_02
+  sortOrder: 3
+  tasks:
+  - taskId: before_03_secure_appliances
+    taskName: Secure Appliances
+    taskDescription: Move all critical appliances above the projected flood level.
+    taskIcon: {fileID: 0}
+    taskType: 6
+    isOptional: 0
+    showDialogueOnStart: 0
+    startDialogue: []
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    objectives: []
   introDialogue: []
+  startQuiz:
+    question: When leaving the house or evacuating what is the best way to do?
+    options:
+    - Just leave
+    - 'Secure important appliences '
+    - Hide them
+    correctOptionIndex: 1
   completionMessage: Mission Complete! Great job!
-  rewardPoints: 100
   unlocksMissionId: 

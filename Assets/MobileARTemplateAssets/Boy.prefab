@@ -2012,7 +2012,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8889733727896032289}
   - component: {fileID: 1911821319526863931}
-  - component: {fileID: -2850170385343478437}
   - component: {fileID: 7817714065044219431}
   - component: {fileID: 8081818997933067090}
   - component: {fileID: 8266938637456662993}
@@ -2061,24 +2060,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &-2850170385343478437
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8576344283313510494}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2e40bbd2e4d1db942b10fefb9d7d1c64, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  joystick: {fileID: 0}
-  moveSpeed: 1.5
-  rotateSpeed: 12
-  gravity: -9.81
-  animator: {fileID: 0}
-  speedParam: Speed
 --- !u!143 &7817714065044219431
 CharacterController:
   m_ObjectHideFlags: 0

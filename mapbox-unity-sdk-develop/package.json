@@ -1,0 +1,38 @@
+{
+    "name": "com.mapbox.sdk",
+    "version": "3.0.7",
+    "displayName": "Mapbox Unity SDK",
+    "description": "Mapbox Unity SDK",
+    "unity": "2022.3",
+    "dependencies": {
+        "com.unity.render-pipelines.universal": "10.10.1",
+	"com.unity.nuget.newtonsoft-json": "3.2.1"
+    },
+    "author": {
+        "name": "Mapbox",
+        "url": "https://www.mapbox.com/"
+    },
+    "samples": [
+        {
+            "displayName": "LocationBasedGame",
+            "description": "Location Based Game",
+            "path": "Samples~/LocationBasedGame"
+        },
+        {
+            "displayName": "WorldMapViewer",
+            "description": "World Map Viewer",
+            "path": "Samples~/WorldMapViewer"
+        },
+        {
+
+            "displayName": "DirectionsApiDemo",
+            "description": "Directions Api Demo",
+            "path": "Runtime/Mapbox/DirectionsApi/Samples~/DirectionsApiDemo"
+        },
+        {
+            "displayName": "GeocodingApiDemo",
+            "description": "Geocoding Api Demo",
+            "path": "Runtime/Mapbox/GeocodingApi/Samples~/GeocodingApiDemo"
+        }
+    ]
+}

@@ -14,9 +14,10 @@ public class IsometricCameraController : MonoBehaviour
     [SerializeField] private bool autoFindPlayer = true;
 
     [Header("Isometric Settings")]
-    [SerializeField] private float distance = 6f; // Default closer distance
-    [SerializeField] private float height = 6f;   // Default closer height
+    [SerializeField] private float distance = 14f; // Increased distance for wider view
+    [SerializeField] private float height = 14f;   // Increased height for wider view
     [SerializeField] private float angle = 45f; // Rotation around Y axis
+    [SerializeField] private float forwardOffset = 6f; // Moves camera forward to center player vertically
 
     [Header("Following")]
     [SerializeField] private float followSpeed = 5f;
@@ -87,7 +88,6 @@ public class IsometricCameraController : MonoBehaviour
 
     private void FollowTarget()
     {
-        // Remove look ahead for wobble-free camera
         // Calculate desired position
         Vector3 desiredPosition = CalculateDesiredPositionNoLookAhead();
 
@@ -98,8 +98,8 @@ public class IsometricCameraController : MonoBehaviour
             desiredPosition.z = Mathf.Clamp(desiredPosition.z, minBounds.y, maxBounds.y);
         }
 
-        // Smooth follow
-        currentPosition = Vector3.Lerp(currentPosition, desiredPosition, followSpeed * Time.deltaTime);
+        // Direct follow (no smoothing) to eliminate wobble
+        currentPosition = desiredPosition;
         transform.position = currentPosition;
     }
 
@@ -112,8 +112,9 @@ public class IsometricCameraController : MonoBehaviour
             height,
             Mathf.Cos(rad) * distance
         );
-        // No look ahead
-        Vector3 targetPos = target.position;
+        // Add forward offset to center player vertically in view
+        Vector3 forward = new Vector3(Mathf.Sin(rad), 0, Mathf.Cos(rad)).normalized;
+        Vector3 targetPos = target.position + forward * forwardOffset;
         return targetPos + offset;
     }
 

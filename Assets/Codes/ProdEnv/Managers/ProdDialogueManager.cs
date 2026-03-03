@@ -240,7 +240,7 @@ public class ProdDialogueManager : MonoBehaviour
                 continueButtonText = continueButton.GetComponentInChildren<TMP_Text>();
             }
         }
-        
+
         Debug.Log($"ProdDialogueManager: RefreshUIReferences - Panel: {dialoguePanel != null}, Text: {dialogueText != null}, Name: {characterNameText != null}");
     }
 
