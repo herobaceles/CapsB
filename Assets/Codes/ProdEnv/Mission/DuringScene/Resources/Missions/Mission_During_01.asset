@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08d18cca6f19690448d81eb0c24d5ca0, type: 3}
   m_Name: Mission_During_01
   m_EditorClassIdentifier: 
-  missionId: during_01
-  missionName: Navigate Flood Hazards
-  missionDescription: Navigate the barangay map, clear each flood zone, and reach the evacuation center safely.
+  missionId: mission_during_01
+  missionName: "During: Evac Story"
+  missionDescription: "Story-mode evacuation with map tutorial, hazards, and shelter protocol."
   missionIcon: {fileID: 0}
   phase: 1
   missionSceneName: DuringMission
@@ -22,47 +22,117 @@ MonoBehaviour:
   requiredMissionId: 
   sortOrder: 1
   tasks:
-  - taskId: during_01_zone_entry
-    taskName: Enter First Flood Zone
-    taskDescription: Approach the first highlighted flood zone and analyze the hazards before proceeding.
+  - taskId: tutorial_open_map
+    taskName: "Check Your Evac Map"
+    taskDescription: "Open the backpack and view the map."
     taskIcon: {fileID: 0}
-    taskType: 6
+    taskType: 0
     isOptional: 0
-    showDialogueOnStart: 0
+    showDialogueOnStart: 1
     startDialogue: []
     showDialogueOnComplete: 0
     completeDialogue: []
     objectives: []
-  - taskId: during_01_zone_mid
-    taskName: Cross Midtown Floodway
-    taskDescription: Choose the safest route through the fast-moving water and debris.
+  - taskId: street_route_choice
+    taskName: "Choose Safe Route"
+    taskDescription: "Follow official markers; avoid the alley."
     taskIcon: {fileID: 0}
-    taskType: 6
+    taskType: 0
     isOptional: 0
-    showDialogueOnStart: 0
+    showDialogueOnStart: 1
     startDialogue: []
     showDialogueOnComplete: 0
     completeDialogue: []
     objectives: []
-  - taskId: during_01_zone_final
-    taskName: Reach Evacuation Center
-    taskDescription: Clear the final flood zone and tap the evacuation center marker to finish the mission.
+  - taskId: hazard_current
+    taskName: "Assess Water Current"
+    taskDescription: "Sort safe vs. dangerous water."
     taskIcon: {fileID: 0}
-    taskType: 6
+    taskType: 0
     isOptional: 0
-    showDialogueOnStart: 0
+    showDialogueOnStart: 1
+    startDialogue: []
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    objectives: []
+  - taskId: hazard_electrical
+    taskName: "Isolate Fallen Post"
+    taskDescription: "Place cones/tape; avoid live wires."
+    taskIcon: {fileID: 0}
+    taskType: 0
+    isOptional: 0
+    showDialogueOnStart: 1
+    startDialogue: []
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    objectives: []
+  - taskId: hazard_debris
+    taskName: "Handle Debris Safely"
+    taskDescription: "Sort debris; avoid heavy hazards."
+    taskIcon: {fileID: 0}
+    taskType: 0
+    isOptional: 0
+    showDialogueOnStart: 1
+    startDialogue: []
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    objectives: []
+  - taskId: evac_center_registration
+    taskName: "Register at Shelter"
+    taskDescription: "Submit ID and claim a spot."
+    taskIcon: {fileID: 0}
+    taskType: 0
+    isOptional: 0
+    showDialogueOnStart: 1
+    startDialogue: []
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    objectives: []
+  - taskId: evac_center_rules
+    taskName: "Follow Shelter Rules"
+    taskDescription: "Keep order: lines, mats, trash."
+    taskIcon: {fileID: 0}
+    taskType: 0
+    isOptional: 0
+    showDialogueOnStart: 1
+    startDialogue: []
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    objectives: []
+  - taskId: evac_center_resources
+    taskName: "Manage Supplies"
+    taskDescription: "Allocate use-now vs. save-for-later."
+    taskIcon: {fileID: 0}
+    taskType: 0
+    isOptional: 0
+    showDialogueOnStart: 1
+    startDialogue: []
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    objectives: []
+  - taskId: evac_center_rumor
+    taskName: "Verify Information"
+    taskDescription: "Share only official updates."
+    taskIcon: {fileID: 0}
+    taskType: 0
+    isOptional: 0
+    showDialogueOnStart: 1
+    startDialogue: []
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    objectives: []
+  - taskId: ending
+    taskName: "Stay Safe"
+    taskDescription: "Await the next official announcement."
+    taskIcon: {fileID: 0}
+    taskType: 0
+    isOptional: 0
+    showDialogueOnStart: 1
     startDialogue: []
     showDialogueOnComplete: 0
     completeDialogue: []
     objectives: []
   introDialogue: []
-  startQuiz:
-    question: What is the safest goal during a flood?
-    options:
-    - Move calmly toward the designated evacuation center.
-    - Stay near floodwaters to monitor the situation.
-    - Wait on the street for updates.
-    correctOptionIndex: 0
-  completionMessage: Mission Complete! You arrived at the evacuation center.
-  rewardPoints: 150
+  startQuiz: {fileID: 0}
+  completionMessage: "Mission Complete! Great job!"
   unlocksMissionId: 

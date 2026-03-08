@@ -2390,6 +2390,7 @@ MonoBehaviour:
   - Clothes
   - Medkit
   - Food
+  - Map
   notRequiredItemNames:
   - Toy
   - 
@@ -2401,6 +2402,7 @@ MonoBehaviour:
   itemListPanel: {fileID: 886186202}
   itemListContainer: {fileID: 1034182706}
   itemListItemPrefab: {fileID: 4689334697779249361, guid: 073642c76fb51b744ba01f7c5ec532a8, type: 3}
+  goBagItemDefinitions: []
   raycastManager: {fileID: 0}
   tablePrefab: {fileID: 5580475605631790240, guid: 1989b714c892be144a482d93edded18a, type: 3}
   bagPrefab: {fileID: 8749596410275072330, guid: ab8ade52c5bb55e44a0bd68faf00fd05, type: 3}
@@ -2409,6 +2411,7 @@ MonoBehaviour:
   - {fileID: 6197828876777929895, guid: 4101051fcec6f0443befe4503bb7a227, type: 3}
   - {fileID: 6197828876777929895, guid: 1871b36bf52317b4a9c4e453486c6cff, type: 3}
   - {fileID: 6197828876777929895, guid: dbb9a0c83289b3840b285ebf910946e8, type: 3}
+  - {fileID: 6197828876777929895, guid: fce92be88adadf54696f5c0100151361, type: 3}
   missionCompleteUI: {fileID: 0}
 --- !u!4 &218260068
 Transform:
@@ -15479,6 +15482,7 @@ MonoBehaviour:
   distance: 10
   height: 10
   angle: 45
+  forwardOffset: 6
   followSpeed: 5
   lookAheadDistance: 2
   lookAheadSpeed: 3
