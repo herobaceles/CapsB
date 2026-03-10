@@ -45,6 +45,10 @@ public class IsometricCameraController : MonoBehaviour
         set => target = value;
     }
 
+    // Expose current camera settings for tasks that temporarily adjust the view
+    public float CurrentDistance => distance;
+    public float CurrentAngle => angle;
+
     private void Start()
     {
         if (target == null && autoFindPlayer)

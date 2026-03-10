@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Mission_During_01
   m_EditorClassIdentifier: 
   missionId: mission_during_01
-  missionName: "During: Evac Story"
-  missionDescription: "Story-mode evacuation with map tutorial, hazards, and shelter protocol."
+  missionName: 'During: Evac Story'
+  missionDescription: Story-mode evacuation with map tutorial, hazards, and shelter
+    protocol.
   missionIcon: {fileID: 0}
   phase: 1
   missionSceneName: DuringMission
@@ -23,8 +24,8 @@ MonoBehaviour:
   sortOrder: 1
   tasks:
   - taskId: tutorial_open_map
-    taskName: "Check Your Evac Map"
-    taskDescription: "Open the backpack and view the map."
+    taskName: Check Your Evac Map
+    taskDescription: Open the backpack and view the map.
     taskIcon: {fileID: 0}
     taskType: 0
     isOptional: 0
@@ -34,19 +35,8 @@ MonoBehaviour:
     completeDialogue: []
     objectives: []
   - taskId: street_route_choice
-    taskName: "Choose Safe Route"
-    taskDescription: "Follow official markers; avoid the alley."
-    taskIcon: {fileID: 0}
-    taskType: 0
-    isOptional: 0
-    showDialogueOnStart: 1
-    startDialogue: []
-    showDialogueOnComplete: 0
-    completeDialogue: []
-    objectives: []
-  - taskId: hazard_current
-    taskName: "Assess Water Current"
-    taskDescription: "Sort safe vs. dangerous water."
+    taskName: Choose Safe Route
+    taskDescription: Follow official markers; avoid the alley.
     taskIcon: {fileID: 0}
     taskType: 0
     isOptional: 0
@@ -56,19 +46,8 @@ MonoBehaviour:
     completeDialogue: []
     objectives: []
   - taskId: hazard_electrical
-    taskName: "Isolate Fallen Post"
-    taskDescription: "Place cones/tape; avoid live wires."
-    taskIcon: {fileID: 0}
-    taskType: 0
-    isOptional: 0
-    showDialogueOnStart: 1
-    startDialogue: []
-    showDialogueOnComplete: 0
-    completeDialogue: []
-    objectives: []
-  - taskId: hazard_debris
-    taskName: "Handle Debris Safely"
-    taskDescription: "Sort debris; avoid heavy hazards."
+    taskName: Isolate Fallen Post
+    taskDescription: Place cones/tape; avoid live wires.
     taskIcon: {fileID: 0}
     taskType: 0
     isOptional: 0
@@ -78,52 +57,8 @@ MonoBehaviour:
     completeDialogue: []
     objectives: []
   - taskId: evac_center_registration
-    taskName: "Register at Shelter"
-    taskDescription: "Submit ID and claim a spot."
-    taskIcon: {fileID: 0}
-    taskType: 0
-    isOptional: 0
-    showDialogueOnStart: 1
-    startDialogue: []
-    showDialogueOnComplete: 0
-    completeDialogue: []
-    objectives: []
-  - taskId: evac_center_rules
-    taskName: "Follow Shelter Rules"
-    taskDescription: "Keep order: lines, mats, trash."
-    taskIcon: {fileID: 0}
-    taskType: 0
-    isOptional: 0
-    showDialogueOnStart: 1
-    startDialogue: []
-    showDialogueOnComplete: 0
-    completeDialogue: []
-    objectives: []
-  - taskId: evac_center_resources
-    taskName: "Manage Supplies"
-    taskDescription: "Allocate use-now vs. save-for-later."
-    taskIcon: {fileID: 0}
-    taskType: 0
-    isOptional: 0
-    showDialogueOnStart: 1
-    startDialogue: []
-    showDialogueOnComplete: 0
-    completeDialogue: []
-    objectives: []
-  - taskId: evac_center_rumor
-    taskName: "Verify Information"
-    taskDescription: "Share only official updates."
-    taskIcon: {fileID: 0}
-    taskType: 0
-    isOptional: 0
-    showDialogueOnStart: 1
-    startDialogue: []
-    showDialogueOnComplete: 0
-    completeDialogue: []
-    objectives: []
-  - taskId: ending
-    taskName: "Stay Safe"
-    taskDescription: "Await the next official announcement."
+    taskName: Register at Shelter
+    taskDescription: Submit ID and claim a spot.
     taskIcon: {fileID: 0}
     taskType: 0
     isOptional: 0
@@ -133,6 +68,12 @@ MonoBehaviour:
     completeDialogue: []
     objectives: []
   introDialogue: []
-  startQuiz: {fileID: 0}
-  completionMessage: "Mission Complete! Great job!"
+  startQuiz:
+    question: 
+    options:
+    - 
+    - 
+    - 
+    correctOptionIndex: 0
+  completionMessage: Mission Complete! Great job!
   unlocksMissionId: 

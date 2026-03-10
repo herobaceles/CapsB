@@ -9,6 +9,18 @@ using TMPro;
 /// </summary>
 public class ARHazardIsolationTask : ARTaskBase
 {
+    [Header("Camera Focus")]
+    [SerializeField] private IsometricCameraController cameraController;
+    [SerializeField] private Transform focusPoint;
+    [SerializeField] private float focusDistance = 16f;
+    [SerializeField] private float focusAngle = 45f;
+
+    [Header("Gameplay HUD To Hide")]
+    [SerializeField] private GameObject[] gameplayUIRoots;
+
+    [Header("Player Control")]
+    [SerializeField] private IsometricPlayerController playerController;
+
     [Header("Hazard Area")]
     [SerializeField] private RectTransform hazardZone;
     [SerializeField] private Image hazardHighlight;
@@ -30,6 +42,12 @@ public class ARHazardIsolationTask : ARTaskBase
     private int correctPlacements;
     private Dictionary<BarrierItem, bool> placedItems = new Dictionary<BarrierItem, bool>();
 
+    private Transform previousCameraTarget;
+    private float previousCameraDistance;
+    private float previousCameraAngle;
+    private bool[] previousUIStates;
+    private bool previousMovementEnabled;
+
     [System.Serializable]
     public class BarrierItem
     {
@@ -45,6 +63,30 @@ public class ARHazardIsolationTask : ARTaskBase
         Cone,
         BarrierTape,
         DangerSign
+    }
+
+    private void OnValidate()
+    {
+        if (cameraController == null)
+            cameraController = FindObjectOfType<IsometricCameraController>();
+
+        if (playerController == null)
+            playerController = FindObjectOfType<IsometricPlayerController>();
+    }
+
+    public override void StartTask()
+    {
+        // Immediately stop and lock player movement before the UI appears
+        if (playerController == null)
+            playerController = FindObjectOfType<IsometricPlayerController>();
+
+        if (playerController != null)
+        {
+            previousMovementEnabled = playerController.IsMovementEnabled;
+            playerController.SetMovementEnabled(false);
+        }
+
+        base.StartTask();
     }
 
     protected override void OnTaskShow()
@@ -74,6 +116,35 @@ public class ARHazardIsolationTask : ARTaskBase
 
         if (dangerIndicator != null)
             dangerIndicator.color = Color.red;
+
+        // Focus camera on the hazard area
+        if (cameraController != null && focusPoint != null)
+        {
+            previousCameraTarget = cameraController.Target;
+            previousCameraDistance = cameraController.CurrentDistance;
+            previousCameraAngle = cameraController.CurrentAngle;
+
+            cameraController.Target = focusPoint;
+            cameraController.SetDistance(focusDistance);
+            cameraController.SetAngle(focusAngle);
+            cameraController.SnapToTarget();
+        }
+
+        // Hide gameplay HUD while this task is active
+        if (gameplayUIRoots != null && gameplayUIRoots.Length > 0)
+        {
+            if (previousUIStates == null || previousUIStates.Length != gameplayUIRoots.Length)
+                previousUIStates = new bool[gameplayUIRoots.Length];
+
+            for (int i = 0; i < gameplayUIRoots.Length; i++)
+            {
+                var root = gameplayUIRoots[i];
+                if (root == null) continue;
+
+                previousUIStates[i] = root.activeSelf;
+                root.SetActive(false);
+            }
+        }
     }
 
     protected override void OnTaskHide()
@@ -86,6 +157,37 @@ public class ARHazardIsolationTask : ARTaskBase
                 if (handler != null)
                     Destroy(handler);
             }
+        }
+
+        // Restore camera to previous follow target
+        if (cameraController != null && previousCameraTarget != null)
+        {
+            cameraController.Target = previousCameraTarget;
+            cameraController.SetDistance(previousCameraDistance);
+            cameraController.SetAngle(previousCameraAngle);
+            cameraController.SnapToTarget();
+        }
+
+        // Restore gameplay HUD visibility
+        if (gameplayUIRoots != null && gameplayUIRoots.Length > 0)
+        {
+            for (int i = 0; i < gameplayUIRoots.Length; i++)
+            {
+                var root = gameplayUIRoots[i];
+                if (root == null) continue;
+
+                bool wasActive = previousUIStates != null && i < previousUIStates.Length
+                    ? previousUIStates[i]
+                    : true;
+
+                root.SetActive(wasActive);
+            }
+        }
+
+        // Re-enable player movement if it was previously enabled
+        if (playerController != null)
+        {
+            playerController.SetMovementEnabled(previousMovementEnabled);
         }
     }
 
@@ -222,3 +324,5 @@ public class HazardDragHandler : MonoBehaviour, UnityEngine.EventSystems.IBeginD
         task?.OnBarrierPlaced(item, eventData.position);
     }
 }
+
+
