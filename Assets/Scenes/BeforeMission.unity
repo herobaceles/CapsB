@@ -15479,6 +15479,7 @@ MonoBehaviour:
   distance: 10
   height: 10
   angle: 45
+  forwardOffset: 6
   followSpeed: 5
   lookAheadDistance: 2
   lookAheadSpeed: 3

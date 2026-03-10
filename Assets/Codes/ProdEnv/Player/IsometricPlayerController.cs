@@ -15,7 +15,6 @@ public class IsometricPlayerController : MonoBehaviour
 
     [Header("Joystick (Assign from Asset Store joystick)")]
     [SerializeField] private FixedJoystick joystick; // Works with Joystick Pack
-    // If using a different joystick, change this type or use the interface below
 
     [Header("Gravity")]
     [SerializeField] private float gravity = -9.81f;
@@ -86,7 +85,19 @@ public class IsometricPlayerController : MonoBehaviour
         // Get input from joystick
         if (joystick != null)
         {
-            inputDirection = new Vector2(joystick.Horizontal, joystick.Vertical);
+            float h = joystick.Horizontal;
+            float v = joystick.Vertical;
+
+            // FIX: Call the correction logic from AfterRecoveryARController to fix inverted movement in AfterMission
+            if (AfterRecoveryARController.Instance != null)
+            {
+                Vector3 corrected = AfterRecoveryARController.Instance.GetCorrectedJoystickInput(h, v);
+                inputDirection = new Vector2(corrected.x, corrected.z);
+            }
+            else
+            {
+                inputDirection = new Vector2(h, v);
+            }
         }
         else
         {
@@ -142,6 +153,12 @@ public class IsometricPlayerController : MonoBehaviour
 
     private void Move()
     {
+        // FIX: Ensure we are using the currently active camera (critical for AR scene camera swaps)
+        if (cameraTransform == null || !cameraTransform.gameObject.activeInHierarchy)
+        {
+            cameraTransform = Camera.main?.transform;
+        }
+
         // Convert input to isometric world direction
         moveDirection = ConvertToIsometric(inputDirection);
 
@@ -234,17 +251,11 @@ public class IsometricPlayerController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Set joystick reference at runtime
-    /// </summary>
     public void SetJoystick(FixedJoystick newJoystick)
     {
         joystick = newJoystick;
     }
 
-    /// <summary>
-    /// Teleport player to position
-    /// </summary>
     public void Teleport(Vector3 position)
     {
         characterController.enabled = false;
@@ -253,9 +264,6 @@ public class IsometricPlayerController : MonoBehaviour
         currentVelocity = Vector3.zero;
     }
 
-    /// <summary>
-    /// Stop all movement
-    /// </summary>
     public void StopMovement()
     {
         currentVelocity = Vector3.zero;
