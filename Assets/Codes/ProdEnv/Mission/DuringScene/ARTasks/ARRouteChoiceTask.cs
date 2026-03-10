@@ -334,11 +334,3 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
     }
 }
 
-
-
-
-// x 54.5 y  4.24 0.09
-
-// angle 180 distancw 41.4 
-
-
