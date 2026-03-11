@@ -29,11 +29,16 @@ MonoBehaviour:
     taskType: 6
     isOptional: 0
     showDialogueOnStart: 0
-    startDialogue: []
+    startDialogue:
+    - Water can rise fast. Lift heavy appliances above the flood line to prevent
+      damage.
+    - Before you begin, answer this quick question.
     showDialogueOnComplete: 0
-    completeDialogue: []
+    completeDialogue:
+    - Great! Now raise each appliance onto a higher surface above the blue line.
     objectives: []
-  introDialogue: []
+  introDialogue:
+  - hello
   startQuiz:
     question: When leaving the house or evacuating what is the best way to do?
     options:
@@ -41,5 +46,10 @@ MonoBehaviour:
     - 'Secure important appliences '
     - Hide them
     correctOptionIndex: 1
+    optionSprites:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    placeholderSprite: {fileID: 0}
   completionMessage: Mission Complete! Great job!
   unlocksMissionId: 

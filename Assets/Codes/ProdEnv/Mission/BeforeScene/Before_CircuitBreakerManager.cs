@@ -8,6 +8,10 @@ using System.Collections.Generic;
 /// </summary>
 public class CircuitBreakerManager : MonoBehaviour
 {
+    [Header("Dialogue Data")]
+    [SerializeField] private string circuitBreakerTaskId = "before_02_secure_circuit_breaker";
+    [SerializeField] private string dialogueSpeaker = "Professor Lingap";
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -49,11 +53,17 @@ public class CircuitBreakerManager : MonoBehaviour
 
     private void ShowInstructionDialogue()
     {
-        var lines = new List<ProdDialogueLine>
+        var mission = MissionSelectManager.SelectedMission;
+        var task = GetCircuitBreakerTask(mission);
+        var lines = BuildDialogueLines(task?.startDialogue);
+
+        if (lines != null && lines.Count > 0 && ProdDialogueManager.Instance != null)
         {
-            new ProdDialogueLine("Professor Lingap", "Now for your next task is to find the circuit breaker. It is near the door.")
-        };
-        ProdDialogueManager.Instance.ShowDialogueSequence(lines, ShowStartQuizGate);
+            ProdDialogueManager.Instance.ShowDialogueSequence(lines, ShowStartQuizGate);
+            return;
+        }
+
+        ShowStartQuizGate();
     }
 
     // --- Quiz UI logic (copied/adapted from PrepareGoBag) ---
@@ -82,18 +92,47 @@ public class CircuitBreakerManager : MonoBehaviour
 
     private void OnStartQuizAnsweredCorrectly()
     {
-        var lines = new List<ProdDialogueLine>
-        {
-            new ProdDialogueLine("Professor Lingap", "Correct! Now, find and interact with the circuit breaker.")
-        };
+        var mission = MissionSelectManager.SelectedMission;
+        var task = GetCircuitBreakerTask(mission);
+        var lines = BuildDialogueLines(task?.completeDialogue);
 
-        if (ProdDialogueManager.Instance != null)
+        if (lines != null && lines.Count > 0 && ProdDialogueManager.Instance != null)
         {
             ProdDialogueManager.Instance.ShowDialogueSequence(lines, CompleteStartGate);
             return;
         }
 
         CompleteStartGate();
+    }
+
+    private TaskData GetCircuitBreakerTask(MissionData mission)
+    {
+        if (mission == null || mission.tasks == null)
+            return null;
+
+        foreach (var task in mission.tasks)
+        {
+            if (task != null && task.taskId == circuitBreakerTaskId)
+                return task;
+        }
+
+        return null;
+    }
+
+    private List<ProdDialogueLine> BuildDialogueLines(string[] dialogue)
+    {
+        if (dialogue == null || dialogue.Length == 0)
+            return null;
+
+        var lines = new List<ProdDialogueLine>();
+        foreach (var line in dialogue)
+        {
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+            lines.Add(new ProdDialogueLine(dialogueSpeaker, line));
+        }
+
+        return lines.Count > 0 ? lines : null;
     }
 
     private void CompleteStartGate()

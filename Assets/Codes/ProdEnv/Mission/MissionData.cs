@@ -74,6 +74,11 @@ public class MissionQuizData
 
     [Tooltip("Fallback sprite when a specific option sprite is not provided")]
     public Sprite placeholderSprite;
+
+    [Header("Post-Quiz Dialogue (Optional)")]
+    [TextArea(2, 3)]
+    [Tooltip("Optional dialogue lines shown after the player selects the correct answer in the start quiz.")]
+    public string[] correctAnswerDialogue;
 }
 
 /// <summary>

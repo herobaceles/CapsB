@@ -13,6 +13,12 @@ public class SecuringAppliancesManager : MonoBehaviour
 {
     private const string SecuringAppliancesTaskId = "before_03_secure_appliances";
 
+    [Header("Dialogue Data")]
+    [SerializeField] private string dialogueSpeaker = "Professor Lingap";
+
+    [Header("Dialogue Settings")]
+    [SerializeField] private bool suppressDialogue = false;
+
     public static SecuringAppliancesManager Instance { get; private set; }
 
     [Header("Mission Id")]
@@ -62,6 +68,7 @@ public class SecuringAppliancesManager : MonoBehaviour
             return;
         }
         Instance = this;
+        suppressDialogue = false;
         appliancesRegistered = !waitForRuntimeApplianceRegistration && appliances != null && appliances.Count > 0;
 
         if (cameraBinder == null)
@@ -124,14 +131,16 @@ public class SecuringAppliancesManager : MonoBehaviour
         if (missionStarted)
             return;
 
+        var activeMission = GetActiveMission();
+
         if (waitForRuntimeApplianceRegistration && !appliancesRegistered)
         {
             Debug.Log("SecuringAppliancesManager: Waiting for runtime appliance registration.");
             return;
         }
 
-        if (!ignoreMissionIdCheck && MissionSelectManager.SelectedMission != null &&
-            !string.Equals(MissionSelectManager.SelectedMission.missionId, missionId, System.StringComparison.OrdinalIgnoreCase))
+        if (!ignoreMissionIdCheck && activeMission != null &&
+            !string.Equals(activeMission.missionId, missionId, System.StringComparison.OrdinalIgnoreCase))
         {
             // Not the active mission; keep disabled
             return;
@@ -354,65 +363,17 @@ public class SecuringAppliancesManager : MonoBehaviour
             statusText.gameObject.SetActive(true);
         DisableFloodLineVisuals();
 
-        // Intro dialogue, then quiz gate
-        if (ProdDialogueManager.Instance != null)
-        {
-            var lines = new List<ProdDialogueLine>
-            {
-                new ProdDialogueLine("Professor Lingap", "Heavy rainfall expected! Secure all critical appliances before the flood arrives."),
-                new ProdDialogueLine("Professor Lingap", "Tap an appliance, then tap an elevated area to place it safely."),
-                new ProdDialogueLine("Professor Lingap", "Each elevated area can hold only one appliance."),
-                new ProdDialogueLine("Professor Lingap", "Move quickly and safely while securing every appliance."),
-            };
-            ProdDialogueManager.Instance.ShowDialogueSequence(lines, ShowStartQuizGate);
-        }
-        else
-        {
-            ShowStartQuizGate();
-        }
+        // Skip intro dialogue; go straight into gameplay.
+        ShowStartQuizGate();
 
         UpdateStatusText();
         UpdateTimerUI();
 
     }
 
-    // --- Quiz UI logic (copied/adapted from PrepareGoBag) ---
-    private QuizDialogueUIManager quizDialogueUI;
-
     private void ShowStartQuizGate()
     {
-        if (!TryGetStartQuiz(out MissionQuizData quizData) || !IsQuizDataValid(quizData))
-        {
-            CompleteStartGate();
-            return;
-        }
-
-        if (quizDialogueUI == null)
-            quizDialogueUI = FindObjectOfType<QuizDialogueUIManager>();
-
-        if (quizDialogueUI == null)
-        {
-            Debug.LogWarning("SecuringAppliancesManager: QuizDialogueUIManager not found. Skipping quiz gate to avoid soft lock.");
-            CompleteStartGate();
-            return;
-        }
-
-        quizDialogueUI.ShowQuiz(quizData, OnStartQuizAnsweredCorrectly);
-    }
-
-    private void OnStartQuizAnsweredCorrectly()
-    {
-        var lines = new List<ProdDialogueLine>
-        {
-            new ProdDialogueLine("Professor Lingap", "Correct! Now, secure all appliances above the flood line.")
-        };
-
-        if (ProdDialogueManager.Instance != null)
-        {
-            ProdDialogueManager.Instance.ShowDialogueSequence(lines, CompleteStartGate);
-            return;
-        }
-
+        // Quiz gate removed for AR flow; proceed directly to gameplay.
         CompleteStartGate();
     }
 
@@ -422,30 +383,34 @@ public class SecuringAppliancesManager : MonoBehaviour
             floodWarningUI.SetActive(false);
     }
 
-    private bool TryGetStartQuiz(out MissionQuizData quizData)
+    private TaskData GetTask(MissionData mission)
     {
-        quizData = null;
-        var selectedMission = MissionSelectManager.SelectedMission;
-        if (selectedMission == null)
-            return false;
-        quizData = selectedMission.startQuiz;
-        return quizData != null;
+        if (mission == null || mission.tasks == null)
+            return null;
+
+        foreach (var task in mission.tasks)
+        {
+            if (task != null && task.taskId == SecuringAppliancesTaskId)
+                return task;
+        }
+
+        return null;
     }
 
-    private bool IsQuizDataValid(MissionQuizData quizData)
+    private List<ProdDialogueLine> BuildDialogueLines(string[] dialogue)
     {
-        if (quizData == null)
-            return false;
-        if (string.IsNullOrWhiteSpace(quizData.question))
-            return false;
-        if (quizData.options == null || quizData.options.Length < 3)
-            return false;
-        for (int i = 0; i < 3; i++)
+        if (dialogue == null || dialogue.Length == 0)
+            return null;
+
+        var lines = new List<ProdDialogueLine>();
+        foreach (var line in dialogue)
         {
-            if (string.IsNullOrWhiteSpace(quizData.options[i]))
-                return false;
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+            lines.Add(new ProdDialogueLine(dialogueSpeaker, line));
         }
-        return quizData.correctOptionIndex >= 0 && quizData.correctOptionIndex < 3;
+
+        return lines.Count > 0 ? lines : null;
     }
 
     private void UpdateTimer()
@@ -499,32 +464,32 @@ public class SecuringAppliancesManager : MonoBehaviour
             timerText.gameObject.SetActive(false);
         if (floodLineVisualizer != null)
             floodLineVisualizer.gameObject.SetActive(false);
+        if (statusText != null)
+            statusText.gameObject.SetActive(false);
+
+        if (suppressDialogue)
+        {
+            FinalizeAndReturnToScene();
+            return;
+        }
 
         int securedCount = 0;
         foreach (var app in appliances)
             if (app != null && app.IsSecured) securedCount++;
 
-        if (ProdDialogueManager.Instance != null)
-        {
-            var lines = new List<ProdDialogueLine>
-            {
-                new ProdDialogueLine("Professor Lingap", "All appliances secured—great work!"),
-                new ProdDialogueLine("Professor Lingap", $"You secured {securedCount}/{appliances.Count} appliances safely."),
-                new ProdDialogueLine("Professor Lingap", "Unplugging and elevating appliances before floods prevents shocks, fires, and costly damage."),
-            };
-            ProdDialogueManager.Instance.ShowDialogueSequence(lines, () =>
-            {
-                if (statusText != null)
-                    statusText.gameObject.SetActive(false);
+        var mission = MissionSelectManager.SelectedMission;
+        var task = GetTask(mission);
+        var completeLines = BuildDialogueLines(task?.completeDialogue);
 
+        if (ProdDialogueManager.Instance != null && completeLines != null && completeLines.Count > 0)
+        {
+            ProdDialogueManager.Instance.ShowDialogueSequence(completeLines, () =>
+            {
                 FinalizeAndReturnToScene();
             });
         }
         else
         {
-            if (statusText != null)
-                statusText.gameObject.SetActive(false);
-
             FinalizeAndReturnToScene();
         }
     }
@@ -652,6 +617,17 @@ public class SecuringAppliancesManager : MonoBehaviour
 
         if (floodHeightHintText != null)
             floodHeightHintText.gameObject.SetActive(false);
+    }
+
+    private MissionData GetActiveMission()
+    {
+        if (MissionSelectManager.SelectedMission != null)
+            return MissionSelectManager.SelectedMission;
+
+        if (BeforeMissionManager.Instance != null && BeforeMissionManager.Instance.CurrentMission != null)
+            return BeforeMissionManager.Instance.CurrentMission;
+
+        return null;
     }
 
     private void UpdateStatusText()

@@ -30,11 +30,14 @@ MonoBehaviour:
     taskType: 6
     isOptional: 0
     showDialogueOnStart: 0
-    startDialogue: []
+    startDialogue:
+    - 
     showDialogueOnComplete: 0
-    completeDialogue: []
+    completeDialogue:
+    - Correct! Now find and interact with the circuit breaker.
     objectives: []
-  introDialogue: []
+  introDialogue:
+  - hi
   startQuiz:
     question: What Do you need to turn off
     options:
@@ -42,5 +45,10 @@ MonoBehaviour:
     - PS5
     - Cuircuit Breaker
     correctOptionIndex: 2
+    optionSprites:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    placeholderSprite: {fileID: 0}
   completionMessage: Mission Complete! Great job!
   unlocksMissionId: before_03
