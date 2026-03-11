@@ -80,6 +80,13 @@ public class MissionQuizData
 
     [Tooltip("Zero-based index of the correct option")]
     public int correctOptionIndex = 0;
+
+    [Header("Visuals (Optional)")]
+    [Tooltip("Optional sprites for each option button (0,1,2). If missing, placeholder is used.")]
+    public Sprite[] optionSprites = new Sprite[3];
+
+    [Tooltip("Fallback sprite when a specific option sprite is not provided")]
+    public Sprite placeholderSprite;
 }
 
 /// <summary>

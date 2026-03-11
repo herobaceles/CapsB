@@ -20,6 +20,11 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private Button confirmResetButton;
     [SerializeField] private Button cancelResetButton;
 
+    [Header("Settings")]
+    [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private Slider masterVolumeSlider;
+    [SerializeField] private Button closeSettingsButton;
+
     private void Start()
     {
         AppSceneLoader.EnsureExists();
@@ -48,6 +53,27 @@ public class MainMenuManager : MonoBehaviour
             confirmResetButton.onClick.AddListener(ConfirmResetProgress);
         if (cancelResetButton != null)
             cancelResetButton.onClick.AddListener(CancelResetProgress);
+
+        // Settings panel starts hidden
+        if (settingsPanel != null)
+            settingsPanel.SetActive(false);
+
+        // Wire settings UI
+        if (masterVolumeSlider != null)
+        {
+            // Initialize slider from current audio settings if available
+            if (AudioManager.Instance != null)
+            {
+                masterVolumeSlider.value = AudioManager.Instance.GetMasterVolume();
+            }
+
+            masterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
+        }
+
+        if (closeSettingsButton != null)
+        {
+            closeSettingsButton.onClick.AddListener(CloseSettings);
+        }
     }
 
     // Called when "Play" button is clicked
@@ -102,10 +128,26 @@ public class MainMenuManager : MonoBehaviour
     // Called when "Settings" button is clicked
     public void OpenSettings()
     {
-        // Here you can open a settings panel or scene
-        // Example: activate a UI panel
-        Debug.Log("Settings button clicked");
-        // SettingsPanel.SetActive(true); // If you have a panel
+        Debug.Log("MainMenuManager: Settings button clicked");
+
+        if (settingsPanel != null)
+        {
+            settingsPanel.SetActive(true);
+
+            // Refresh slider from current volume in case it changed elsewhere
+            if (masterVolumeSlider != null && AudioManager.Instance != null)
+            {
+                masterVolumeSlider.value = AudioManager.Instance.GetMasterVolume();
+            }
+        }
+    }
+
+    private void CloseSettings()
+    {
+        if (settingsPanel != null)
+        {
+            settingsPanel.SetActive(false);
+        }
     }
 
     // Called when "Quit" button is clicked
@@ -154,5 +196,13 @@ public class MainMenuManager : MonoBehaviour
     {
         if (resetConfirmPanel != null)
             resetConfirmPanel.SetActive(false);
+    }
+
+    private void OnMasterVolumeChanged(float value)
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.SetMasterVolume(value);
+        }
     }
 }

@@ -6,9 +6,14 @@ TagManager:
   tags:
   - EmergencyItem
   - Breaker
+<<<<<<< HEAD
   - XROrigin
   - SafeItem
   - UnsafeItem
+=======
+  - Flood
+  - NPC
+>>>>>>> main
   layers:
   - Default
   - TransparentFX

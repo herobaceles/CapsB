@@ -62,7 +62,7 @@ public class IsometricPlayerController : MonoBehaviour
         if (!CompareTag("Player"))
         {
             gameObject.tag = "Player";
-            Debug.Log("IsometricPlayerController: Set tag to 'Player'");
+            // Debug.Log("IsometricPlayerController: Set tag to 'Player'");
         }
     }
 
@@ -165,7 +165,7 @@ public class IsometricPlayerController : MonoBehaviour
         // Debug: Log input and movement
         if (inputDirection.sqrMagnitude > 0.01f)
         {
-            Debug.Log($"Input: {inputDirection}, MoveDir: {moveDirection}, CurrentVel: {currentVelocity.magnitude}");
+            // Debug.Log($"Input: {inputDirection}, MoveDir: {moveDirection}, CurrentVel: {currentVelocity.magnitude}");
         }
 
         // Calculate target velocity

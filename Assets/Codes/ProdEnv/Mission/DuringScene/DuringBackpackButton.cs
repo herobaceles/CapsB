@@ -2,14 +2,14 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Wires a UI Button to the During mission map toggle. Attach this to the
-/// backpack icon so tapping it restores the top-down map.
+/// Wires the backpack icon to the go-bag panel overlay during the response
+/// phase. Also notifies the mission manager for tutorial tracking.
 /// </summary>
 [RequireComponent(typeof(Button))]
 public class DuringBackpackButton : MonoBehaviour
 {
     [SerializeField] private Button targetButton;
-    [SerializeField] private DuringMissionManager missionManager;
+    [SerializeField] private DuringGoBagPanel goBagPanel;
 
     private void Awake()
     {
@@ -31,12 +31,21 @@ public class DuringBackpackButton : MonoBehaviour
 
     private void HandleClick()
     {
-        if (missionManager == null)
-            missionManager = DuringMissionManager.Instance;
+        if (goBagPanel == null)
+            goBagPanel = FindObjectOfType<DuringGoBagPanel>(true);
 
-        if (missionManager != null)
-            missionManager.ShowMapFromBackpack();
-        else
-            Debug.LogWarning("DuringBackpackButton: Missing DuringMissionManager reference.");
+        if (goBagPanel == null)
+        {
+            Debug.LogWarning("DuringBackpackButton: Missing go-bag panel reference.");
+            return;
+        }
+
+        goBagPanel.TogglePanel();
+
+        // Notify mission manager for tutorial tracking
+        if (DuringMissionManager.Instance != null)
+        {
+            DuringMissionManager.Instance.NotifyBackpackOpened();
+        }
     }
 }

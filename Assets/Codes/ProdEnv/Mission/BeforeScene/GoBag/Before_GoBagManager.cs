@@ -36,6 +36,12 @@ public class ARMissionManager : MonoBehaviour
     public Transform itemListContainer; // Assign a container (e.g., VerticalLayoutGroup) for item UI elements
     public GameObject itemListItemPrefab; // Assign a prefab for item UI (should have a TextMeshProUGUI for name)
 
+    [Header("Go Bag Inventory Sync")]
+    public List<GoBagItemDefinition> goBagItemDefinitions = new List<GoBagItemDefinition>();
+
+    private readonly List<GoBagItemDefinition> fallbackGoBagDefinitions = new List<GoBagItemDefinition>();
+    private bool goBagInventoryInitialized = false;
+
     // Call this from DraggableItem when dropped into backpack
     public void OnItemDroppedInBag(GameObject item)
     {
@@ -194,11 +200,13 @@ public class ARMissionManager : MonoBehaviour
         return false;
     }
 
-void Update()
+    void Update()
 {
     // Only run for Go Bag or Breaker mission
     if (BeforeMissionManager.Instance == null || MissionSelectManager.SelectedMission == null)
         return;
+
+    TryInitializeGoBagInventory();
 
     string missionId = MissionSelectManager.SelectedMission.missionId;
 
@@ -418,6 +426,8 @@ void Update()
                 break;
             }
         }
+
+        GoBagInventoryState.Instance.MarkItemCollected(itemName);
     }
 
 
@@ -496,5 +506,54 @@ void Update()
 
         // Optionally, reset the item list UI
         PopulateItemListUI();
+
+        goBagInventoryInitialized = false;
+        var inventory = GoBagInventoryState.Instance;
+        inventory.ResetProgress();
+        inventory.SaveToDisk();
+        TryInitializeGoBagInventory();
+    }
+
+    private void TryInitializeGoBagInventory()
+    {
+        if (goBagInventoryInitialized)
+            return;
+
+        if (!IsGoBagMissionSelected())
+            return;
+
+        var inventory = GoBagInventoryState.Instance;
+        var missionId = MissionSelectManager.SelectedMission?.missionId;
+        inventory.SetActiveMissionId(missionId);
+        inventory.ApplyDefinitions(GetActiveGoBagDefinitions(), true);
+        goBagInventoryInitialized = true;
+    }
+
+    private bool IsGoBagMissionSelected()
+    {
+        return MissionSelectManager.SelectedMission != null &&
+               MissionSelectManager.SelectedMission.missionId == "before_01";
+    }
+
+    private IEnumerable<GoBagItemDefinition> GetActiveGoBagDefinitions()
+    {
+        if (goBagItemDefinitions != null && goBagItemDefinitions.Count > 0)
+            return goBagItemDefinitions;
+
+        fallbackGoBagDefinitions.Clear();
+        for (int i = 0; i < requiredItemNames.Count; i++)
+        {
+            var name = requiredItemNames[i];
+            if (string.IsNullOrWhiteSpace(name))
+                continue;
+
+            fallbackGoBagDefinitions.Add(new GoBagItemDefinition
+            {
+                itemName = name.Trim(),
+                icon = null
+            });
+        }
+
+        return fallbackGoBagDefinitions;
     }
 }
