@@ -14,6 +14,10 @@ public class PlayerAvatarSpawner : MonoBehaviour
     [SerializeField] private bool destroyExistingPlayer = true;
     [SerializeField] private bool autoBindCamera = true;
 
+    [Header("Joystick Binding")]
+    [SerializeField] private bool autoBindJoystick = true;
+    [SerializeField] private FixedJoystick overrideJoystick;
+
     private IsometricPlayerController spawnedPlayer;
 
     public IsometricPlayerController SpawnedPlayer => spawnedPlayer;
@@ -55,6 +59,9 @@ public class PlayerAvatarSpawner : MonoBehaviour
 
         if (autoBindCamera)
             BindCamera(instance.transform);
+
+        if (autoBindJoystick)
+            BindJoystick(spawnedPlayer);
     }
 
     private GameObject ResolvePrefab()
@@ -87,6 +94,21 @@ public class PlayerAvatarSpawner : MonoBehaviour
         {
             cameraController.Target = target;
             cameraController.SnapToTarget();
+        }
+    }
+
+    private void BindJoystick(IsometricPlayerController controller)
+    {
+        if (controller == null) return;
+
+        FixedJoystick joystick = overrideJoystick != null ? overrideJoystick : FindObjectOfType<FixedJoystick>();
+        if (joystick != null)
+        {
+            controller.SetJoystick(joystick);
+        }
+        else
+        {
+            Debug.LogWarning("PlayerAvatarSpawner: No FixedJoystick found to bind.");
         }
     }
 }
