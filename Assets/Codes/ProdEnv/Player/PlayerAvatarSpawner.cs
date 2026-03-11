@@ -18,9 +18,6 @@ public class PlayerAvatarSpawner : MonoBehaviour
     [SerializeField] private bool autoBindJoystick = true;
     [SerializeField] private FixedJoystick overrideJoystick;
 
-    [Header("NPC Binding")]
-    [SerializeField] private bool autoBindNPCFollowers = true;
-
     private IsometricPlayerController spawnedPlayer;
 
     public IsometricPlayerController SpawnedPlayer => spawnedPlayer;
@@ -65,9 +62,6 @@ public class PlayerAvatarSpawner : MonoBehaviour
 
         if (autoBindJoystick)
             BindJoystick(spawnedPlayer);
-
-        if (autoBindNPCFollowers)
-            BindNPCFollowers(instance.transform);
     }
 
     private GameObject ResolvePrefab()
@@ -115,17 +109,6 @@ public class PlayerAvatarSpawner : MonoBehaviour
         else
         {
             Debug.LogWarning("PlayerAvatarSpawner: No FixedJoystick found to bind.");
-        }
-    }
-
-    private void BindNPCFollowers(Transform target)
-    {
-        if (target == null) return;
-
-        NPCFollower[] followers = FindObjectsOfType<NPCFollower>();
-        foreach (var follower in followers)
-        {
-            follower.player = target;
         }
     }
 }

@@ -16,6 +16,9 @@ public class QuizDialogueUIManager : MonoBehaviour
     [SerializeField] private Button optionButton1;
     [SerializeField] private Button optionButton2;
     [SerializeField] private Button optionButton3;
+    [SerializeField] private Image optionButton1Image;
+    [SerializeField] private Image optionButton2Image;
+    [SerializeField] private Image optionButton3Image;
     [SerializeField] private TMP_Text optionButton1Text;
     [SerializeField] private TMP_Text optionButton2Text;
     [SerializeField] private TMP_Text optionButton3Text;
@@ -67,9 +70,9 @@ public class QuizDialogueUIManager : MonoBehaviour
         onCorrectAnswer = onCorrect;
 
         questionText.text = quizData.question;
-        SetOption(optionButton1, optionButton1Text, quizData.options[0], 0);
-        SetOption(optionButton2, optionButton2Text, quizData.options[1], 1);
-        SetOption(optionButton3, optionButton3Text, quizData.options[2], 2);
+        SetOption(optionButton1, optionButton1Text, optionButton1Image, quizData.options[0], GetOptionSprite(quizData, 0), 0, quizData.placeholderSprite);
+        SetOption(optionButton2, optionButton2Text, optionButton2Image, quizData.options[1], GetOptionSprite(quizData, 1), 1, quizData.placeholderSprite);
+        SetOption(optionButton3, optionButton3Text, optionButton3Image, quizData.options[2], GetOptionSprite(quizData, 2), 2, quizData.placeholderSprite);
 
         if (feedbackText != null)
             feedbackText.text = string.Empty;
@@ -86,7 +89,7 @@ public class QuizDialogueUIManager : MonoBehaviour
             feedbackText.text = string.Empty;
     }
 
-    private void SetOption(Button button, TMP_Text label, string text, int index)
+    private void SetOption(Button button, TMP_Text label, Image image, string text, Sprite sprite, int index, Sprite placeholder)
     {
         if (button == null)
             return;
@@ -94,8 +97,27 @@ public class QuizDialogueUIManager : MonoBehaviour
         if (label != null)
             label.text = text;
 
+        if (image != null)
+        {
+            var resolvedSprite = sprite != null ? sprite : placeholder;
+            image.sprite = resolvedSprite;
+            image.enabled = resolvedSprite != null;
+            image.preserveAspect = true;
+        }
+
         button.onClick.RemoveAllListeners();
         button.onClick.AddListener(() => OnOptionSelected(index));
+    }
+
+    private Sprite GetOptionSprite(MissionQuizData data, int index)
+    {
+        if (data == null || data.optionSprites == null)
+            return null;
+
+        if (index < 0 || index >= data.optionSprites.Length)
+            return null;
+
+        return data.optionSprites[index];
     }
 
     private void OnOptionSelected(int selectedIndex)
