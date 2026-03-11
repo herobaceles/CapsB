@@ -29,9 +29,10 @@ public class ARTrigger_HiddenDanger : MonoBehaviour
 
             if (arController != null)
             {
-                // Enables HiddenDanger AR safely using the new coroutine
-                arController.EnableARRecovery(); 
-                Debug.Log("Hidden Danger AR Phase Started via Trigger!");
+                // CRITICAL FIX: Pass the controller's current mode to resolve error CS7036.
+                // This respects whichever mission the player selected in the Main Menu!
+                arController.EnableARRecovery(arController.currentMissionMode); 
+                Debug.Log(arController.currentMissionMode + " AR Phase Started via Trigger!");
             }
             else
             {

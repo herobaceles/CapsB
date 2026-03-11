@@ -3,9 +3,8 @@ using TMPro;
 using System.Collections;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.SceneManagement;
-using Unity.XR.CoreUtils; // Needed for XROrigin
+using Unity.XR.CoreUtils; 
 
-// Update your existing enum
 public enum MissionMode { HiddenDanger, CleanupGear, KitchenSafety, DisinfectHouse }
 
 public class AfterRecoveryARController : MonoBehaviour
@@ -18,6 +17,12 @@ public class AfterRecoveryARController : MonoBehaviour
     [Tooltip("Check this box if testing Disinfect House in Editor.")]
     public bool isMission3_DisinfectHouse = false;
 
+    [Header("Mission House Roots")]
+    public GameObject houseRootHiddenDanger;
+    public GameObject houseRootCleanupGear; 
+    public GameObject houseRootKitchen;
+    public GameObject houseRootDisinfect;
+
     [Header("Mission Settings")]
     public MissionMode currentMissionMode;
     private int totalRequiredItems = 2; 
@@ -29,7 +34,7 @@ public class AfterRecoveryARController : MonoBehaviour
     [SerializeField] private GameObject quizZoneTrigger; 
 
     [Header("AR Spawn Coordinates")]
-    private Vector3 spawnPosition = new Vector3(-3.74f, 0f, 1.91f);
+    private Vector3 spawnPosition = new Vector3(0f, 0f, 0f);
     private Vector3 kitchenItemSpawn = new Vector3(-5f, 0f, 1.64f);
     private Vector3 defaultItemSpawn = new Vector3(-5f, 0f, 3.05f);
 
@@ -64,6 +69,10 @@ public class AfterRecoveryARController : MonoBehaviour
     [SerializeField] private GameObject gameplayCamera;
     [SerializeField] private GameObject joystickUI; 
 
+    [Header("Disable After AR Ends")]
+    [Tooltip("Drag the invisible wall/plane you click to spawn items here. It will disable when the AR mission ends.")]
+    [SerializeField] private GameObject arSpawnWall; 
+
     [Header("Disinfect Mission Props")]
     [SerializeField] private GameObject sprayBottleProp;
     [SerializeField] private GameObject cleaningRagProp;
@@ -75,6 +84,7 @@ public class AfterRecoveryARController : MonoBehaviour
     private string[] introLines;
     private int currentDialogueIndex = 0;
     private Coroutine typingCoroutine;
+    private bool isOutroDialogue = false; 
 
     private void Awake()
     {
@@ -105,33 +115,32 @@ public class AfterRecoveryARController : MonoBehaviour
 
     private void Start()
     {
-        string selectedMission = PlayerPrefs.GetString("SelectedMissionID", "");
+        isOutroDialogue = false;
+
+        string selectedMission = PlayerPrefs.GetString("SelectedMissionID", "hiddendangermission").ToLower().Trim();
+        string playerName = PlayerPrefs.GetString("PlayerName", "Edward");
         
-        // Debug Log so you can see exactly what the game is trying to load in the Console!
         Debug.Log("--- LOADING MISSION ID: '" + selectedMission + "' ---");
         
-        // Mission Selection Logic
         if (selectedMission == "safeitemsmission")
         {
             isMission2_KitchenSafety = true;
             isMission3_DisinfectHouse = false;
+            currentMissionMode = MissionMode.KitchenSafety;
         }
         else if (selectedMission == "disinfectmission")
         {
-            isMission3_DisinfectHouse = true;
             isMission2_KitchenSafety = false;
+            isMission3_DisinfectHouse = true;
+            currentMissionMode = MissionMode.DisinfectHouse;
         }
-        else if (string.IsNullOrEmpty(selectedMission)) 
+        else 
         {
-            Debug.Log("No ID found in PlayerPrefs. Relying on Inspector Checkboxes.");
-        }
-        else
-        {
-            isMission2_KitchenSafety = false; 
+            isMission2_KitchenSafety = false;
             isMission3_DisinfectHouse = false;
+            currentMissionMode = MissionMode.HiddenDanger;
         }
 
-        // Setup Intro Lines based on selected mission
         if (isMission3_DisinfectHouse)
         {
             introLines = new string[] {
@@ -144,13 +153,13 @@ public class AfterRecoveryARController : MonoBehaviour
         {
             introLines = new string[] {
                 "Now, the kitchen. This is critical. Floodwater is toxic. We have to know what's safe to eat and drink.",
-                "Let's use the AR scanner one last time to sort the safe from the unsafe. Your health depends on it."
+                "Let's use the AR scanner to sort the safe from the unsafe. Your health depends on it."
             };
         }
         else
         {
             introLines = new string[] {
-                "The storm has passed, Edward.",
+                "The storm has passed, " + playerName + ".",
                 "It's time to go home. But be careful.",
                 "The flood leaves behind many hidden dangers.",
                 "This is your final level: The Recovery."
@@ -192,7 +201,24 @@ public class AfterRecoveryARController : MonoBehaviour
         }
         else
         {
-            StartExplorationPhase();
+            if (isOutroDialogue)
+            {
+                if (isMission3_DisinfectHouse)
+                {
+                    ShowFinalGameCompleteUI();
+                }
+                else
+                {
+                    // FIX: Disable MissionCompleteUI and show ONLY AchievementsPanel
+                    if (missionCompleteBanner != null) missionCompleteBanner.SetActive(false); 
+                    if (achievementBackground != null) achievementBackground.SetActive(true);
+                    if (dialoguePanel != null) dialoguePanel.SetActive(false);
+                }
+            }
+            else
+            {
+                StartExplorationPhase();
+            }
         }
     }
 
@@ -241,18 +267,12 @@ public class AfterRecoveryARController : MonoBehaviour
             playerController.transform.position = spawnPosition;
         }
 
-        HiddenDangerSpawner spawner = FindObjectOfType<HiddenDangerSpawner>(true);
-
-        // Activate the correct trigger for the current mission flow
         if (isMission3_DisinfectHouse)
         {
             if (arTriggerDisinfectHouse != null) arTriggerDisinfectHouse.SetActive(true);
             if (arTriggerKitchenSafety != null) arTriggerKitchenSafety.SetActive(false);
             if (arTriggerHiddenDanger != null) arTriggerHiddenDanger.SetActive(false);
             if (quizZoneTrigger != null) quizZoneTrigger.SetActive(false);
-            
-            // Turn off the HiddenDangerSpawner completely for this mode!
-            if (spawner != null) spawner.gameObject.SetActive(false); 
         }
         else if (isMission2_KitchenSafety)
         {
@@ -411,26 +431,23 @@ public class AfterRecoveryARController : MonoBehaviour
 
     public void StartCleanupGearAR()
     {
-        currentMissionMode = MissionMode.CleanupGear; 
         EnableARRecovery(MissionMode.CleanupGear);
     }
 
     public void StartKitchenSafetyAR()
     {
-        currentMissionMode = MissionMode.KitchenSafety;
         if (questionText != null) questionText.text = "Tap only the items that are SAFE.";
         EnableARRecovery(MissionMode.KitchenSafety);
     }
 
     public void StartDisinfectHouseAR()
     {
-        currentMissionMode = MissionMode.DisinfectHouse;
         EnableARRecovery(MissionMode.DisinfectHouse);
     }
 
     public void EnableARRecovery()
     {
-        EnableARRecovery(MissionMode.HiddenDanger);
+        EnableARRecovery(currentMissionMode);
     }
 
     public void EnableARRecovery(MissionMode mode)
@@ -439,7 +456,7 @@ public class AfterRecoveryARController : MonoBehaviour
         recoveredCount = 0;
         
         if (mode == MissionMode.KitchenSafety) totalRequiredItems = 2; 
-        else if (mode == MissionMode.HiddenDanger) totalRequiredItems = 2;
+        else if (mode == MissionMode.HiddenDanger) totalRequiredItems = 3;
         else if (mode == MissionMode.DisinfectHouse) totalRequiredItems = 6; 
         else totalRequiredItems = 3; 
 
@@ -469,13 +486,9 @@ public class AfterRecoveryARController : MonoBehaviour
         if (spawner != null)
         {
             if (currentMissionMode == MissionMode.KitchenSafety)
-            {
                 spawner.transform.position = kitchenItemSpawn;
-            }
             else
-            {
                 spawner.transform.position = defaultItemSpawn;
-            }
         }
     }
 
@@ -543,16 +556,21 @@ public class AfterRecoveryARController : MonoBehaviour
     {
         if (recoveredCount >= totalRequiredItems)
         {
+            isOutroDialogue = true; 
+            
+            // FIX: Deactivate the AR Spawn Wall immediately when the AR phase ends
+            if (arSpawnWall != null) arSpawnWall.SetActive(false);
+
             if (sprayBottleProp != null) sprayBottleProp.SetActive(false);
             if (cleaningRagProp != null) cleaningRagProp.SetActive(false);
             if (disinfectButtonUI != null) disinfectButtonUI.SetActive(false);
 
             if (ARRuntimeContext.Instance != null) ARRuntimeContext.Instance.SetARActive(false);
-            if (gameplayCamera != null) gameplayCamera.SetActive(true);
             
-            if (currentMissionMode == MissionMode.CleanupGear)
+            if (gameplayCamera != null) gameplayCamera.SetActive(true);
+
+            if (currentMissionMode == MissionMode.CleanupGear || currentMissionMode == MissionMode.HiddenDanger)
             {
-                if (arTriggerHiddenDanger != null) arTriggerHiddenDanger.SetActive(true);
                 ShowTransitionStory();
             }
             else if (currentMissionMode == MissionMode.KitchenSafety)
@@ -563,13 +581,6 @@ public class AfterRecoveryARController : MonoBehaviour
             {
                 ShowDisinfectOutroStory();
             }
-            else
-            {
-                if (playerController != null) playerController.SetActive(true);
-                if (missionCompleteBanner != null) missionCompleteBanner.SetActive(true);
-                if (achievementBackground != null) achievementBackground.SetActive(true);
-                if (joystickUI != null) joystickUI.SetActive(false);
-            }
         }
     }
 
@@ -579,7 +590,7 @@ public class AfterRecoveryARController : MonoBehaviour
         if (joystickUI != null) joystickUI.SetActive(false);
         if (playerController != null) playerController.SetActive(false);
 
-        introLines = new string[] { "Nice, now we got the loots! Let's go find the hidden dangers." };
+        introLines = new string[] { "Excellent! You have secured the immediate dangers. But there is more to do to make this house a home again." };
         currentDialogueIndex = 0;
         UpdateDialogueView();
     }
@@ -597,22 +608,60 @@ public class AfterRecoveryARController : MonoBehaviour
 
     private void ShowDisinfectOutroStory()
     {
+        string playerName = PlayerPrefs.GetString("PlayerName", "Edward");
         if (dialoguePanel != null) dialoguePanel.SetActive(true);
         if (joystickUI != null) joystickUI.SetActive(false);
         if (playerController != null) playerController.SetActive(false);
 
-        introLines = new string[] { "Great work! Bleach and water remove bacteria left by floodwater. Your home is finally safe again." };
+        introLines = new string[] { 
+            "Great work! Bleach and water remove bacteria left by floodwater. Your home is finally safe again.",
+            "You did it, " + playerName + ". You faced the warning, survived the storm, and recovered from the aftermath.",
+            "Disasters are a part of life, but with the right knowledge and preparation, we can be stronger than any storm.",
+            "You are no longer just " + playerName + "... you are truly BaHanda!"
+        };
         currentDialogueIndex = 0;
         UpdateDialogueView();
     }
 
-    public void ContinueToGame()
+    private void ShowFinalGameCompleteUI()
     {
-        if (missionCompleteBanner != null) missionCompleteBanner.SetActive(false);
-        if (achievementBackground != null) achievementBackground.SetActive(false);
-        if (joystickUI != null) joystickUI.SetActive(true);
+        if (dialoguePanel != null) dialoguePanel.SetActive(false);
+        if (joystickUI != null) joystickUI.SetActive(false); 
         if (playerController != null) playerController.SetActive(true);
         if (gameplayCamera != null) gameplayCamera.SetActive(true);
+
+        // FIX: Ensure missionCompleteBanner stays disabled, even at the very end of the final level.
+        if (missionCompleteBanner != null)
+        {
+            missionCompleteBanner.SetActive(false);
+        }
+        
+        // FIX: Show ONLY the achievement background
+        if (achievementBackground != null) achievementBackground.SetActive(true);
+    }
+
+    public void ContinueToGame()
+    {
+        string currentID = PlayerPrefs.GetString("SelectedMissionID", "hiddendangermission").ToLower().Trim();
+
+        if (currentID == "hiddendangermission")
+        {
+            PlayerPrefs.SetString("SelectedMissionID", "safeitemsmission");
+            PlayerPrefs.Save();
+            RestartLevel();
+        }
+        else if (currentID == "safeitemsmission")
+        {
+            PlayerPrefs.SetString("SelectedMissionID", "disinfectmission");
+            PlayerPrefs.Save();
+            RestartLevel();
+        }
+        else
+        {
+            if (missionCompleteBanner != null) missionCompleteBanner.SetActive(false);
+            if (achievementBackground != null) achievementBackground.SetActive(false);
+            FinalizeMission();
+        }
     }
 
     public void FinalizeMission()

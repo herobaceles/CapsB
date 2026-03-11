@@ -11,9 +11,12 @@ public class HiddenDangerSpawner : MonoBehaviour
     [Tooltip("Drag your AR_CleanupGearHouse prefab here")]
     public GameObject cleanupGearPrefab; 
 
-    // --- NEW: Added Kitchen Safety Prefab Slot ---
     [Tooltip("Drag your NEW AR_KitchenSafetyHouse prefab here")]
     public GameObject kitchenSafetyPrefab; 
+
+    // --- NEW: Added Disinfect House Prefab Slot ---
+    [Tooltip("Drag your NEW AR_DisinfectHouse prefab here")]
+    public GameObject disinfectHousePrefab; 
 
     [Header("Spawn Settings")]
     public Transform arParent;
@@ -56,7 +59,9 @@ public class HiddenDangerSpawner : MonoBehaviour
         else if (currentMode == MissionMode.CleanupGear)
             prefabToSpawn = cleanupGearPrefab;
         else if (currentMode == MissionMode.KitchenSafety)
-            prefabToSpawn = kitchenSafetyPrefab; // Uses the new slot!
+            prefabToSpawn = kitchenSafetyPrefab; 
+        else if (currentMode == MissionMode.DisinfectHouse)
+            prefabToSpawn = disinfectHousePrefab; // Uses the new slot!
 
         if (prefabToSpawn == null)
         {
@@ -128,10 +133,14 @@ public class HiddenDangerSpawner : MonoBehaviour
         {
             exactNames = new string[] { "boots", "gloves", "mask", "bucket" }; 
         }
-        else // Kitchen Safety Mode
+        else if (currentMode == MissionMode.KitchenSafety)
         {
-            // The exact names of your Kitchen items
             exactNames = new string[] { "canned goods", "sealed water", "open jar", "cardboard box" };
+        }
+        else // Disinfect House Mode
+        {
+            // IMPORTANT: If you named your bacteria/mold stains something else in the prefab, update these strings!
+            exactNames = new string[] { "mold", "stain", "bacteria", "stain 1", "stain 2", "stain 3" };
         }
 
         foreach (string itemName in exactNames)

@@ -49,7 +49,7 @@ public class ARTapDetector : MonoBehaviour
         {
             Touch touch = Input.GetTouch(0);
             
-            // Prevent tapping through UI - Added Debug to warn you if UI is blocking the tap!
+            // Prevent tapping through UI
             if (UnityEngine.EventSystems.EventSystem.current != null && 
                 UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(touch.fingerId))
             {
@@ -65,7 +65,7 @@ public class ARTapDetector : MonoBehaviour
                 if (isKitchenMission)
                 {
                     bool hitItem = TryTagItem(touch.position);
-                    if (!hitItem) DetectSpawnTap(touch.position, isKitchenMission);
+                    if (!hitItem) DetectSpawnTap(touch.position);
                 }
                 else if (isDisinfectMission)
                 {
@@ -75,7 +75,7 @@ public class ARTapDetector : MonoBehaviour
                 else
                 {
                     bool itemHandled = TryPickup(touch.position);
-                    if (!itemHandled) DetectSpawnTap(touch.position, isKitchenMission);
+                    if (!itemHandled) DetectSpawnTap(touch.position);
                 }
             }
             else if (touch.phase == TouchPhase.Moved && draggedItem != null && !isKitchenMission && !isDisinfectMission)
@@ -92,7 +92,7 @@ public class ARTapDetector : MonoBehaviour
         {
             if (Input.GetMouseButtonDown(0))
             {
-                // Prevent clicking through UI - Added Debug to warn you if UI is blocking the click!
+                // Prevent clicking through UI
                 if (UnityEngine.EventSystems.EventSystem.current != null && 
                     UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
                 {
@@ -103,7 +103,7 @@ public class ARTapDetector : MonoBehaviour
                 if (isKitchenMission)
                 {
                     bool hitItem = TryTagItem(Input.mousePosition);
-                    if (!hitItem) DetectSpawnTap(Input.mousePosition, isKitchenMission);
+                    if (!hitItem) DetectSpawnTap(Input.mousePosition);
                 }
                 else if (isDisinfectMission)
                 {
@@ -113,7 +113,7 @@ public class ARTapDetector : MonoBehaviour
                 else
                 {
                     bool itemHandled = TryPickup(Input.mousePosition);
-                    if (!itemHandled) DetectSpawnTap(Input.mousePosition, isKitchenMission);
+                    if (!itemHandled) DetectSpawnTap(Input.mousePosition);
                 }
             }
             else if (Input.GetMouseButton(0) && draggedItem != null && !isKitchenMission && !isDisinfectMission)
@@ -299,24 +299,41 @@ public class ARTapDetector : MonoBehaviour
         draggedItem = null; 
     }
 
-    void DetectSpawnTap(Vector2 screenPosition, bool isKitchenMission)
+    // ==========================================
+    // SPAWN LOGIC FIX
+    // ==========================================
+    void DetectSpawnTap(Vector2 screenPosition)
     {
-        if (arRaycastManager == null) return;
+        bool tapDetected = false;
 
-        if (arRaycastManager.Raycast(screenPosition, hits, TrackableType.Planes))
+        // 1. Try AR Raycast first (detects AR Planes on Mobile)
+        if (arRaycastManager != null && arRaycastManager.Raycast(screenPosition, hits, TrackableType.Planes))
         {
-            Pose hitPose = hits[0].pose;
+            tapDetected = true;
+        }
+        // 2. Fallback to normal Physics Raycast (detects standard invisible wall in Editor)
+        else
+        {
+            Camera currentCam = GetARCamera();
+            if (currentCam != null)
+            {
+                Ray ray = currentCam.ScreenPointToRay(screenPosition);
+                if (Physics.Raycast(ray, out RaycastHit hit, 50f))
+                {
+                    tapDetected = true;
+                }
+            }
+        }
 
+        if (tapDetected)
+        {
             if (hiddenDangerSpawner == null)
                 hiddenDangerSpawner = FindObjectOfType<HiddenDangerSpawner>(true);
 
             if (hiddenDangerSpawner != null)
             {
-                Vector3 correctSpawnPosition = isKitchenMission ? 
-                    new Vector3(-2f, hitPose.position.y, 0.5f) : 
-                    new Vector3(-14.84f, hitPose.position.y, 5.22f);
-                
-                hiddenDangerSpawner.SpawnHiddenDangers(correctSpawnPosition);
+                // FIX: Ignore the mouse click coordinates! Always force it exactly to 0, 0, 0.
+                hiddenDangerSpawner.SpawnHiddenDangers(Vector3.zero);
             }
         }
     }
