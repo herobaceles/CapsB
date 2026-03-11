@@ -7,6 +7,9 @@ public class NPCFollower : MonoBehaviour
     public float moveSpeed = 3f;
     public float rotationSpeed = 8f;
 
+    [Header("Auto Binding")]
+    [SerializeField] private bool autoFindPlayer = true;
+
     [Header("Animation")]
     [SerializeField] private Animator animator;
     [SerializeField] private string speedParameter = "Speed";
@@ -22,6 +25,13 @@ public class NPCFollower : MonoBehaviour
 
         if (dialogueBubble == null)
             dialogueBubble = GetComponentInChildren<NPCDialogueBubble>();
+
+        TryResolvePlayer();
+    }
+
+    private void Start()
+    {
+        TryResolvePlayer();
     }
 
     private void Update()
@@ -80,5 +90,21 @@ public class NPCFollower : MonoBehaviour
                 return true;
         }
         return false;
+    }
+
+    private void TryResolvePlayer()
+    {
+        if (!autoFindPlayer || player != null) return;
+
+        PlayerAvatarSpawner spawner = FindObjectOfType<PlayerAvatarSpawner>();
+        if (spawner != null && spawner.SpawnedTransform != null)
+        {
+            player = spawner.SpawnedTransform;
+            return;
+        }
+
+        GameObject taggedPlayer = GameObject.FindGameObjectWithTag("Player");
+        if (taggedPlayer != null)
+            player = taggedPlayer.transform;
     }
 }
