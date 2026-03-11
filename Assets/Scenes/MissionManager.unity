@@ -4491,16 +4491,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7c621870b30293146aa8b7889be19bab, type: 2}
   - {fileID: 11400000, guid: 0315983ebffba294b9424e2962b5e9c2, type: 2}
   - {fileID: 11400000, guid: 6c01b54d1056de241a26a4216c315cd1, type: 2}
-<<<<<<< HEAD
-  - {fileID: 11400000, guid: de5f875a6bea7bf4a8feffb3a8ac9544, type: 2}
-  - {fileID: 11400000, guid: 70f3faeb291e0c84e83c03ea5d169486, type: 2}
-  - {fileID: 11400000, guid: 3ec2cdc052ff22d4fa0b057058ef4c68, type: 2}
-  - {fileID: 11400000, guid: 8964524686236254788d9760e0001837, type: 2}
-  autoLoadMissionsFromResources: 1
-  missionResourcesFolder: Missions
-=======
+  
   - {fileID: 11400000, guid: 3d9c4f6f3b01d584196ebc730b5642fa, type: 2}
->>>>>>> main
+
 --- !u!4 &1854156007
 Transform:
   m_ObjectHideFlags: 0
