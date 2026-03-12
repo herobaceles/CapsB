@@ -82,6 +82,6 @@ MonoBehaviour:
     placeholderSprite: {fileID: 0}
     correctAnswerDialogue: []
   useMissionTimer: 1
-  missionTimeLimitSeconds: 30
+  missionTimeLimitSeconds: 600
   completionMessage: Mission Complete! Great job!
   unlocksMissionId: 
