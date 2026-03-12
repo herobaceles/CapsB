@@ -135,9 +135,10 @@ GameObject:
   - component: {fileID: 49224878}
   - component: {fileID: 49224876}
   - component: {fileID: 49224877}
+  - component: {fileID: 49224880}
   m_Layer: 0
   m_Name: XR Origin (Mobile AR)
-  m_TagString: Untagged
+  m_TagString: XROrigin
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -216,6 +217,20 @@ MonoBehaviour:
   m_CameraFloorOffsetObject: {fileID: 969950227}
   m_RequestedTrackingOriginMode: 1
   m_CameraYOffset: 0
+--- !u!114 &49224880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 49224874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3207b1bfce56d774780a2fa4189487c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  arRaycastManager: {fileID: 49224877}
+  hiddenDangerSpawner: {fileID: 0}
 --- !u!1 &57688868
 GameObject:
   m_ObjectHideFlags: 0

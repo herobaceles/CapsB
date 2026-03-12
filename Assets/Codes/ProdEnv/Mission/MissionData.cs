@@ -61,6 +61,19 @@ public class MissionData : ScriptableObject
     [Header("Unlocks On Complete")]
     [Tooltip("Mission ID to unlock when this mission is completed")]
     public string unlocksMissionId;
+
+    /// <summary>
+    /// Automatically called when values are changed in the Inspector.
+    /// Helps prevent empty or generic IDs.
+    /// </summary>
+    private void OnValidate()
+    {
+        // If the missionId is empty, default it to the name of the file
+        if (string.IsNullOrEmpty(missionId))
+        {
+            missionId = name;
+        }
+    }
 }
 
 [System.Serializable]
