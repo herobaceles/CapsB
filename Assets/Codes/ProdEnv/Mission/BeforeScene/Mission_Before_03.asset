@@ -51,5 +51,9 @@ MonoBehaviour:
     - {fileID: 0}
     - {fileID: 0}
     placeholderSprite: {fileID: 0}
+    correctAnswerDialogue:
+    - Approah the microwave in the floor
+  useMissionTimer: 0
+  missionTimeLimitSeconds: 0
   completionMessage: Mission Complete! Great job!
   unlocksMissionId: 

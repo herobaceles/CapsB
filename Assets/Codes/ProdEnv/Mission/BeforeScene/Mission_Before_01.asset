@@ -30,14 +30,14 @@ MonoBehaviour:
     taskType: 6
     isOptional: 0
     showDialogueOnStart: 0
-    startDialogue:
-    - Oh no! That's a Signal Red warning. This is serious. The water could rise fast, so we need to act smartly before the flood hits.
-    - Before you move, answer this quick question first.
+    startDialogue: []
     showDialogueOnComplete: 0
     completeDialogue:
     - Now find the table that has the go bag.
     objectives: []
-  introDialogue: []
+  introDialogue:
+  - Oh no! That's a Signal Red warning. This is serious. The water could rise fast,
+    so we need to act smartly before the flood hits.
   startQuiz:
     question: What bag do you need to prepare for the flood?
     options:
@@ -50,5 +50,9 @@ MonoBehaviour:
     - {fileID: 21300000, guid: 2ccea1ff2a2ee6c4c83d4bf39cc4fecb, type: 3}
     - {fileID: 21300000, guid: 7c1b218f56d9533458e31441bb4c72d5, type: 3}
     placeholderSprite: {fileID: 0}
+    correctAnswerDialogue:
+    - Now find the table that has the go bag
+  useMissionTimer: 0
+  missionTimeLimitSeconds: 0
   completionMessage: Mission Complete! Great job!
   unlocksMissionId: before_02

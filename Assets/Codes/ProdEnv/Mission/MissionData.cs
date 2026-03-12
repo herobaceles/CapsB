@@ -47,6 +47,13 @@ public class MissionData : ScriptableObject
     [Header("Start Quiz (Optional)")]
     public MissionQuizData startQuiz;
 
+    [Header("Timer (Optional)")]
+    [Tooltip("Enable a mission-wide countdown. If enabled, scene managers like DuringMissionManager can enforce this time limit.")]
+    public bool useMissionTimer = false;
+
+    [Tooltip("Total mission time in seconds when a mission-wide timer is used.")]
+    public float missionTimeLimitSeconds = 0f;
+
     [Header("Completion")]
     [TextArea(2, 4)]
     public string completionMessage = "Mission Complete! Great job!";
