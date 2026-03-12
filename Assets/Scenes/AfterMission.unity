@@ -18038,6 +18038,7 @@ MonoBehaviour:
   housePrefabKitchen: {fileID: 5195454057438689102, guid: f7d07debf9fedf8489b781fb471f4649, type: 3}
   housePrefabDisinfect: {fileID: 5195454057438689102, guid: 5fa23c6b98c1fb84e8122d60daf29180, type: 3}
   currentMissionMode: 0
+  totalRequiredItems: 6
   arTriggerHiddenDanger: {fileID: 790042325}
   arTriggerKitchenSafety: {fileID: 1802895476}
   arTriggerDisinfectHouse: {fileID: 1908024371}

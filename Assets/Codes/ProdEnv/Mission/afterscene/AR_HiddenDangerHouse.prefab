@@ -3969,6 +3969,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 1f6448b77da968e4194f6beae983dd8a, type: 3}
+      propertyPath: m_TagString
+      value: UnsafeItem
+      objectReference: {fileID: 0}
     - target: {fileID: 3985271169885152068, guid: 1f6448b77da968e4194f6beae983dd8a, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
@@ -4049,7 +4053,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemName: Rat
-  isStationaryFeedbackOnly: 0
+  isStationaryFeedbackOnly: 1
 --- !u!4 &2064273463175410453 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 1f6448b77da968e4194f6beae983dd8a, type: 3}
@@ -6503,6 +6507,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 13e304bac84ea824a8deafd2d70693cc, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 13e304bac84ea824a8deafd2d70693cc, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

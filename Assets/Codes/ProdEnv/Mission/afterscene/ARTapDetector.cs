@@ -249,16 +249,22 @@ public class ARTapDetector : MonoBehaviour
             HiddenDangerItem tappedItem = hit.collider.GetComponentInParent<HiddenDangerItem>();
             if (tappedItem != null && !tappedItem.IsRecovered)
             {
+                // For Hidden Danger mission, we want to drag, not recover on pickup
                 if (AfterRecoveryARController.Instance != null && 
                     AfterRecoveryARController.Instance.currentMissionMode == MissionMode.HiddenDanger)
                 {
-                    tappedItem.Recover();
+                    draggedItem = tappedItem;
+                    dragDepth = hit.distance;
                     return true;
                 }
-
-                draggedItem = tappedItem;
-                dragDepth = hit.distance; 
-                return true; 
+                else
+                {
+                    // For CleanupGear and other missions, we should NOT recover here
+                    // The OnMouseDown in HiddenDangerItem.cs already handles recovery
+                    // Just return true to indicate we hit an item
+                    Debug.Log($"ARTapDetector: Item '{tappedItem.name}' detected in {AfterRecoveryARController.Instance.currentMissionMode} mode - letting OnMouseDown handle it");
+                    return true;
+                }
             }
         }
         return false;
@@ -291,7 +297,14 @@ public class ARTapDetector : MonoBehaviour
         {
             if (hit.collider.gameObject.name.ToLower().Contains("bucket"))
             {
-                draggedItem.Recover(); 
+                // Show green check at the bucket position
+                if (AfterRecoveryARController.Instance != null)
+                {
+                    AfterRecoveryARController.Instance.TriggerFeedback(true, hit.collider.transform.position);
+                }
+                
+                // Recover the item (this will call HandleItemRecovered)
+                draggedItem.Recover();
                 break;
             }
         }

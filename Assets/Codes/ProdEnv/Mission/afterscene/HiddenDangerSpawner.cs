@@ -57,13 +57,18 @@ public class HiddenDangerSpawner : MonoBehaviour
             rend.gameObject.layer = LayerMask.NameToLayer("Default");
         }
 
-        // Register Items
+        // Register Items - IMPORTANT: This registers all items in the spawned room
         HiddenDangerItem[] items = currentSpawnedRoom.GetComponentsInChildren<HiddenDangerItem>(true);
+        Debug.Log($"Spawned {items.Length} items for mode {currentMode}");
+        
         foreach (var item in items)
         {
             item.gameObject.SetActive(true);
             if (AfterRecoveryARController.Instance != null)
+            {
                 AfterRecoveryARController.Instance.RegisterSpawnedDanger(item);
+                Debug.Log($"Registered item: {item.gameObject.name} with tag {item.gameObject.tag}");
+            }
         }
 
         missionPlaced = true;

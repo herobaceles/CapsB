@@ -23,9 +23,9 @@ public class HiddenDangerItem : MonoBehaviour
         OnRecovered?.Invoke(this);
 
         // This tells the AfterRecoveryARController: "One more item collected!"
-        // Only count toward progress if this is a CleanupItem
         if (AfterRecoveryARController.Instance != null)
         {
+            Debug.LogWarning($"HiddenDangerItem.Recover: Calling HandleItemRecovered for '{gameObject.name}' with tag '{gameObject.tag}'");
             AfterRecoveryARController.Instance.HandleItemRecovered(gameObject);
         }
 
@@ -42,23 +42,31 @@ public class HiddenDangerItem : MonoBehaviour
     {
         if (AfterRecoveryARController.Instance == null || IsRecovered) return;
 
-        // In both missions, we want a Green Check for the items you're looking for
+        Debug.LogWarning($"HiddenDangerItem.OnMouseDown: Item '{gameObject.name}' clicked in mode {AfterRecoveryARController.Instance.currentMissionMode}");
+
+        // In Hidden Danger mission, we DON'T want to recover on tap
+        // We want the player to drag to bucket
+        if (AfterRecoveryARController.Instance.currentMissionMode == MissionMode.HiddenDanger)
+        {
+            Debug.LogWarning($"HiddenDangerItem: In HiddenDanger mode, item '{gameObject.name}' will be dragged, not recovered yet");
+            // Don't recover or show feedback on tap
+            // The ARTapDetector will handle the dragging
+            return;
+        }
+
+        // For other missions (CleanupGear, KitchenSafety, DisinfectHouse)
         bool isCorrectItem = false;
 
         // Check for CleanupItem tag first - these should ALWAYS be correct
         if (gameObject.CompareTag("CleanupItem"))
         {
             isCorrectItem = true;
+            Debug.LogWarning($"HiddenDangerItem: Cleanup Gear item '{gameObject.name}' with tag 'CleanupItem' is correct");
         }
         else if (gameObject.CompareTag("SafeItem")) 
         {
             isCorrectItem = true;
-        }
-        // In Hidden Danger mission, the Snake/Rat are the 'correct' targets
-        else if (gameObject.CompareTag("UnsafeItem") && 
-            AfterRecoveryARController.Instance.currentMissionMode == MissionMode.HiddenDanger)
-        {
-            isCorrectItem = true;
+            Debug.LogWarning($"HiddenDangerItem: Kitchen Safety item '{gameObject.name}' with tag 'SafeItem' is correct");
         }
 
         if (isCorrectItem)
@@ -69,6 +77,7 @@ public class HiddenDangerItem : MonoBehaviour
         else
         {
             // Red X for anything else
+            Debug.LogWarning($"HiddenDangerItem: Item '{gameObject.name}' with tag '{gameObject.tag}' is incorrect for mode {AfterRecoveryARController.Instance.currentMissionMode}");
             AfterRecoveryARController.Instance.TriggerFeedback(false, transform.position);
         }
     }

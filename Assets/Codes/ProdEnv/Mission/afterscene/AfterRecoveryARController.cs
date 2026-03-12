@@ -122,26 +122,7 @@ public class AfterRecoveryARController : MonoBehaviour
         if (cleaningRagProp != null) cleaningRagProp.SetActive(false);
         if (disinfectButtonUI != null) disinfectButtonUI.SetActive(false);
 
-        if (housePrefabHiddenDanger != null)
-        {
-            spawnedHouseHiddenDanger = Instantiate(housePrefabHiddenDanger, Vector3.zero, Quaternion.identity);
-            spawnedHouseHiddenDanger.SetActive(false);
-        }
-        if (housePrefabCleanupGear != null)
-        {
-            spawnedHouseCleanupGear = Instantiate(housePrefabCleanupGear, Vector3.zero, Quaternion.identity);
-            spawnedHouseCleanupGear.SetActive(false);
-        }
-        if (housePrefabKitchen != null)
-        {
-            spawnedHouseKitchen = Instantiate(housePrefabKitchen, Vector3.zero, Quaternion.identity);
-            spawnedHouseKitchen.SetActive(false);
-        }
-        if (housePrefabDisinfect != null)
-        {
-            spawnedHouseDisinfect = Instantiate(housePrefabDisinfect, Vector3.zero, Quaternion.identity);
-            spawnedHouseDisinfect.SetActive(false);
-        }
+        // REMOVED: Don't instantiate here to avoid duplicates
     }
 
     private void Start()
@@ -425,10 +406,43 @@ public class AfterRecoveryARController : MonoBehaviour
         if (houseInteriorEnvironment != null) houseInteriorEnvironment.SetActive(true);
         if (arSpawnWall != null) arSpawnWall.SetActive(true);
 
-        if (spawnedHouseHiddenDanger != null) spawnedHouseHiddenDanger.SetActive(mode == MissionMode.HiddenDanger);
-        if (spawnedHouseCleanupGear != null) spawnedHouseCleanupGear.SetActive(mode == MissionMode.CleanupGear);
-        if (spawnedHouseKitchen != null) spawnedHouseKitchen.SetActive(mode == MissionMode.KitchenSafety);
-        if (spawnedHouseDisinfect != null) spawnedHouseDisinfect.SetActive(mode == MissionMode.DisinfectHouse);
+        // Only instantiate if not already created
+        if (mode == MissionMode.HiddenDanger && spawnedHouseHiddenDanger == null && housePrefabHiddenDanger != null)
+        {
+            spawnedHouseHiddenDanger = Instantiate(housePrefabHiddenDanger, Vector3.zero, Quaternion.identity);
+            Debug.Log("Instantiated HiddenDanger house");
+        }
+        if (mode == MissionMode.CleanupGear && spawnedHouseCleanupGear == null && housePrefabCleanupGear != null)
+        {
+            spawnedHouseCleanupGear = Instantiate(housePrefabCleanupGear, Vector3.zero, Quaternion.identity);
+            Debug.Log("Instantiated CleanupGear house");
+        }
+        if (mode == MissionMode.KitchenSafety && spawnedHouseKitchen == null && housePrefabKitchen != null)
+        {
+            spawnedHouseKitchen = Instantiate(housePrefabKitchen, Vector3.zero, Quaternion.identity);
+            Debug.Log("Instantiated KitchenSafety house");
+        }
+        if (mode == MissionMode.DisinfectHouse && spawnedHouseDisinfect == null && housePrefabDisinfect != null)
+        {
+            spawnedHouseDisinfect = Instantiate(housePrefabDisinfect, Vector3.zero, Quaternion.identity);
+            Debug.Log("Instantiated DisinfectHouse house");
+        }
+
+        // Deactivate all houses first
+        if (spawnedHouseHiddenDanger != null) spawnedHouseHiddenDanger.SetActive(false);
+        if (spawnedHouseCleanupGear != null) spawnedHouseCleanupGear.SetActive(false);
+        if (spawnedHouseKitchen != null) spawnedHouseKitchen.SetActive(false);
+        if (spawnedHouseDisinfect != null) spawnedHouseDisinfect.SetActive(false);
+
+        // Activate only the current mission house
+        if (mode == MissionMode.HiddenDanger && spawnedHouseHiddenDanger != null) 
+            spawnedHouseHiddenDanger.SetActive(true);
+        if (mode == MissionMode.CleanupGear && spawnedHouseCleanupGear != null) 
+            spawnedHouseCleanupGear.SetActive(true);
+        if (mode == MissionMode.KitchenSafety && spawnedHouseKitchen != null) 
+            spawnedHouseKitchen.SetActive(true);
+        if (mode == MissionMode.DisinfectHouse && spawnedHouseDisinfect != null) 
+            spawnedHouseDisinfect.SetActive(true);
 
         bool isDisinfect = (mode == MissionMode.DisinfectHouse);
         if (sprayBottleProp != null) sprayBottleProp.SetActive(isDisinfect);
@@ -502,10 +516,22 @@ public class AfterRecoveryARController : MonoBehaviour
     public void HandleItemRecovered(GameObject recoveredObject)
     {
         // Only increment count if the object has the correct tag
-        if (recoveredObject == null || recoveredObject.tag != "CleanupItem")
+        if (recoveredObject == null)
+        {
+            Debug.LogWarning("HandleItemRecovered: recoveredObject is null!");
             return;
-            
+        }
+        
+        Debug.LogWarning($"HandleItemRecovered: Object '{recoveredObject.name}' with tag '{recoveredObject.tag}' was recovered. Current mission mode: {currentMissionMode}");
+        
+        if (recoveredObject.tag != "CleanupItem")
+        {
+            Debug.LogWarning($"HandleItemRecovered: Object '{recoveredObject.name}' ignored because tag is not 'CleanupItem'");
+            return;
+        }
+        
         genericRecoveredCount++;
+        Debug.LogWarning($"HandleItemRecovered: Count incremented to {genericRecoveredCount}");
         CheckMissionProgress();
     }
 
@@ -515,6 +541,7 @@ public class AfterRecoveryARController : MonoBehaviour
         {
             recoveredItem.OnRecovered -= HandleDangerRecovered;
             uniqueRecoveredItems.Add(recoveredItem.GetInstanceID());
+            Debug.LogWarning($"HandleDangerRecovered: Added item {recoveredItem.name} with ID {recoveredItem.GetInstanceID()}. Total unique items: {uniqueRecoveredItems.Count}");
         }
         CheckMissionProgress();
     }
@@ -530,10 +557,12 @@ public class AfterRecoveryARController : MonoBehaviour
             recoveredCount = uniqueRecoveredItems.Count + genericRecoveredCount;
         }
 
-        Debug.Log("<color=yellow>Progress: </color>" + recoveredCount + " / " + totalRequiredItems);
+        Debug.LogWarning($"<color=yellow>Progress: {recoveredCount} / {totalRequiredItems} (Mode: {currentMissionMode})</color>");
 
         if (recoveredCount >= totalRequiredItems)
         {
+            Debug.LogWarning($"<color=green>Mission Complete! Required: {totalRequiredItems}, Recovered: {recoveredCount}</color>");
+            
             if (arSpawnWall != null) arSpawnWall.SetActive(false);
             if (sprayBottleProp != null) sprayBottleProp.SetActive(false);
             if (cleaningRagProp != null) cleaningRagProp.SetActive(false);
@@ -546,16 +575,27 @@ public class AfterRecoveryARController : MonoBehaviour
             
             if (houseInteriorEnvironment != null) houseInteriorEnvironment.SetActive(true);
 
+            // Handle mission completion based on current mode
             if (currentMissionMode == MissionMode.CleanupGear)
             {
+                // After CleanupGear, go to HiddenDanger drag-and-drop mission
                 currentMissionMode = MissionMode.HiddenDanger; 
                 ShowTransitionStory();
             }
-            else
+            else if (currentMissionMode == MissionMode.KitchenSafety)
             {
-                if (currentMissionMode == MissionMode.HiddenDanger) ShowHiddenDangerOutroStory();
-                else if (currentMissionMode == MissionMode.KitchenSafety) ShowKitchenOutroStory();
-                else if (currentMissionMode == MissionMode.DisinfectHouse) ShowDisinfectOutroStory();
+                // Kitchen Safety mission complete - go to next
+                ShowKitchenOutroStory();
+            }
+            else if (currentMissionMode == MissionMode.DisinfectHouse)
+            {
+                // Disinfect mission complete - show final
+                ShowDisinfectOutroStory();
+            }
+            else if (currentMissionMode == MissionMode.HiddenDanger)
+            {
+                // Hidden Danger drag-and-drop mission complete
+                ShowHiddenDangerOutroStory();
             }
         }
     }
@@ -585,6 +625,9 @@ public class AfterRecoveryARController : MonoBehaviour
                     if (playerController != null) playerController.SetActive(true);
                     if (missionCompleteBanner != null) missionCompleteBanner.SetActive(false); 
                     if (achievementBackground != null) achievementBackground.SetActive(true);
+                    
+                    // Move to next mission (Kitchen Safety)
+                    PendingNextMissionID = "safeitemsmission";
                 })
                 .Play();
         }
@@ -602,6 +645,9 @@ public class AfterRecoveryARController : MonoBehaviour
                     if (playerController != null) playerController.SetActive(true);
                     if (missionCompleteBanner != null) missionCompleteBanner.SetActive(false); 
                     if (achievementBackground != null) achievementBackground.SetActive(true);
+                    
+                    // Move to next mission (Disinfect)
+                    PendingNextMissionID = "disinfectmission";
                 })
                 .Play();
         }

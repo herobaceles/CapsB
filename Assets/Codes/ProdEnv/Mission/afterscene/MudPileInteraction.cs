@@ -18,6 +18,12 @@ public class MudPileInteraction : MonoBehaviour
     {
         mudRenderer = GetComponent<MeshRenderer>();
 
+        // Ensure the mud has the CleanupItem tag for counting
+        if (!gameObject.CompareTag("CleanupItem"))
+        {
+            Debug.LogWarning($"Mud pile {gameObject.name} should have 'CleanupItem' tag for counting!");
+        }
+
         if (disinfectButton == null)
         {
             GameObject[] allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
@@ -37,18 +43,15 @@ public class MudPileInteraction : MonoBehaviour
         if (isCleaned || isHeld) return;
 
         // Prevent selecting multiple mud piles at the same time!
-        // If the disinfect button is already visible on the screen, 
-        // it means the player has ALREADY selected a different mud pile.
         if (disinfectButton != null && disinfectButton.activeInHierarchy)
         {
             Debug.Log("Player tried to select another mud pile, but one is already selected!");
             return; 
         }
 
-        // Mark as selected
         isHeld = true;
 
-        // Show the Disinfect Button and DYNAMICALLY WIRE IT!
+        // Show the Disinfect Button
         if (disinfectButton != null)
         {
             disinfectButton.SetActive(true);
@@ -62,7 +65,7 @@ public class MudPileInteraction : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("MudPileInteraction: Could not find the DisinfectButton! Check its name in the hierarchy.");
+            Debug.LogWarning("MudPileInteraction: Could not find the DisinfectButton!");
         }
     }
 
@@ -71,8 +74,6 @@ public class MudPileInteraction : MonoBehaviour
         if (isCleaned) return;
         isCleaned = true;
 
-        // Hide the Disinfect Button now that we clicked it!
-        // (This also frees up the player to select the next mud pile!)
         if (disinfectButton != null)
         {
             disinfectButton.SetActive(false);
@@ -95,7 +96,9 @@ public class MudPileInteraction : MonoBehaviour
     {
         if (AfterRecoveryARController.Instance != null)
         {
+            // This will count the mud if it has CleanupItem tag
             AfterRecoveryARController.Instance.HandleItemRecovered(gameObject); 
+            Debug.Log($"Mud pile {gameObject.name} cleaned and counted");
         }
         else
         {
