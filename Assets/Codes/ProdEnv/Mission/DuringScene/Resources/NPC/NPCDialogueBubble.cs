@@ -34,6 +34,13 @@ public class NPCDialogueBubble : MonoBehaviour
         if (canvas == null)
             canvas = GetComponentInChildren<Canvas>(true);
 
+        // Ensure the bubble renders on top of world geometry/UI
+        if (canvas != null)
+        {
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = 5000;
+        }
+
         if (canvasGroup == null)
         {
             canvasGroup = GetComponentInChildren<CanvasGroup>(true);

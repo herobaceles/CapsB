@@ -15,6 +15,7 @@ public class PreparingGoBagManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.RawImage cutsceneRawImage; // Assign in inspector
     private void OnDisable()
     {
+        UnregisterMissionEvents();
         StopAllCoroutines();
         SetPlayerMovementLocked(false);
         if (cutsceneRawImage != null)
@@ -61,6 +62,8 @@ public class PreparingGoBagManager : MonoBehaviour
 
         if (quizDialogueUI == null)
             quizDialogueUI = FindObjectOfType<QuizDialogueUIManager>();
+
+        RegisterMissionEvents();
 
         SetPlayerMovementLocked(true);
         StartCoroutine(PlayCutsceneThenShowDialogue());
@@ -162,19 +165,40 @@ public class PreparingGoBagManager : MonoBehaviour
         EndCutsceneVisuals();
 
         IsCutscenePlaying = false;
+    }
 
-        ShowPostCutsceneBriefing();
+    private void RegisterMissionEvents()
+    {
+        if (!IsPreparingGoBagMissionActive())
+            return;
+
+        if (BeforeMissionManager.Instance != null)
+        {
+            BeforeMissionManager.Instance.OnMissionStarted.RemoveListener(OnMissionStartedForPreparingGoBag);
+            BeforeMissionManager.Instance.OnMissionStarted.AddListener(OnMissionStartedForPreparingGoBag);
+        }
+    }
+
+    private void UnregisterMissionEvents()
+    {
+        if (BeforeMissionManager.Instance != null)
+        {
+            BeforeMissionManager.Instance.OnMissionStarted.RemoveListener(OnMissionStartedForPreparingGoBag);
+        }
+    }
+
+    private void OnMissionStartedForPreparingGoBag()
+    {
+        CompleteStartGate();
     }
 
     private void ShowPostCutsceneBriefing()
     {
-        var lines = new List<ProdDialogueLine>
-        {
-            new ProdDialogueLine(QuizCharacterName, "Oh no! That's a Signal Red warning. This is serious. The water could rise fast, so we need to act smartly before the flood hits."),
-            new ProdDialogueLine(QuizCharacterName, "Before you move, answer this quick question first.")
-        };
+        var mission = MissionSelectManager.SelectedMission;
+        var task = GetTask(mission);
+        var lines = BuildDialogueLines(task?.startDialogue);
 
-        if (ProdDialogueManager.Instance != null)
+        if (lines != null && lines.Count > 0 && ProdDialogueManager.Instance != null)
         {
             ProdDialogueManager.Instance.ShowDialogueSequence(lines, ShowStartQuizGate);
             return;
@@ -206,18 +230,47 @@ public class PreparingGoBagManager : MonoBehaviour
 
     private void OnStartQuizAnsweredCorrectly()
     {
-        var lines = new List<ProdDialogueLine>
-        {
-            new ProdDialogueLine(QuizCharacterName, "Now find the table that has the go bag.")
-        };
+        var mission = MissionSelectManager.SelectedMission;
+        var task = GetTask(mission);
+        var lines = BuildDialogueLines(task?.completeDialogue);
 
-        if (ProdDialogueManager.Instance != null)
+        if (lines != null && lines.Count > 0 && ProdDialogueManager.Instance != null)
         {
             ProdDialogueManager.Instance.ShowDialogueSequence(lines, CompleteStartGate);
             return;
         }
 
         CompleteStartGate();
+    }
+
+    private TaskData GetTask(MissionData mission)
+    {
+        if (mission == null || mission.tasks == null)
+            return null;
+
+        foreach (var task in mission.tasks)
+        {
+            if (task != null && task.taskId == PreparingGoBagTaskId)
+                return task;
+        }
+
+        return null;
+    }
+
+    private List<ProdDialogueLine> BuildDialogueLines(string[] dialogue)
+    {
+        if (dialogue == null || dialogue.Length == 0)
+            return null;
+
+        var lines = new List<ProdDialogueLine>();
+        foreach (var line in dialogue)
+        {
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+            lines.Add(new ProdDialogueLine(QuizCharacterName, line));
+        }
+
+        return lines.Count > 0 ? lines : null;
     }
 
     private void CompleteStartGate()
@@ -352,6 +405,7 @@ public class PreparingGoBagManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        UnregisterMissionEvents();
         SetPlayerMovementLocked(false);
 
         if (Instance == this)

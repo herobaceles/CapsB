@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using TMPro;
 
 /// <summary>
 /// Handles the During-phase gameplay loop. Keeps the top-down map active
@@ -58,6 +61,11 @@ public class DuringMissionManager : MissionSceneManager
     [SerializeField] private string mapTutorialTaskId = "tutorial_open_map";
     [SerializeField] private bool mapTutorialCompleted;
 
+    [Header("Mission Timer")]
+    [SerializeField] private TMP_Text missionTimerText;
+    [SerializeField] private GameObject missionTimeoutPanel;
+    [SerializeField] private Button missionTimeoutRestartButton;
+
     [Header("Events")]
     public UnityEvent OnBackpackOpened;
     public UnityEvent OnMapViewed;
@@ -68,6 +76,12 @@ public class DuringMissionManager : MissionSceneManager
     private Coroutine introDialogueRoutine;
     private bool backpackOpenedThisTask;
     private bool mapViewedThisTask;
+
+    private bool useMissionTimer;
+    private float missionTimeLimit;
+    private Coroutine missionTimerRoutine;
+    private float missionElapsedTime;
+    private bool missionTimerStarted;
 
     protected override void Awake()
     {
@@ -80,6 +94,12 @@ public class DuringMissionManager : MissionSceneManager
 
         if (mapDisplay == null)
             mapDisplay = FindObjectOfType<DuringMissionMapDisplay>();
+
+        if (missionTimeoutRestartButton != null)
+        {
+            missionTimeoutRestartButton.onClick.RemoveListener(RestartMissionFromTimeout);
+            missionTimeoutRestartButton.onClick.AddListener(RestartMissionFromTimeout);
+        }
     }
 
     /// <summary>
@@ -116,6 +136,17 @@ public class DuringMissionManager : MissionSceneManager
 
     protected override void StartMission()
     {
+        if (CurrentMission != null)
+        {
+            useMissionTimer = CurrentMission.useMissionTimer;
+            missionTimeLimit = CurrentMission.missionTimeLimitSeconds;
+        }
+        else
+        {
+            useMissionTimer = false;
+            missionTimeLimit = 0f;
+        }
+
         base.StartMission();
         TryPlayIntroDialogue();
     }
@@ -127,6 +158,7 @@ public class DuringMissionManager : MissionSceneManager
             Instance = null;
 
         UnsubscribeFromMapEvents();
+        StopMissionTimer();
     }
 
     private void SubscribeToMapEvents()
@@ -155,6 +187,9 @@ public class DuringMissionManager : MissionSceneManager
             miniSceneUI.SetActive(false);
         if (evacuationMarker != null)
             evacuationMarker.SetActive(false);
+
+        if (missionTimeoutPanel != null)
+            missionTimeoutPanel.SetActive(false);
     }
 
     private void ShowMapUI()
@@ -171,6 +206,7 @@ public class DuringMissionManager : MissionSceneManager
         mapTutorialCompleted = false;
         backpackOpenedThisTask = false;
         mapViewedThisTask = false;
+        missionTimerStarted = false;
 
         if (introDialogueRoutine != null)
         {
@@ -307,6 +343,13 @@ public class DuringMissionManager : MissionSceneManager
 
         Debug.Log("DuringMissionManager: Map opened.");
 
+        // Start the mission timer on first map open
+        if (useMissionTimer && IsMissionActive && !missionTimerStarted)
+        {
+            missionTimerStarted = true;
+            StartMissionTimer();
+        }
+
         // Check if tutorial task should complete
         CheckMapTutorialCompletion();
     }
@@ -442,9 +485,126 @@ public class DuringMissionManager : MissionSceneManager
     {
         Debug.LogWarning($"DuringMissionManager: Mission failed - {reason}");
         isMissionActive = false;
+        StopMissionTimer();
         ToggleMiniScene(false);
         ReturnToMissionSelect();
     }
+
+    #region Mission Timer
+
+    private void StartMissionTimer()
+    {
+        if (!useMissionTimer || missionTimeLimit <= 0f)
+            return;
+
+        if (missionTimerRoutine != null)
+            StopCoroutine(missionTimerRoutine);
+
+        missionElapsedTime = 0f;
+
+        if (missionTimerText != null)
+            missionTimerText.gameObject.SetActive(true);
+
+        UpdateMissionTimerUI();
+
+        if (missionTimeoutPanel != null)
+            missionTimeoutPanel.SetActive(true);
+
+        missionTimerRoutine = StartCoroutine(MissionTimerRoutine());
+    }
+
+    private void StopMissionTimer()
+    {
+        if (missionTimerRoutine != null)
+        {
+            StopCoroutine(missionTimerRoutine);
+            missionTimerRoutine = null;
+        }
+    }
+
+    private IEnumerator MissionTimerRoutine()
+    {
+        while (IsMissionActive && missionElapsedTime < missionTimeLimit)
+        {
+            missionElapsedTime += Time.deltaTime;
+            UpdateMissionTimerUI();
+            yield return null;
+        }
+
+        if (!IsMissionActive)
+        {
+            missionTimerRoutine = null;
+            yield break;
+        }
+
+        missionTimerRoutine = null;
+        OnMissionTimerExpired();
+    }
+
+    private void UpdateMissionTimerUI()
+    {
+        if (missionTimerText == null || missionTimeLimit <= 0f)
+            return;
+
+        float remaining = Mathf.Max(0f, missionTimeLimit - missionElapsedTime);
+        int minutes = Mathf.FloorToInt(remaining / 60f);
+        int seconds = Mathf.FloorToInt(remaining % 60f);
+        missionTimerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+    }
+
+    private void OnMissionTimerExpired()
+    {
+        Debug.LogWarning("DuringMissionManager: Mission timer expired.");
+        HandleMissionTimeout();
+    }
+
+    private void HandleMissionTimeout()
+    {
+        if (!IsMissionActive)
+            return;
+
+        isMissionActive = false;
+        StopMissionTimer();
+
+        if (activeARTask != null && activeARTask.IsActive)
+        {
+            activeARTask.CancelTask();
+        }
+
+        if (isMiniSceneActive)
+        {
+            ToggleMiniScene(false);
+        }
+
+        if (DuringMissionStoryDirector.Instance != null)
+        {
+            DuringMissionStoryDirector.Instance.ClearQueue();
+        }
+
+        if (missionTimeoutPanel != null)
+        {
+            missionTimeoutPanel.SetActive(true);
+        }
+
+        StartCoroutine(RestartAfterDelay(2f));
+    }
+
+    public void RestartMissionFromTimeout()
+    {
+        StopMissionTimer();
+        Time.timeScale = 1f;
+
+        Scene currentScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(currentScene.name);
+    }
+
+    private IEnumerator RestartAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        RestartMissionFromTimeout();
+    }
+
+    #endregion
 
     /// <summary>
     /// Invoked by the backpack HUD button so players can recover the map view on demand.

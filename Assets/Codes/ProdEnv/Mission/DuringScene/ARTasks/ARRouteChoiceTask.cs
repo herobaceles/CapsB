@@ -47,6 +47,11 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
     [Header("Player Control")]
     [SerializeField] private IsometricPlayerController playerController;
 
+    [Header("Secondary Camera Views (Optional)")]
+    [SerializeField] private Camera safeRouteCamera;
+    [SerializeField] private Camera unsafeRouteCamera;
+    [SerializeField] private GameObject secondaryCameraOverlay;
+
     private bool choiceMade;
     private bool correctChoice;
     private Vector2 dragOffset;
@@ -70,9 +75,6 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
 
         if (parentCanvas == null && draggablePanel != null)
             parentCanvas = draggablePanel.GetComponentInParent<Canvas>();
-
-        if (cameraController == null)
-            cameraController = FindObjectOfType<IsometricCameraController>();
 
         if (playerController == null)
             playerController = FindObjectOfType<IsometricPlayerController>();
@@ -102,9 +104,6 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
         if (parentCanvas == null && draggablePanel != null)
             parentCanvas = draggablePanel.GetComponentInParent<Canvas>();
 
-        if (cameraController == null)
-            cameraController = FindObjectOfType<IsometricCameraController>();
-
         if (playerController == null)
             playerController = FindObjectOfType<IsometricPlayerController>();
 
@@ -130,6 +129,22 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
     {
         choiceMade = false;
         correctChoice = false;
+
+        // Enable secondary route cameras if configured
+        if (safeRouteCamera != null)
+        {
+            safeRouteCamera.gameObject.SetActive(true);
+            safeRouteCamera.enabled = true;
+        }
+
+        if (unsafeRouteCamera != null)
+        {
+            unsafeRouteCamera.gameObject.SetActive(true);
+            unsafeRouteCamera.enabled = true;
+        }
+
+        if (secondaryCameraOverlay != null)
+            secondaryCameraOverlay.SetActive(true);
 
         // Focus camera on the route choice area
         if (cameraController != null && focusPoint != null)
@@ -179,6 +194,22 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
 
     protected override void OnTaskHide()
     {
+        // Disable secondary route cameras if configured
+        if (safeRouteCamera != null)
+        {
+            safeRouteCamera.enabled = false;
+            safeRouteCamera.gameObject.SetActive(false);
+        }
+
+        if (unsafeRouteCamera != null)
+        {
+            unsafeRouteCamera.enabled = false;
+            unsafeRouteCamera.gameObject.SetActive(false);
+        }
+
+        if (secondaryCameraOverlay != null)
+            secondaryCameraOverlay.SetActive(false);
+
         if (safeRouteButton != null)
             safeRouteButton.onClick.RemoveListener(OnSafeRouteSelected);
 

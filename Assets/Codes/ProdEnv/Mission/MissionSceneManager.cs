@@ -15,6 +15,8 @@ public abstract class MissionSceneManager : MonoBehaviour
 {
     public static MissionSceneManager Instance { get; protected set; }
 
+    private const string DefaultDialogueSpeaker = "Professor Lingap";
+
     [Header("Mission")]
     [SerializeField] protected MissionData fallbackMission;
 
@@ -46,6 +48,9 @@ public abstract class MissionSceneManager : MonoBehaviour
     [SerializeField] protected GameObject loadingPanel;
     [SerializeField] protected Slider progressBar;
     [SerializeField] protected TMP_Text progressText;
+
+    [Header("Quiz UI")]
+    [SerializeField] protected QuizDialogueUIManager quizDialogueUI;
 
     [Header("Events")]
     public UnityEvent OnMissionStarted;
@@ -176,10 +181,91 @@ public abstract class MissionSceneManager : MonoBehaviour
             yield break;
         }
 
-        // Skip dialogue for now - just start mission directly
-        // TODO: Add DialoguePanel to mission scenes if dialogue is needed
-        Debug.Log($"{GetType().Name}: Starting mission without intro dialogue");
+        // Play mission intro dialogue if configured
+        var introLines = BuildDialogueLines(currentMission.introDialogue);
+        if (introLines != null && introLines.Count > 0 && ProdDialogueManager.Instance != null)
+        {
+            bool dialogueFinished = false;
+            ProdDialogueManager.Instance.ShowDialogueSequence(introLines, () => dialogueFinished = true);
+
+            // Wait until the dialogue sequence completes before starting tasks
+            while (!dialogueFinished)
+                yield return null;
+        }
+        else if (introLines != null && introLines.Count > 0 && ProdDialogueManager.Instance == null)
+        {
+            Debug.LogWarning($"{GetType().Name}: Intro dialogue configured but ProdDialogueManager is missing. Skipping dialogue.");
+        }
+
+        yield return RunMissionStartQuizIfAvailable();
+
+        Debug.Log($"{GetType().Name}: Starting mission after intro dialogue/start quiz");
         StartMission();
+    }
+
+    protected virtual IEnumerator RunMissionStartQuizIfAvailable()
+    {
+        var quizData = currentMission?.startQuiz;
+
+        if (quizData == null)
+            yield break;
+
+        if (!IsStartQuizValid(quizData))
+            yield break;
+
+        if (quizDialogueUI == null)
+            quizDialogueUI = FindObjectOfType<QuizDialogueUIManager>();
+
+        if (quizDialogueUI == null)
+        {
+            Debug.LogWarning($"{GetType().Name}: QuizDialogueUIManager not found. Skipping start quiz to avoid soft lock.");
+            yield break;
+        }
+
+        bool answeredCorrectly = false;
+        quizDialogueUI.ShowQuiz(quizData, () =>
+        {
+            // After the correct answer, optionally show follow-up dialogue
+            if (quizData.correctAnswerDialogue != null &&
+                quizData.correctAnswerDialogue.Length > 0 &&
+                ProdDialogueManager.Instance != null)
+            {
+                StartCoroutine(PlayDialogueSequence(quizData.correctAnswerDialogue, () => answeredCorrectly = true));
+            }
+            else
+            {
+                answeredCorrectly = true;
+            }
+        });
+
+        while (!answeredCorrectly)
+            yield return null;
+    }
+
+    protected virtual bool IsStartQuizValid(MissionQuizData quizData)
+    {
+        if (quizData == null)
+            return false;
+
+        if (quizData.options == null || quizData.options.Length < 3)
+        {
+            Debug.LogWarning($"{GetType().Name}: Start quiz options are missing or incomplete. Skipping start quiz.");
+            return false;
+        }
+
+        if (quizData.correctOptionIndex < 0 || quizData.correctOptionIndex >= quizData.options.Length)
+        {
+            Debug.LogWarning($"{GetType().Name}: Start quiz correct option index is out of range. Skipping start quiz.");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(quizData.question))
+        {
+            Debug.LogWarning($"{GetType().Name}: Start quiz question is empty. Skipping start quiz.");
+            return false;
+        }
+
+        return true;
     }
 
     protected virtual void StartMission()
@@ -552,9 +638,57 @@ public abstract class MissionSceneManager : MonoBehaviour
 
     protected virtual void ShowTaskDialogue(string[] lines, System.Action onComplete)
     {
-        // Skip dialogue for now - DialoguePanel not available in mission scenes
-        // TODO: Add DialoguePanel to mission scenes if task dialogue is needed
+        if (lines == null || lines.Length == 0)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        StartCoroutine(PlayDialogueSequence(lines, onComplete));
+    }
+
+    private IEnumerator PlayDialogueSequence(string[] lines, System.Action onComplete)
+    {
+        var dialogueManager = ProdDialogueManager.Instance;
+
+        if (dialogueManager == null)
+        {
+            Debug.LogWarning($"{GetType().Name}: Dialogue requested but ProdDialogueManager is missing. Skipping dialogue.");
+            onComplete?.Invoke();
+            yield break;
+        }
+
+        var sequence = BuildDialogueLines(lines);
+        if (sequence == null || sequence.Count == 0)
+        {
+            onComplete?.Invoke();
+            yield break;
+        }
+
+        bool finished = false;
+        dialogueManager.ShowDialogueSequence(sequence, () => finished = true);
+
+        while (!finished)
+            yield return null;
+
         onComplete?.Invoke();
+    }
+
+    private List<ProdDialogueLine> BuildDialogueLines(string[] dialogueLines)
+    {
+        if (dialogueLines == null || dialogueLines.Length == 0)
+            return null;
+
+        var builtLines = new List<ProdDialogueLine>();
+        foreach (var line in dialogueLines)
+        {
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+
+            builtLines.Add(new ProdDialogueLine(DefaultDialogueSpeaker, line));
+        }
+
+        return builtLines.Count > 0 ? builtLines : null;
     }
 
     #endregion

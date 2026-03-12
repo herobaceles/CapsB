@@ -22,6 +22,20 @@ public class NPCFollower : MonoBehaviour
 
         if (dialogueBubble == null)
             dialogueBubble = GetComponentInChildren<NPCDialogueBubble>();
+
+        // Auto-assign the player Transform by tag if not set in the Inspector
+        if (player == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+            {
+                player = playerObj.transform;
+            }
+            else
+            {
+                Debug.LogWarning("NPCFollower: No GameObject with tag 'Player' found in the scene.");
+            }
+        }
     }
 
     private void Update()

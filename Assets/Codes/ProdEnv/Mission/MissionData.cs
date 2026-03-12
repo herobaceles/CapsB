@@ -47,6 +47,13 @@ public class MissionData : ScriptableObject
     [Header("Start Quiz (Optional)")]
     public MissionQuizData startQuiz;
 
+    [Header("Timer (Optional)")]
+    [Tooltip("Enable a mission-wide countdown. If enabled, scene managers like DuringMissionManager can enforce this time limit.")]
+    public bool useMissionTimer = false;
+
+    [Tooltip("Total mission time in seconds when a mission-wide timer is used.")]
+    public float missionTimeLimitSeconds = 0f;
+
     [Header("Completion")]
     [TextArea(2, 4)]
     public string completionMessage = "Mission Complete! Great job!";
@@ -87,6 +94,11 @@ public class MissionQuizData
 
     [Tooltip("Fallback sprite when a specific option sprite is not provided")]
     public Sprite placeholderSprite;
+
+    [Header("Post-Quiz Dialogue (Optional)")]
+    [TextArea(2, 3)]
+    [Tooltip("Optional dialogue lines shown after the player selects the correct answer in the start quiz.")]
+    public string[] correctAnswerDialogue;
 }
 
 /// <summary>

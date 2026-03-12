@@ -75,5 +75,13 @@ MonoBehaviour:
     - 
     - 
     correctOptionIndex: 0
+    optionSprites:
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    placeholderSprite: {fileID: 0}
+    correctAnswerDialogue: []
+  useMissionTimer: 1
+  missionTimeLimitSeconds: 600
   completionMessage: Mission Complete! Great job!
   unlocksMissionId: 
