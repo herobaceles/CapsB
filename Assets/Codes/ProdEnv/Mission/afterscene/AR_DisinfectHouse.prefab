@@ -1310,6 +1310,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: AR_DisinfectHouse
       objectReference: {fileID: 0}
+    - target: {fileID: 3089392259999343276, guid: 6a125222bdcdc8a48bf6fb4f04a5f1e8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4822422212847411698, guid: 6a125222bdcdc8a48bf6fb4f04a5f1e8, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.63

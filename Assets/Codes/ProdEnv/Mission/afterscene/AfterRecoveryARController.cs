@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.SceneManagement;
 using Unity.XR.CoreUtils; 
@@ -11,21 +12,39 @@ public class AfterRecoveryARController : MonoBehaviour
 {
     public static AfterRecoveryARController Instance;
 
+    public static string PendingNextMissionID = "";
+
+    [Header("Main Environment Setup")]
+    [Tooltip("Drag your main House/Environment object here so the script never deactivates it.")]
+    public GameObject houseInteriorEnvironment; 
+
     [Header("Mission Flow Selection")]
     [Tooltip("Check this box if testing Kitchen Safety in Editor.")]
     public bool isMission2_KitchenSafety = false;
     [Tooltip("Check this box if testing Disinfect House in Editor.")]
     public bool isMission3_DisinfectHouse = false;
 
-    [Header("Mission House Roots")]
-    public GameObject houseRootHiddenDanger;
-    public GameObject houseRootCleanupGear; 
-    public GameObject houseRootKitchen;
-    public GameObject houseRootDisinfect;
+    [Header("Mission House Prefabs (From Project Folder)")]
+    public GameObject housePrefabHiddenDanger;
+    public GameObject housePrefabCleanupGear; 
+    public GameObject housePrefabKitchen;
+    public GameObject housePrefabDisinfect;
+
+    // These will hold the actual spawned versions in the scene
+    private GameObject spawnedHouseHiddenDanger;
+    private GameObject spawnedHouseCleanupGear;
+    private GameObject spawnedHouseKitchen;
+    private GameObject spawnedHouseDisinfect;
 
     [Header("Mission Settings")]
     public MissionMode currentMissionMode;
-    private int totalRequiredItems = 2; 
+    // THIS IS THE GLOBAL SETTING
+    public int totalRequiredItems = 6; 
+
+    // --- BULLETPROOF POINT TRACKING ---
+    private HashSet<int> uniqueRecoveredItems = new HashSet<int>();
+    private int genericRecoveredCount = 0;
+    private int recoveredCount = 0;
 
     [Header("Mission Triggers")]
     [SerializeField] private GameObject arTriggerHiddenDanger;
@@ -48,12 +67,6 @@ public class AfterRecoveryARController : MonoBehaviour
     [SerializeField] private GameObject hiddenDangersQuiz;
     [SerializeField] private GameObject protectiveGearQuiz;
     [SerializeField] private GameObject finalFeedbackPanel;
-
-    [Header("Intro Dialogue")]
-    [SerializeField] private GameObject dialoguePanel;
-    [SerializeField] private TMP_Text dialogueContentText;
-    [SerializeField] private GameObject dialogueNextButton;
-    [SerializeField] private GameObject dialoguePreviousButton;
 
     [Header("Victory UI")]
     [SerializeField] private GameObject missionCompleteBanner;
@@ -80,11 +93,6 @@ public class AfterRecoveryARController : MonoBehaviour
 
     private int currentQuizIndex = 0;
     private string originalQuestion;
-    private int recoveredCount = 0;
-    private string[] introLines;
-    private int currentDialogueIndex = 0;
-    private Coroutine typingCoroutine;
-    private bool isOutroDialogue = false; 
 
     private void Awake()
     {
@@ -94,6 +102,8 @@ public class AfterRecoveryARController : MonoBehaviour
             return;
         }
         Instance = this;
+
+        if (houseInteriorEnvironment != null) houseInteriorEnvironment.SetActive(true);
 
         if (structuralDamageQuiz != null) structuralDamageQuiz.SetActive(false);
         if (hiddenDangersQuiz != null) hiddenDangersQuiz.SetActive(false);
@@ -111,24 +121,56 @@ public class AfterRecoveryARController : MonoBehaviour
         if (sprayBottleProp != null) sprayBottleProp.SetActive(false);
         if (cleaningRagProp != null) cleaningRagProp.SetActive(false);
         if (disinfectButtonUI != null) disinfectButtonUI.SetActive(false);
+
+        if (housePrefabHiddenDanger != null)
+        {
+            spawnedHouseHiddenDanger = Instantiate(housePrefabHiddenDanger, Vector3.zero, Quaternion.identity);
+            spawnedHouseHiddenDanger.SetActive(false);
+        }
+        if (housePrefabCleanupGear != null)
+        {
+            spawnedHouseCleanupGear = Instantiate(housePrefabCleanupGear, Vector3.zero, Quaternion.identity);
+            spawnedHouseCleanupGear.SetActive(false);
+        }
+        if (housePrefabKitchen != null)
+        {
+            spawnedHouseKitchen = Instantiate(housePrefabKitchen, Vector3.zero, Quaternion.identity);
+            spawnedHouseKitchen.SetActive(false);
+        }
+        if (housePrefabDisinfect != null)
+        {
+            spawnedHouseDisinfect = Instantiate(housePrefabDisinfect, Vector3.zero, Quaternion.identity);
+            spawnedHouseDisinfect.SetActive(false);
+        }
     }
 
     private void Start()
     {
-        isOutroDialogue = false;
-
-        string selectedMission = PlayerPrefs.GetString("SelectedMissionID", "hiddendangermission").ToLower().Trim();
         string playerName = PlayerPrefs.GetString("PlayerName", "Edward");
+        string savedID = "hiddendangermission";
+
+        if (!string.IsNullOrEmpty(PendingNextMissionID))
+        {
+            savedID = PendingNextMissionID;
+            PendingNextMissionID = ""; 
+        }
+        else if (MissionSelectManager.SelectedMission != null)
+        {
+            savedID = MissionSelectManager.SelectedMission.missionId.ToLower().Trim();
+        }
+
+        if (isMission2_KitchenSafety) savedID = "safeitemsmission";
+        else if (isMission3_DisinfectHouse) savedID = "disinfectmission";
         
-        Debug.Log("--- LOADING MISSION ID: '" + selectedMission + "' ---");
+        Debug.Log("<color=cyan><b>AR Controller:</b></color> Loading Mission ID: " + savedID);
         
-        if (selectedMission == "safeitemsmission")
+        if (savedID.Contains("safe"))
         {
             isMission2_KitchenSafety = true;
             isMission3_DisinfectHouse = false;
             currentMissionMode = MissionMode.KitchenSafety;
         }
-        else if (selectedMission == "disinfectmission")
+        else if (savedID.Contains("disinfect"))
         {
             isMission2_KitchenSafety = false;
             isMission3_DisinfectHouse = true;
@@ -139,31 +181,6 @@ public class AfterRecoveryARController : MonoBehaviour
             isMission2_KitchenSafety = false;
             isMission3_DisinfectHouse = false;
             currentMissionMode = MissionMode.HiddenDanger;
-        }
-
-        if (isMission3_DisinfectHouse)
-        {
-            introLines = new string[] {
-                "The water is gone, but it left behind bacteria and mold.",
-                "We need to disinfect the high-touch surfaces to make the house safe.",
-                "Grab the spray and the rag. Let's get to work."
-            };
-        }
-        else if (isMission2_KitchenSafety)
-        {
-            introLines = new string[] {
-                "Now, the kitchen. This is critical. Floodwater is toxic. We have to know what's safe to eat and drink.",
-                "Let's use the AR scanner to sort the safe from the unsafe. Your health depends on it."
-            };
-        }
-        else
-        {
-            introLines = new string[] {
-                "The storm has passed, " + playerName + ".",
-                "It's time to go home. But be careful.",
-                "The flood leaves behind many hidden dangers.",
-                "This is your final level: The Recovery."
-            };
         }
 
         if (questionText != null)
@@ -177,14 +194,32 @@ public class AfterRecoveryARController : MonoBehaviour
             arTap.SetHiddenDangerSpawner(spawner);
         }
 
-        if (dialoguePanel != null)
+        if (ProdDialogueManager.Instance != null)
         {
-            dialoguePanel.SetActive(true);
             if (joystickUI != null) joystickUI.SetActive(false);
-            if (playerController != null) playerController.SetActive(false);
             
-            currentDialogueIndex = 0;
-            UpdateDialogueView();
+            ProdDialogueSequenceBuilder sequence = ProdDialogueManager.Instance.CreateSequence();
+
+            if (currentMissionMode == MissionMode.DisinfectHouse)
+            {
+                sequence.AddProfessorLine("The water is gone, but it left behind bacteria and mold.")
+                        .AddProfessorLine("We need to disinfect the high-touch surfaces to make the house safe.")
+                        .AddProfessorLine("Grab the spray and the rag. Let's get to work.");
+            }
+            else if (currentMissionMode == MissionMode.KitchenSafety)
+            {
+                sequence.AddProfessorLine("Now, the kitchen. This is critical. Floodwater is toxic. We have to know what's safe to eat and drink.")
+                        .AddProfessorLine("Let's use the AR scanner to sort the safe from the unsafe. Your health depends on it.");
+            }
+            else
+            {
+                sequence.AddProfessorLine("The storm has passed, " + playerName + ".")
+                        .AddProfessorLine("It's time to go home. But be careful.")
+                        .AddProfessorLine("The flood leaves behind many hidden dangers.")
+                        .AddProfessorLine("This is your final level: The Recovery.");
+            }
+
+            sequence.OnComplete(() => StartExplorationPhase()).Play();
         }
         else
         {
@@ -192,75 +227,13 @@ public class AfterRecoveryARController : MonoBehaviour
         }
     }
 
-    public void ShowNextLine()
-    {
-        if (currentDialogueIndex < introLines.Length - 1)
-        {
-            currentDialogueIndex++;
-            UpdateDialogueView();
-        }
-        else
-        {
-            if (isOutroDialogue)
-            {
-                if (isMission3_DisinfectHouse)
-                {
-                    ShowFinalGameCompleteUI();
-                }
-                else
-                {
-                    // FIX: Disable MissionCompleteUI and show ONLY AchievementsPanel
-                    if (missionCompleteBanner != null) missionCompleteBanner.SetActive(false); 
-                    if (achievementBackground != null) achievementBackground.SetActive(true);
-                    if (dialoguePanel != null) dialoguePanel.SetActive(false);
-                }
-            }
-            else
-            {
-                StartExplorationPhase();
-            }
-        }
-    }
-
-    public void ShowPreviousLine()
-    {
-        if (currentDialogueIndex > 0)
-        {
-            currentDialogueIndex--;
-            UpdateDialogueView();
-        }
-    }
-
-    private void UpdateDialogueView()
-    {
-        if (typingCoroutine != null) StopCoroutine(typingCoroutine);
-        typingCoroutine = StartCoroutine(TypeIntroDialogue(introLines[currentDialogueIndex]));
-
-        if (dialoguePreviousButton != null)
-            dialoguePreviousButton.SetActive(currentDialogueIndex > 0);
-    }
-
-    private IEnumerator TypeIntroDialogue(string message)
-    {
-        if (dialogueContentText == null) yield break;
-        if (dialogueNextButton != null) dialogueNextButton.SetActive(false);
-
-        dialogueContentText.text = "";
-        foreach (char letter in message.ToCharArray())
-        {
-            dialogueContentText.text += letter;
-            yield return new WaitForSecondsRealtime(0.04f); 
-        }
-
-        if (dialogueNextButton != null) dialogueNextButton.SetActive(true);
-    }
-
     public void StartExplorationPhase()
     {
-        if (dialoguePanel != null) dialoguePanel.SetActive(false);
         if (joystickUI != null) joystickUI.SetActive(true);
         if (playerController != null) playerController.SetActive(true);
         if (gameplayCamera != null) gameplayCamera.SetActive(true);
+
+        if (houseInteriorEnvironment != null) houseInteriorEnvironment.SetActive(true);
 
         if (playerController != null)
         {
@@ -281,7 +254,7 @@ public class AfterRecoveryARController : MonoBehaviour
             if (arTriggerDisinfectHouse != null) arTriggerDisinfectHouse.SetActive(false);
             if (quizZoneTrigger != null) quizZoneTrigger.SetActive(false);
         }
-        else
+        else 
         {
             if (arTriggerHiddenDanger != null) arTriggerHiddenDanger.SetActive(true);
             if (quizZoneTrigger != null) quizZoneTrigger.SetActive(true);
@@ -429,10 +402,7 @@ public class AfterRecoveryARController : MonoBehaviour
         }
     }
 
-    public void StartCleanupGearAR()
-    {
-        EnableARRecovery(MissionMode.CleanupGear);
-    }
+    public void StartCleanupGearAR() { EnableARRecovery(MissionMode.CleanupGear); }
 
     public void StartKitchenSafetyAR()
     {
@@ -440,25 +410,25 @@ public class AfterRecoveryARController : MonoBehaviour
         EnableARRecovery(MissionMode.KitchenSafety);
     }
 
-    public void StartDisinfectHouseAR()
-    {
-        EnableARRecovery(MissionMode.DisinfectHouse);
-    }
+    public void StartDisinfectHouseAR() { EnableARRecovery(MissionMode.DisinfectHouse); }
 
-    public void EnableARRecovery()
-    {
-        EnableARRecovery(currentMissionMode);
-    }
+    public void EnableARRecovery() { EnableARRecovery(currentMissionMode); }
 
     public void EnableARRecovery(MissionMode mode)
     {
         currentMissionMode = mode;
+        
+        uniqueRecoveredItems.Clear(); 
+        genericRecoveredCount = 0;
         recoveredCount = 0;
         
-        if (mode == MissionMode.KitchenSafety) totalRequiredItems = 2; 
-        else if (mode == MissionMode.HiddenDanger) totalRequiredItems = 3;
-        else if (mode == MissionMode.DisinfectHouse) totalRequiredItems = 6; 
-        else totalRequiredItems = 3; 
+        if (houseInteriorEnvironment != null) houseInteriorEnvironment.SetActive(true);
+        if (arSpawnWall != null) arSpawnWall.SetActive(true);
+
+        if (spawnedHouseHiddenDanger != null) spawnedHouseHiddenDanger.SetActive(mode == MissionMode.HiddenDanger);
+        if (spawnedHouseCleanupGear != null) spawnedHouseCleanupGear.SetActive(mode == MissionMode.CleanupGear);
+        if (spawnedHouseKitchen != null) spawnedHouseKitchen.SetActive(mode == MissionMode.KitchenSafety);
+        if (spawnedHouseDisinfect != null) spawnedHouseDisinfect.SetActive(mode == MissionMode.DisinfectHouse);
 
         bool isDisinfect = (mode == MissionMode.DisinfectHouse);
         if (sprayBottleProp != null) sprayBottleProp.SetActive(isDisinfect);
@@ -495,22 +465,9 @@ public class AfterRecoveryARController : MonoBehaviour
     private IEnumerator DisableGameplayCameraWhenARReady()
     {
         XROrigin bootOrigin = FindObjectOfType<XROrigin>();
-        if (bootOrigin != null)
-        {
-            bootOrigin.transform.position = spawnPosition;
-        }
+        if (bootOrigin != null) bootOrigin.transform.position = spawnPosition;
 
         UpdateSpawnerPosition();
-
-        GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
-        foreach (GameObject obj in allObjects)
-        {
-            if (obj.name.Contains("Wall") || obj.name.Contains("Occluder"))
-            {
-                MeshRenderer mr = obj.GetComponent<MeshRenderer>();
-                if (mr != null) mr.enabled = false;
-            }
-        }
 
         float timeout = 3.0f;
         while (timeout > 0f)
@@ -521,7 +478,8 @@ public class AfterRecoveryARController : MonoBehaviour
                 UpdateSpawnerPosition();
                 if (playerController != null) playerController.SetActive(false);
                 if (gameplayCamera != null) gameplayCamera.SetActive(false);
-                
+                if (houseInteriorEnvironment != null) houseInteriorEnvironment.SetActive(true);
+
                 ARCameraBinder binder = FindObjectOfType<ARCameraBinder>();
                 if (binder != null) binder.RebindCamera();
                 yield break;
@@ -532,128 +490,163 @@ public class AfterRecoveryARController : MonoBehaviour
 
         if (playerController != null) playerController.SetActive(false);
         if (gameplayCamera != null) gameplayCamera.SetActive(false);
+        if (houseInteriorEnvironment != null) houseInteriorEnvironment.SetActive(true);
     }
 
     public void RegisterSpawnedDanger(HiddenDangerItem dangerItem)
     {
+        dangerItem.OnRecovered -= HandleDangerRecovered;
         dangerItem.OnRecovered += HandleDangerRecovered;
     }
 
-    public void HandleItemRecovered()
+    public void HandleItemRecovered(GameObject recoveredObject)
     {
-        recoveredCount++;
+        // Only increment count if the object has the correct tag
+        if (recoveredObject == null || recoveredObject.tag != "CleanupItem")
+            return;
+            
+        genericRecoveredCount++;
         CheckMissionProgress();
     }
 
     private void HandleDangerRecovered(HiddenDangerItem recoveredItem)
     {
-        recoveredItem.OnRecovered -= HandleDangerRecovered;
-        recoveredCount++;
+        if (recoveredItem != null)
+        {
+            recoveredItem.OnRecovered -= HandleDangerRecovered;
+            uniqueRecoveredItems.Add(recoveredItem.GetInstanceID());
+        }
         CheckMissionProgress();
     }
 
     private void CheckMissionProgress()
     {
+        if (currentMissionMode == MissionMode.HiddenDanger)
+        {
+            recoveredCount = uniqueRecoveredItems.Count;
+        }
+        else
+        {
+            recoveredCount = uniqueRecoveredItems.Count + genericRecoveredCount;
+        }
+
+        Debug.Log("<color=yellow>Progress: </color>" + recoveredCount + " / " + totalRequiredItems);
+
         if (recoveredCount >= totalRequiredItems)
         {
-            isOutroDialogue = true; 
-            
-            // FIX: Deactivate the AR Spawn Wall immediately when the AR phase ends
             if (arSpawnWall != null) arSpawnWall.SetActive(false);
-
             if (sprayBottleProp != null) sprayBottleProp.SetActive(false);
             if (cleaningRagProp != null) cleaningRagProp.SetActive(false);
             if (disinfectButtonUI != null) disinfectButtonUI.SetActive(false);
 
             if (ARRuntimeContext.Instance != null) ARRuntimeContext.Instance.SetARActive(false);
-            
             if (gameplayCamera != null) gameplayCamera.SetActive(true);
+            if (playerController != null) playerController.SetActive(true);
+            if (joystickUI != null) joystickUI.SetActive(true);
+            
+            if (houseInteriorEnvironment != null) houseInteriorEnvironment.SetActive(true);
 
-            if (currentMissionMode == MissionMode.CleanupGear || currentMissionMode == MissionMode.HiddenDanger)
+            if (currentMissionMode == MissionMode.CleanupGear)
             {
+                currentMissionMode = MissionMode.HiddenDanger; 
                 ShowTransitionStory();
             }
-            else if (currentMissionMode == MissionMode.KitchenSafety)
+            else
             {
-                ShowKitchenOutroStory();
-            }
-            else if (currentMissionMode == MissionMode.DisinfectHouse)
-            {
-                ShowDisinfectOutroStory();
+                if (currentMissionMode == MissionMode.HiddenDanger) ShowHiddenDangerOutroStory();
+                else if (currentMissionMode == MissionMode.KitchenSafety) ShowKitchenOutroStory();
+                else if (currentMissionMode == MissionMode.DisinfectHouse) ShowDisinfectOutroStory();
             }
         }
     }
 
     private void ShowTransitionStory()
     {
-        if (dialoguePanel != null) dialoguePanel.SetActive(true);
         if (joystickUI != null) joystickUI.SetActive(false);
-        if (playerController != null) playerController.SetActive(false);
+        if (ProdDialogueManager.Instance != null)
+        {
+            ProdDialogueManager.Instance.CreateSequence()
+                .AddProfessorLine("Excellent! You have secured your protective gear. Now, carefully explore the house to clear the hidden dangers.")
+                .OnComplete(() => StartExplorationPhase())
+                .Play();
+        }
+        else StartExplorationPhase();
+    }
 
-        introLines = new string[] { "Excellent! You have secured the immediate dangers. But there is more to do to make this house a home again." };
-        currentDialogueIndex = 0;
-        UpdateDialogueView();
+    private void ShowHiddenDangerOutroStory()
+    {
+        if (joystickUI != null) joystickUI.SetActive(false);
+        if (ProdDialogueManager.Instance != null)
+        {
+            ProdDialogueManager.Instance.CreateSequence()
+                .AddProfessorLine("Great job! You have safely removed the animals and immediate hazards. The house is much safer now.")
+                .OnComplete(() => {
+                    if (joystickUI != null) joystickUI.SetActive(true);
+                    if (playerController != null) playerController.SetActive(true);
+                    if (missionCompleteBanner != null) missionCompleteBanner.SetActive(false); 
+                    if (achievementBackground != null) achievementBackground.SetActive(true);
+                })
+                .Play();
+        }
     }
 
     private void ShowKitchenOutroStory()
     {
-        if (dialoguePanel != null) dialoguePanel.SetActive(true);
         if (joystickUI != null) joystickUI.SetActive(false);
-        if (playerController != null) playerController.SetActive(false);
-
-        introLines = new string[] { "Excellent! Undamaged canned goods are safe if you wash the can first. And sealed water is our only safe drinking source. Everything else... THROW IT AWAY. When in doubt, throw it out." };
-        currentDialogueIndex = 0;
-        UpdateDialogueView();
+        if (ProdDialogueManager.Instance != null)
+        {
+            ProdDialogueManager.Instance.CreateSequence()
+                .AddProfessorLine("Excellent! Undamaged canned goods are safe if you wash the can first. And sealed water is our only safe drinking source. Everything else... THROW IT AWAY. When in doubt, throw it out.")
+                .OnComplete(() => {
+                    if (joystickUI != null) joystickUI.SetActive(true);
+                    if (playerController != null) playerController.SetActive(true);
+                    if (missionCompleteBanner != null) missionCompleteBanner.SetActive(false); 
+                    if (achievementBackground != null) achievementBackground.SetActive(true);
+                })
+                .Play();
+        }
     }
 
     private void ShowDisinfectOutroStory()
     {
         string playerName = PlayerPrefs.GetString("PlayerName", "Edward");
-        if (dialoguePanel != null) dialoguePanel.SetActive(true);
         if (joystickUI != null) joystickUI.SetActive(false);
-        if (playerController != null) playerController.SetActive(false);
-
-        introLines = new string[] { 
-            "Great work! Bleach and water remove bacteria left by floodwater. Your home is finally safe again.",
-            "You did it, " + playerName + ". You faced the warning, survived the storm, and recovered from the aftermath.",
-            "Disasters are a part of life, but with the right knowledge and preparation, we can be stronger than any storm.",
-            "You are no longer just " + playerName + "... you are truly BaHanda!"
-        };
-        currentDialogueIndex = 0;
-        UpdateDialogueView();
+        if (ProdDialogueManager.Instance != null)
+        {
+            ProdDialogueManager.Instance.CreateSequence()
+                .AddProfessorLine("Great work! Bleach and water remove bacteria left by floodwater. Your home is finally safe again.")
+                .AddProfessorLine("You did it, " + playerName + ". You faced the warning, survived the storm, and recovered from the aftermath.")
+                .AddProfessorLine("Disasters are a part of life, but with the right knowledge and preparation, we can be stronger than any storm.")
+                .AddProfessorLine("You are no longer just " + playerName + "... you are truly BaHanda!")
+                .OnComplete(() => ShowFinalGameCompleteUI())
+                .Play();
+        }
+        else ShowFinalGameCompleteUI();
     }
 
     private void ShowFinalGameCompleteUI()
     {
-        if (dialoguePanel != null) dialoguePanel.SetActive(false);
-        if (joystickUI != null) joystickUI.SetActive(false); 
+        if (joystickUI != null) joystickUI.SetActive(true); 
         if (playerController != null) playerController.SetActive(true);
         if (gameplayCamera != null) gameplayCamera.SetActive(true);
-
-        // FIX: Ensure missionCompleteBanner stays disabled, even at the very end of the final level.
-        if (missionCompleteBanner != null)
-        {
-            missionCompleteBanner.SetActive(false);
-        }
-        
-        // FIX: Show ONLY the achievement background
+        if (missionCompleteBanner != null) missionCompleteBanner.SetActive(false);
         if (achievementBackground != null) achievementBackground.SetActive(true);
     }
 
     public void ContinueToGame()
     {
-        string currentID = PlayerPrefs.GetString("SelectedMissionID", "hiddendangermission").ToLower().Trim();
+        string currentID = "hiddendangermission";
+        if (isMission3_DisinfectHouse) currentID = "disinfectmission";
+        else if (isMission2_KitchenSafety) currentID = "safeitemsmission";
 
         if (currentID == "hiddendangermission")
         {
-            PlayerPrefs.SetString("SelectedMissionID", "safeitemsmission");
-            PlayerPrefs.Save();
+            PendingNextMissionID = "safeitemsmission"; 
             RestartLevel();
         }
         else if (currentID == "safeitemsmission")
         {
-            PlayerPrefs.SetString("SelectedMissionID", "disinfectmission");
-            PlayerPrefs.Save();
+            PendingNextMissionID = "disinfectmission"; 
             RestartLevel();
         }
         else

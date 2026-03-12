@@ -6,26 +6,29 @@ using System.Collections;
 public class HiddenDangerItem : MonoBehaviour
 {
     [Header("Item Settings")]
-    [Tooltip("Name of the hidden danger item (Example: Snake, Rat)")]
     public string itemName;
+
+    [Tooltip("If unchecked, the item disappears when tapped. (Leave unchecked for Bucket now!)")]
+    public bool isStationaryFeedbackOnly = false;
 
     [Header("Events")]
     public UnityAction<HiddenDangerItem> OnRecovered;
-
     public bool IsRecovered { get; private set; }
 
-    // This is called by the AR Manager/Tap Detector, AND our fallback OnMouseDown
     public void Recover()
     {
-        if (IsRecovered) return;
+        if (IsRecovered || isStationaryFeedbackOnly) return;
 
         IsRecovered = true;
-        Debug.Log($"Hidden Danger Found: {itemName}");
-
-        // Tell the manager this item was recovered without strongly coupling to it
         OnRecovered?.Invoke(this);
 
-        // Delay hiding the object slightly so Unity's physics and visual feedback can finish
+        // This tells the AfterRecoveryARController: "One more item collected!"
+        // Only count toward progress if this is a CleanupItem
+        if (AfterRecoveryARController.Instance != null)
+        {
+            AfterRecoveryARController.Instance.HandleItemRecovered(gameObject);
+        }
+
         StartCoroutine(DisableAfterDelay());
     }
 
@@ -35,31 +38,38 @@ public class HiddenDangerItem : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    // Fallback: If the AR Tap Detector raycast misses in the Editor, Unity's native mouse click will catch it!
     private void OnMouseDown()
     {
         if (AfterRecoveryARController.Instance == null || IsRecovered) return;
 
-        MissionMode mode = AfterRecoveryARController.Instance.currentMissionMode;
+        // In both missions, we want a Green Check for the items you're looking for
+        bool isCorrectItem = false;
 
-        // STRICT TAG CHECK: Feedback only appears for these exact tags!
-        if (gameObject.CompareTag("SafeItem"))
+        // Check for CleanupItem tag first - these should ALWAYS be correct
+        if (gameObject.CompareTag("CleanupItem"))
         {
-            // We now pass the item's position to the controller
+            isCorrectItem = true;
+        }
+        else if (gameObject.CompareTag("SafeItem")) 
+        {
+            isCorrectItem = true;
+        }
+        // In Hidden Danger mission, the Snake/Rat are the 'correct' targets
+        else if (gameObject.CompareTag("UnsafeItem") && 
+            AfterRecoveryARController.Instance.currentMissionMode == MissionMode.HiddenDanger)
+        {
+            isCorrectItem = true;
+        }
+
+        if (isCorrectItem)
+        {
             AfterRecoveryARController.Instance.TriggerFeedback(true, transform.position);
             Recover();
         }
-        else if (gameObject.CompareTag("UnsafeItem"))
-        {
-            // We now pass the item's position to the controller
-            AfterRecoveryARController.Instance.TriggerFeedback(false, transform.position);
-        }
         else
         {
-            if (mode == MissionMode.HiddenDanger)
-            {
-                Recover();
-            }
+            // Red X for anything else
+            AfterRecoveryARController.Instance.TriggerFeedback(false, transform.position);
         }
     }
 }

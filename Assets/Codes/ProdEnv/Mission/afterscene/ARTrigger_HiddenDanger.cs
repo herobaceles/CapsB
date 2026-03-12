@@ -12,12 +12,11 @@ public class ARTrigger_HiddenDanger : MonoBehaviour
         // Auto-find controller if not assigned in Inspector
         if (arController == null)
         {
-            arController = FindObjectOfType<AfterRecoveryARController>(true);
-
-            if (arController != null)
-                Debug.Log("ARTrigger_HiddenDanger: Found AfterRecoveryARController automatically.");
-            else
-                Debug.LogWarning("ARTrigger_HiddenDanger: Could not find AfterRecoveryARController in scene.");
+            arController = AfterRecoveryARController.Instance;
+            
+            // Fallback if Instance isn't set yet
+            if (arController == null)
+                arController = FindObjectOfType<AfterRecoveryARController>(true);
         }
     }
 
@@ -29,22 +28,21 @@ public class ARTrigger_HiddenDanger : MonoBehaviour
 
             if (arController != null)
             {
-                // CRITICAL FIX: Pass the controller's current mode to resolve error CS7036.
-                // This respects whichever mission the player selected in the Main Menu!
+                // Triggers the AR phase using the mode set during the Controller's Start()
                 arController.EnableARRecovery(arController.currentMissionMode); 
-                Debug.Log(arController.currentMissionMode + " AR Phase Started via Trigger!");
+                Debug.Log($"<color=green><b>AR Trigger:</b></color> Starting {arController.currentMissionMode} phase.");
             }
             else
             {
-                Debug.LogWarning("ARTrigger_HiddenDanger: arController reference missing.");
+                Debug.LogWarning("ARTrigger_HiddenDanger: AfterRecoveryARController reference missing.");
             }
 
-            // Hide the trigger object if it has a mesh
+            // Hide the visual helper of the trigger
             MeshRenderer renderer = GetComponent<MeshRenderer>();
             if (renderer != null)
                 renderer.enabled = false;
 
-            // CRITICAL FIX: Turn off the collider so it doesn't block AR finger taps!
+            // Disable the collider so it doesn't block AR raycasts or taps
             Collider triggerCollider = GetComponent<Collider>();
             if (triggerCollider != null)
                 triggerCollider.enabled = false;

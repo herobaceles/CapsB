@@ -4,202 +4,69 @@ using UnityEngine;
 
 public class HiddenDangerSpawner : MonoBehaviour
 {
-    [Header("AR Mission References")]
-    [Tooltip("Drag your AR_HiddenDangerHouse prefab here")]
+    [Header("AR Mission Prefabs")]
+    public GameObject cleanupGearPrefab;  
     public GameObject houseInteriorPrefab; 
-    
-    [Tooltip("Drag your AR_CleanupGearHouse prefab here")]
-    public GameObject cleanupGearPrefab; 
-
-    [Tooltip("Drag your NEW AR_KitchenSafetyHouse prefab here")]
     public GameObject kitchenSafetyPrefab; 
-
-    // --- NEW: Added Disinfect House Prefab Slot ---
-    [Tooltip("Drag your NEW AR_DisinfectHouse prefab here")]
     public GameObject disinfectHousePrefab; 
 
     [Header("Spawn Settings")]
     public Transform arParent;
 
-    [Header("Transition Settings (Hide the 3D World)")]
-    [Tooltip("Drag the scene's HouseInterior, Player/Boy, and any old UI here to hide them when AR starts")]
+    [Header("Transition Settings")]
     public GameObject[] objectsToHideInAR;
 
     private bool missionPlaced = false;
-
-    // --- Track the currently spawned house to destroy it between phases ---
     private MissionMode? lastSpawnedMode = null;
     private GameObject currentSpawnedRoom;
 
     public void SpawnHiddenDangers(Vector3 spawnPosition)
     {
-        // Determine which mission we are playing
         MissionMode currentMode = MissionMode.HiddenDanger;
         if (AfterRecoveryARController.Instance != null)
-        {
             currentMode = AfterRecoveryARController.Instance.currentMissionMode;
-        }
 
-        // --- NEW FIX: If we changed modes, destroy the old house and allow spawning again! ---
         if (lastSpawnedMode != null && lastSpawnedMode.Value != currentMode)
         {
             missionPlaced = false;
-            if (currentSpawnedRoom != null)
-            {
-                Destroy(currentSpawnedRoom);
-            }
+            if (currentSpawnedRoom != null) Destroy(currentSpawnedRoom);
         }
 
         if (missionPlaced) return;
 
-        // Select the correct prefab based on the mission mode
         GameObject prefabToSpawn = null;
-        if (currentMode == MissionMode.HiddenDanger)
-            prefabToSpawn = houseInteriorPrefab;
-        else if (currentMode == MissionMode.CleanupGear)
-            prefabToSpawn = cleanupGearPrefab;
-        else if (currentMode == MissionMode.KitchenSafety)
-            prefabToSpawn = kitchenSafetyPrefab; 
-        else if (currentMode == MissionMode.DisinfectHouse)
-            prefabToSpawn = disinfectHousePrefab; // Uses the new slot!
-
-        if (prefabToSpawn == null)
+        switch (currentMode)
         {
-            Debug.LogWarning($"HiddenDangerSpawner: Prefab for {currentMode} is not set!");
-            return;
+            case MissionMode.CleanupGear: prefabToSpawn = cleanupGearPrefab; break;
+            case MissionMode.HiddenDanger: prefabToSpawn = houseInteriorPrefab; break;
+            case MissionMode.KitchenSafety: prefabToSpawn = kitchenSafetyPrefab; break;
+            case MissionMode.DisinfectHouse: prefabToSpawn = disinfectHousePrefab; break;
         }
 
-        // 1. Hide the old 3D World from the Inspector list (if assigned)
-        foreach (GameObject obj in objectsToHideInAR)
-        {
-            if (obj != null)
-            {
-                obj.SetActive(false);
-                Debug.Log($"HiddenDangerSpawner: Successfully hid {obj.name} for AR mode.");
-            }
-        }
+        if (prefabToSpawn == null) return;
 
-        // --- BULLETPROOF FAILSAFE ---
-        GameObject oldHouse = GameObject.Find("HouseInterior");
-        if (oldHouse != null)
-        {
-            oldHouse.SetActive(false);
-            Debug.Log("HiddenDangerSpawner: Failsafe triggered - Auto-hid HouseInterior.");
-        }
+        foreach (GameObject obj in objectsToHideInAR) if (obj != null) obj.SetActive(false);
 
-        GameObject playerBoy = GameObject.Find("Boy");
-        if (playerBoy != null)
-        {
-            playerBoy.SetActive(false);
-            Debug.Log("HiddenDangerSpawner: Failsafe triggered - Auto-hid Boy.");
-        }
-        // -----------------------------
-
-        // 2. Spawn the correct AR House Environment (and save a reference to it)
         currentSpawnedRoom = Instantiate(prefabToSpawn, spawnPosition, prefabToSpawn.transform.rotation);
-        
-        if (arParent != null) 
-            currentSpawnedRoom.transform.SetParent(arParent, true);
+        if (arParent != null) currentSpawnedRoom.transform.SetParent(arParent, true);
 
-        // 3. Safely fix visuals
-        FixSpawnedVisuals(currentSpawnedRoom);
-
-        // 4. Automatically find all Hidden Dangers and FORCE them to be visible
-        HiddenDangerItem[] dangersInRoom = currentSpawnedRoom.GetComponentsInChildren<HiddenDangerItem>(true);
-        int dangerCount = 0;
-
-        foreach (HiddenDangerItem danger in dangersInRoom)
+        // Fix Visuals
+        foreach (var rend in currentSpawnedRoom.GetComponentsInChildren<Renderer>(true))
         {
-            danger.gameObject.SetActive(true);
-            foreach (var rend in danger.GetComponentsInChildren<Renderer>(true))
-            {
-                if (rend.sharedMaterial != null) rend.enabled = true;
-            }
+            rend.enabled = true;
+            rend.gameObject.layer = LayerMask.NameToLayer("Default");
+        }
 
+        // Register Items
+        HiddenDangerItem[] items = currentSpawnedRoom.GetComponentsInChildren<HiddenDangerItem>(true);
+        foreach (var item in items)
+        {
+            item.gameObject.SetActive(true);
             if (AfterRecoveryARController.Instance != null)
-            {
-                AfterRecoveryARController.Instance.RegisterSpawnedDanger(danger);
-                dangerCount++;
-            }
-        }
-
-        // 5. Force specific items on by exact name dynamically based on the mission mode!
-        string[] exactNames;
-        if (currentMode == MissionMode.HiddenDanger)
-        {
-            exactNames = new string[] { "idle rat", "snake", "bucket" };
-        }
-        else if (currentMode == MissionMode.CleanupGear)
-        {
-            exactNames = new string[] { "boots", "gloves", "mask", "bucket" }; 
-        }
-        else if (currentMode == MissionMode.KitchenSafety)
-        {
-            exactNames = new string[] { "canned goods", "sealed water", "open jar", "cardboard box" };
-        }
-        else // Disinfect House Mode
-        {
-            // IMPORTANT: If you named your bacteria/mold stains something else in the prefab, update these strings!
-            exactNames = new string[] { "mold", "stain", "bacteria", "stain 1", "stain 2", "stain 3" };
-        }
-
-        foreach (string itemName in exactNames)
-        {
-            // Improved search so it finds the items even if they are nested
-            Transform item = null;
-            foreach (Transform child in currentSpawnedRoom.GetComponentsInChildren<Transform>(true))
-            {
-                if (child.name.ToLower() == itemName.ToLower())
-                {
-                    item = child;
-                    break;
-                }
-            }
-
-            if (item != null)
-            {
-                item.gameObject.SetActive(true);
-                foreach (var rend in item.GetComponentsInChildren<Renderer>(true))
-                {
-                    rend.enabled = true;
-                }
-            }
+                AfterRecoveryARController.Instance.RegisterSpawnedDanger(item);
         }
 
         missionPlaced = true;
-        lastSpawnedMode = currentMode; // Save this mode so we know what to check against next time
-        Debug.Log($"HiddenDangerSpawner: {currentMode} AR House spawned! Found {dangerCount} items inside.");
-    }
-
-    private void FixSpawnedVisuals(GameObject root)
-    {
-        if (root == null) return;
-
-        int defaultLayer = LayerMask.NameToLayer("Default");
-        if (defaultLayer < 0) defaultLayer = 0;
-
-        ApplyHierarchyState(root.transform, defaultLayer);
-
-        foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
-        {
-            if (renderer == null) continue;
-            renderer.gameObject.layer = defaultLayer;
-        }
-
-        foreach (var lodGroup in root.GetComponentsInChildren<LODGroup>(true))
-        {
-            lodGroup.ForceLOD(0);
-            lodGroup.enabled = false;
-        }
-    }
-
-    private void ApplyHierarchyState(Transform node, int layer)
-    {
-        if (node == null) return;
-        node.gameObject.layer = layer;
-        for (int i = 0; i < node.childCount; i++)
-        {
-            ApplyHierarchyState(node.GetChild(i), layer);
-        }
+        lastSpawnedMode = currentMode;
     }
 }

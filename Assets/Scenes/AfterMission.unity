@@ -133,12 +133,12 @@ GameObject:
   - component: {fileID: 3016754}
   - component: {fileID: 3016755}
   m_Layer: 5
-  m_Name: AR_StoryPanel
+  m_Name: DialoguePanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &3016754
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8591,7 +8591,7 @@ GameObject:
   - component: {fileID: 895199656}
   - component: {fileID: 895199655}
   m_Layer: 5
-  m_Name: AR_StoryText
+  m_Name: DialogueText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -17613,7 +17613,7 @@ GameObject:
   - component: {fileID: 1901031881}
   - component: {fileID: 1901031880}
   m_Layer: 5
-  m_Name: ProceedButton
+  m_Name: ContinueButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -17980,7 +17980,7 @@ Transform:
   m_GameObject: {fileID: 1908024371}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.984, y: 0.07, z: -0.757}
+  m_LocalPosition: {x: -1.12, y: 0.07, z: -3.41}
   m_LocalScale: {x: 0.5, y: 0.1, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -18030,12 +18030,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 52042ea8d1221de4c98bb4ded6ad5068, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isMission2_KitchenSafety: 1
-  isMission3_DisinfectHouse: 1
-  houseRootHiddenDanger: {fileID: 3089392259999343276, guid: 6a125222bdcdc8a48bf6fb4f04a5f1e8, type: 3}
-  houseRootCleanupGear: {fileID: 5195454057438689102, guid: 0feb274609d5344419e4cdbb2e589d5d, type: 3}
-  houseRootKitchen: {fileID: 5195454057438689102, guid: f7d07debf9fedf8489b781fb471f4649, type: 3}
-  houseRootDisinfect: {fileID: 5195454057438689102, guid: 5fa23c6b98c1fb84e8122d60daf29180, type: 3}
+  houseInteriorEnvironment: {fileID: 1781720399}
+  isMission2_KitchenSafety: 0
+  isMission3_DisinfectHouse: 0
+  housePrefabHiddenDanger: {fileID: 3089392259999343276, guid: 6a125222bdcdc8a48bf6fb4f04a5f1e8, type: 3}
+  housePrefabCleanupGear: {fileID: 5195454057438689102, guid: 0feb274609d5344419e4cdbb2e589d5d, type: 3}
+  housePrefabKitchen: {fileID: 5195454057438689102, guid: f7d07debf9fedf8489b781fb471f4649, type: 3}
+  housePrefabDisinfect: {fileID: 5195454057438689102, guid: 5fa23c6b98c1fb84e8122d60daf29180, type: 3}
   currentMissionMode: 0
   arTriggerHiddenDanger: {fileID: 790042325}
   arTriggerKitchenSafety: {fileID: 1802895476}
@@ -18047,10 +18048,6 @@ MonoBehaviour:
   hiddenDangersQuiz: {fileID: 2056371720}
   protectiveGearQuiz: {fileID: 1982798587}
   finalFeedbackPanel: {fileID: 0}
-  dialoguePanel: {fileID: 3016753}
-  dialogueContentText: {fileID: 895199655}
-  dialogueNextButton: {fileID: 1901031878}
-  dialoguePreviousButton: {fileID: 419860424}
   missionCompleteBanner: {fileID: 1518292311}
   achievementBackground: {fileID: 1416663582}
   questionText: {fileID: 89247311}
@@ -18059,6 +18056,7 @@ MonoBehaviour:
   playerController: {fileID: 205776581}
   gameplayCamera: {fileID: 211612316}
   joystickUI: {fileID: 315523175}
+  arSpawnWall: {fileID: 0}
   sprayBottleProp: {fileID: 1219760208}
   cleaningRagProp: {fileID: 1174367221}
   disinfectButtonUI: {fileID: 1658733540}
@@ -18417,8 +18415,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f16676ac6d070364c8fccae079e2b29f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  houseInteriorPrefab: {fileID: 3089392259999343276, guid: 6a125222bdcdc8a48bf6fb4f04a5f1e8, type: 3}
   cleanupGearPrefab: {fileID: 5195454057438689102, guid: 0feb274609d5344419e4cdbb2e589d5d, type: 3}
+  houseInteriorPrefab: {fileID: 3089392259999343276, guid: 6a125222bdcdc8a48bf6fb4f04a5f1e8, type: 3}
   kitchenSafetyPrefab: {fileID: 5195454057438689102, guid: f7d07debf9fedf8489b781fb471f4649, type: 3}
   disinfectHousePrefab: {fileID: 5195454057438689102, guid: 5fa23c6b98c1fb84e8122d60daf29180, type: 3}
   arParent: {fileID: 0}

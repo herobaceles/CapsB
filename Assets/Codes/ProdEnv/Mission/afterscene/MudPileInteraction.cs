@@ -48,9 +48,6 @@ public class MudPileInteraction : MonoBehaviour
         // Mark as selected
         isHeld = true;
 
-        // --- PREVIOUSLY: We moved the mud to the camera here. ---
-        // --- NOW: We removed that code, so the mud stays exactly where it is in the world! ---
-
         // Show the Disinfect Button and DYNAMICALLY WIRE IT!
         if (disinfectButton != null)
         {
@@ -98,7 +95,7 @@ public class MudPileInteraction : MonoBehaviour
     {
         if (AfterRecoveryARController.Instance != null)
         {
-            AfterRecoveryARController.Instance.HandleItemRecovered(); 
+            AfterRecoveryARController.Instance.HandleItemRecovered(gameObject); 
         }
         else
         {

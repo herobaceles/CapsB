@@ -4,16 +4,10 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - EmergencyItem
-  - Breaker
-<<<<<<< HEAD
   - XROrigin
   - SafeItem
   - UnsafeItem
-=======
-  - Flood
-  - NPC
->>>>>>> main
+  - CleanupItem
   layers:
   - Default
   - TransparentFX
