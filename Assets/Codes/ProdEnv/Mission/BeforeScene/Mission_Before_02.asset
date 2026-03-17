@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08d18cca6f19690448d81eb0c24d5ca0, type: 3}
+  m_Name: Mission_Before_02
+  m_EditorClassIdentifier: 
+  missionId: before_02
+  missionName: Cuircuit Breaker
+  missionDescription: Securing the cuircuit Breaker
+  missionIcon: {fileID: 0}
+  phase: 0
+  missionSceneName: BeforeMission
+  isLocked: 1
+  requiredMissionId: before_01
+  sortOrder: 2
+  tasks:
+  - taskId: before_02_secure_circuit_breaker
+    taskName: Secure Circuit Breaker
+    taskDescription: Find and switch off the main circuit breaker before flooding
+      starts.
+    taskIcon: {fileID: 0}
+    taskType: 6
+    isOptional: 0
+    showDialogueOnStart: 0
+    startDialogue:
+    - 
+    showDialogueOnComplete: 0
+    completeDialogue:
+    - Correct! Now find and interact with the circuit breaker.
+    objectives: []
+  introDialogue:
+  - hi
+  startQuiz:
+    question: What Do you need to turn off
+    options:
+    - Lights
+    - PS5
+    - Cuircuit Breaker
+    correctOptionIndex: 2
+    optionSprites:
+    - {fileID: 21300000, guid: 0751000945301554f93c3b999a27b06a, type: 3}
+    - {fileID: 21300000, guid: d37e4023305eb6f44b6f906349dc67d8, type: 3}
+    - {fileID: 21300000, guid: d7071f204cd81c84ca4dab2a7a54f6d8, type: 3}
+    placeholderSprite: {fileID: 0}
+    correctAnswerDialogue:
+    - Now go find the Cuircuit Breaker it is beside the door
+  useMissionTimer: 0
+  missionTimeLimitSeconds: 0
+  completionMessage: Mission Complete! Great job!
+  unlocksMissionId: before_03
