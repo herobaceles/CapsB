@@ -162,9 +162,10 @@ public class PreparingGoBagManager : MonoBehaviour
         EndCutsceneVisuals();
 
         IsCutscenePlaying = false;
-
-        // After cutscene, show post-cutscene briefing and quiz
-        ShowPostCutsceneBriefing();
+        
+        // After cutscene, wait for the mission intro sequence to finish
+        // before showing the post-cutscene briefing and quiz.
+        yield return WaitForIntroSequenceThenBriefing();
     }
 
     private void RegisterMissionEvents()
@@ -190,6 +191,19 @@ public class PreparingGoBagManager : MonoBehaviour
     private void OnMissionStartedForPreparingGoBag()
     {
         CompleteStartGate();
+    }
+
+    private System.Collections.IEnumerator WaitForIntroSequenceThenBriefing()
+    {
+        var missionManager = BeforeMissionManager.Instance;
+        if (missionManager != null)
+        {
+            // Ensure Intro Dialogue Rich (and optional start quiz) completes first.
+            while (!missionManager.HasIntroSequenceCompleted)
+                yield return null;
+        }
+
+        ShowPostCutsceneBriefing();
     }
 
     private void ShowPostCutsceneBriefing()
@@ -292,7 +306,11 @@ public class PreparingGoBagManager : MonoBehaviour
         if (selectedMission == null)
             return false;
 
-        quizData = selectedMission.startQuiz;
+        var task = GetTask(selectedMission);
+        if (task == null)
+            return false;
+
+        quizData = task.taskStartQuiz;
         return quizData != null;
     }
 

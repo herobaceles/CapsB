@@ -134,6 +134,10 @@ public class TaskData
     [Tooltip("Rich completion dialogue for this task.")]
     public List<DialogueLineData> completeDialogueRich = new List<DialogueLineData>();
 
+    [Header("Quiz (Optional)")]
+    [Tooltip("Optional quiz gate for this specific task. Used by scene managers that support per-task quizzes.")]
+    public MissionQuizData taskStartQuiz;
+
     [Header("Objectives (for multi-objective tasks)")]
     public List<ObjectiveData> objectives = new List<ObjectiveData>();
 

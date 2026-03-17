@@ -46,10 +46,24 @@ public class CircuitBreakerManager : MonoBehaviour
 
     private void OnEnable()
     {
-        ShowInstructionDialogue();
+        StartCoroutine(WaitForIntroThenShowInstruction());
     }
 
     // Cutscene logic removed; dialogue now shows immediately on enable.
+
+    private System.Collections.IEnumerator WaitForIntroThenShowInstruction()
+    {
+        var missionManager = BeforeMissionManager.Instance;
+        if (missionManager != null)
+        {
+            // Wait until the mission intro dialogue (and optional start quiz)
+            // has fully completed before showing task start dialogue.
+            while (!missionManager.HasIntroSequenceCompleted)
+                yield return null;
+        }
+
+        ShowInstructionDialogue();
+    }
 
     private void ShowInstructionDialogue()
     {
@@ -152,7 +166,12 @@ public class CircuitBreakerManager : MonoBehaviour
         var selectedMission = MissionSelectManager.SelectedMission;
         if (selectedMission == null)
             return false;
-        quizData = selectedMission.startQuiz;
+
+        var task = GetCircuitBreakerTask(selectedMission);
+        if (task == null)
+            return false;
+
+        quizData = task.taskStartQuiz;
         return quizData != null;
     }
 

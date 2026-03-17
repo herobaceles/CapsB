@@ -59,6 +59,23 @@ MonoBehaviour:
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
       message: 
+    taskStartQuiz:
+      question: 
+      options:
+      - 
+      - 
+      - 
+      correctOptionIndex: 0
+      optionSprites:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      placeholderSprite: {fileID: 0}
+      questionCharacterId: 
+      questionExpressionId: 
+      questionPortraitOverride: {fileID: 0}
+      correctAnswerDialogue: []
+      correctAnswerDialogueRich: []
     objectives: []
   introDialogue:
   - Oh no! That's a Signal Red warning. This is serious. The water could rise fast,

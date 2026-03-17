@@ -594,8 +594,17 @@ public class ProdDialogueManager : MonoBehaviour
 
         if (portraitSprite == null && preset != null)
         {
-            // If no expression was specified, choose one automatically based on message tone
-            EnsureAutoExpressionForLine(line, preset);
+            // For center side, default to a dedicated 'center' expression when none is set.
+            if (line.side == DialogueSpeakerSide.Center && string.IsNullOrEmpty(line.expressionId))
+            {
+                line.expressionId = "center";
+            }
+            else
+            {
+                // If no expression was specified, choose one automatically based on message tone
+                EnsureAutoExpressionForLine(line, preset);
+            }
+
             portraitSprite = preset.GetPortrait(line.expressionId);
         }
 
@@ -716,13 +725,47 @@ public class ProdDialogueManager : MonoBehaviour
             Sprite exprIdle;
             Sprite exprBlink;
             Sprite[] exprTalking;
-            preset.GetExpressionSprites(line.expressionId, out exprIdle, out exprBlink, out exprTalking);
+
+            // For center side, default to using the dedicated 'center' expression
+            // when no explicit expressionId was provided on the line.
+            string exprId = line != null ? line.expressionId : null;
+            if (line != null && line.side == DialogueSpeakerSide.Center && string.IsNullOrEmpty(exprId))
+            {
+                exprId = "center";
+            }
+
+            preset.GetExpressionSprites(exprId, out exprIdle, out exprBlink, out exprTalking);
 
             if (idle == null)
                 idle = exprIdle;
 
             blink = exprBlink;
             talkingFrames = exprTalking;
+
+            // Fallback: if no talking frames were found for the requested expression,
+            // use the first expression on this preset that has talking sprites.
+            if ((talkingFrames == null || talkingFrames.Length == 0) && preset.expressions != null)
+            {
+                for (int i = 0; i < preset.expressions.Count; i++)
+                {
+                    var expr = preset.expressions[i];
+                    if (expr == null || expr.talkingSprites == null || expr.talkingSprites.Count == 0)
+                        continue;
+
+                    if (idle == null)
+                    {
+                        idle = expr.sprite != null ? expr.sprite : preset.portrait;
+                    }
+
+                    if (blink == null)
+                    {
+                        blink = expr.blinkSprite;
+                    }
+
+                    talkingFrames = expr.talkingSprites.ToArray();
+                    break;
+                }
+            }
         }
 
         faceAnimator.SetExpressionSprites(idle, blink, talkingFrames);
