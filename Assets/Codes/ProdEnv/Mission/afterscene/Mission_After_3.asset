@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08d18cca6f19690448d81eb0c24d5ca0, type: 3}
+  m_Name: Mission_After_3
+  m_EditorClassIdentifier: 
+  missionId: aftermuddisinfectmission
+  missionName: DISINFECTION MISSION
+  missionDescription: DISINFECT THE HOUSE
+  missionIcon: {fileID: 0}
+  phase: 2
+  missionSceneName: AfterMission
+  isLocked: 1
+  requiredMissionId: disinfectmission
+  sortOrder: 3
+  tasks:
+  - taskId: after_disinfect
+    taskName: Disinfect the house
+    taskDescription: 
+    taskIcon: {fileID: 0}
+    taskType: 6
+    isOptional: 0
+    showDialogueOnStart: 1
+    startDialogue:
+    - go find
+    showDialogueOnComplete: 1
+    completeDialogue:
+    - Nice work, {PLAYER_NAME}. These surfaces are now much safer after the flood.
+    objectives: []
+  introDialogue:
+  - "We\u2019re almost done."
+  - The last step is cleaning.
+  - Floodwater leaves behind mud full of harmful bacteria.
+  - To make the house safe again, we need to disinfect the area.
+  - Choose the correct cleaning solution.
+  startQuiz:
+    question: The last step is cleaning. That mud is full of bacteria. We need to
+      disinfect everything. What is the correct solution to clean walls and floors?
+    options:
+    - Plain water.
+    - Bleach and water.
+    - Dish soap.
+    correctOptionIndex: 1
+    optionSprites:
+    - {fileID: 21300000, guid: 6ab867e10a9f8ea49b626493b69b4586, type: 3}
+    - {fileID: 21300000, guid: c1e9cdb3a83bb5f4d9078a03c466c467, type: 3}
+    - {fileID: 21300000, guid: 84abeb9dfcf2bc04fb0fba6e0a53bcf3, type: 3}
+    placeholderSprite: {fileID: 0}
+    correctAnswerDialogue: []
+  afterPhaseQuizzes:
+  - question: The last step is cleaning. That mud is full of bacteria. We need to
+      disinfect everything. What is the correct solution to clean walls and floors?
+    options:
+    - Plain water.
+    - Bleach and water.
+    - Dish soap.
+    correctOptionIndex: 1
+    optionSprites:
+    - {fileID: 21300000, guid: 6ab867e10a9f8ea49b626493b69b4586, type: 3}
+    - {fileID: 21300000, guid: c1e9cdb3a83bb5f4d9078a03c466c467, type: 3}
+    - {fileID: 21300000, guid: 84abeb9dfcf2bc04fb0fba6e0a53bcf3, type: 3}
+    placeholderSprite: {fileID: 0}
+    correctAnswerDialogue: []
+  useMissionTimer: 0
+  missionTimeLimitSeconds: 0
+  outroDialogue:
+  - Great work! Bleach and water remove bacteria left by floodwater. Your home is
+    finally safe again.
+  - You did it, {PLAYER_NAME}. You faced the warning, survived the storm, and recovered
+    from the aftermath.
+  - Disasters are a part of life, but with the right knowledge and preparation, we
+    can be stronger than any storm.
+  - You are no longer just {PLAYER_NAME}... you are truly BaHanda!
+  completionMessage: Mission Complete!
+  unlocksMissionId: 

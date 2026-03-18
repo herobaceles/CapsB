@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08d18cca6f19690448d81eb0c24d5ca0, type: 3}
+  m_Name: Mission_After_2
+  m_EditorClassIdentifier: 
+  missionId: aftersafeitemsmission
+  missionName: Safe _Items_ Mission
+  missionDescription: Pick up the safe items after the flood
+  missionIcon: {fileID: 0}
+  phase: 2
+  missionSceneName: AfterMission
+  isLocked: 0
+  requiredMissionId: safeitemsmission
+  sortOrder: 2
+  tasks:
+  - taskId: after_kitchen_safety
+    taskName: 
+    taskDescription: Chose the safe item that can be use after teh flood.
+    taskIcon: {fileID: 0}
+    taskType: 6
+    isOptional: 0
+    showDialogueOnStart: 0
+    startDialogue: []
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    objectives: []
+  introDialogue:
+  - Now, the kitchen. This is critical. Floodwater is toxic.
+  - We have to know what's safe to eat and drink.
+  startQuiz:
+    question: 
+    options: []
+    correctOptionIndex: 0
+    optionSprites: []
+    placeholderSprite: {fileID: 0}
+    correctAnswerDialogue: []
+  afterPhaseQuizzes: []
+  useMissionTimer: 0
+  missionTimeLimitSeconds: 0
+  outroDialogue:
+  - Excellent! Undamaged canned goods are safe if you wash the can first.
+  - And sealed water is our only safe drinking source. When in doubt, throw it out.
+  completionMessage: Mission Complete!
+  unlocksMissionId: aftermuddisinfectmission
