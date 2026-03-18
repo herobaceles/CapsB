@@ -1,0 +1,119 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08d18cca6f19690448d81eb0c24d5ca0, type: 3}
+  m_Name: Mission_After_01
+  m_EditorClassIdentifier: 
+  missionId: hiddendangermission
+  missionName: 'After: Hidden Dangers'
+  missionDescription: "After the flood, wild animals may sneak into your house searching
+    for shelter\u2014be on the lookout and find them before they cause trouble!"
+  missionIcon: {fileID: 0}
+  phase: 2
+  missionSceneName: AfterMission
+  isLocked: 0
+  requiredMissionId: 
+  sortOrder: 1
+  tasks:
+  - taskId: after_quiz_zone
+    taskName: Inspect the House
+    taskDescription: Walk into the marked area to start inspecting the house.
+    taskIcon: {fileID: 0}
+    taskType: 6
+    isOptional: 0
+    showDialogueOnStart: 1
+    startDialogue:
+    - Go to the marker to begin your inspection
+    showDialogueOnComplete: 1
+    completeDialogue:
+    - Inspect the House {PLAYER_NAME}
+    objectives: []
+  - taskId: after_hidden_danger
+    taskName: 'Hidden Danger '
+    taskDescription: 'find the hidden danger around the house. '
+    taskIcon: {fileID: 0}
+    taskType: 6
+    isOptional: 0
+    showDialogueOnStart: 0
+    startDialogue:
+    - go find the hidden danger
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    objectives: []
+  introDialogue:
+  - The storm has passed, {PLAYER_NAME}.
+  - It's time to go home. But be careful.
+  - The flood leaves behind many hidden dangers.
+  - 'This is your final level: The Recovery.'
+  startQuiz:
+    question: which one to you should do afetr the flood?.
+    options:
+    - Look for cracks in the walls or foundation.
+    - Turn on all electricity
+    - Ignore standing water
+    correctOptionIndex: 0
+    optionSprites:
+    - {fileID: 21300000, guid: be542f9225bfbf8439c8a817b029c555, type: 3}
+    - {fileID: 21300000, guid: 9fe4254f6fb16e74cb01de3677f1dbfd, type: 3}
+    - {fileID: 21300000, guid: 70be593de7e651d46a1c7aabec27ae22, type: 3}
+    placeholderSprite: {fileID: 0}
+    correctAnswerDialogue:
+    - 'good work! cheking the struckture of the house '
+  afterPhaseQuizzes:
+  - question: which one to you should do afetr the flood?.
+    options:
+    - Look for cracks in the walls or foundation.
+    - Turn on all electricity
+    - Ignore standing water
+    correctOptionIndex: 0
+    optionSprites:
+    - {fileID: 21300000, guid: be542f9225bfbf8439c8a817b029c555, type: 3}
+    - {fileID: 21300000, guid: 9fe4254f6fb16e74cb01de3677f1dbfd, type: 3}
+    - {fileID: 21300000, guid: 70be593de7e651d46a1c7aabec27ae22, type: 3}
+    placeholderSprite: {fileID: 0}
+    correctAnswerDialogue:
+    - 'good work! cheking the struckture of the house '
+  - question: We're inside. It's a mess. The mud isn't the only problem. What other
+      hidden dangers might the flood have brought inside?
+    options:
+    - ' Wild animals (like snakes or rats) seeking shelter. '
+    - ' Valuable items washed in from outside.'
+    - Leftover puddles of clean water.
+    correctOptionIndex: 0
+    optionSprites:
+    - {fileID: 21300000, guid: e93ba0c8ec81fdc4e8f354724c924f79, type: 3}
+    - {fileID: 21300000, guid: da4fd057e2a831d42bcce09e11d5a2f3, type: 3}
+    - {fileID: 21300000, guid: c4756e93cd5303041aef9c1486c4e6c4, type: 3}
+    placeholderSprite: {fileID: 0}
+    correctAnswerDialogue:
+    - That's right! Snakes and rats can be hiding in the debris. Never touch anything
+      with your bare hands. We must wear protective gear.
+  - question: What gear should you wear to clean up?
+    options:
+    - 'Sandals and shorts. '
+    - Rain boots, heavy-duty gloves, and a face mask.
+    - A plastic bag over your shoes.
+    correctOptionIndex: 1
+    optionSprites:
+    - {fileID: 21300000, guid: cbbeb1483e8f77a4691be83cbce7cb89, type: 3}
+    - {fileID: 21300000, guid: fa0a7f7331499e64ebd3626a604f8f38, type: 3}
+    - {fileID: 21300000, guid: 65a3b7c53f3d6ec44acc98189b124392, type: 3}
+    placeholderSprite: {fileID: 0}
+    correctAnswerDialogue:
+    - Perfect! Boots to protect from sharp objects, gloves to protect from bacteria,
+      and a mask to protect from mold. Now we're ready.
+  useMissionTimer: 1
+  missionTimeLimitSeconds: 60
+  outroDialogue:
+  - Great job! You have safely removed the animals and immediate hazards. The house
+    is much safer now.
+  completionMessage: Mission Complete!
+  unlocksMissionId: aftersafeitemsmission
