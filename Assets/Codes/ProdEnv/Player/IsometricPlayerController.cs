@@ -17,6 +17,10 @@ public class IsometricPlayerController : MonoBehaviour
     [SerializeField] private FixedJoystick joystick; // Works with Joystick Pack
     // If using a different joystick, change this type or use the interface below
 
+    [Header("Input")]
+    [SerializeField] private bool invertHorizontalInput = false;
+    [SerializeField] private bool invertVerticalInput = false;
+
     [Header("Gravity")]
     [SerializeField] private float gravity = -9.81f;
     [SerializeField] private float groundCheckDistance = 0.1f;
@@ -96,6 +100,12 @@ public class IsometricPlayerController : MonoBehaviour
                 Input.GetAxisRaw("Vertical")
             );
         }
+
+        // Optional axis inversion for player preference / camera setup
+        if (invertHorizontalInput)
+            inputDirection.x = -inputDirection.x;
+        if (invertVerticalInput)
+            inputDirection.y = -inputDirection.y;
 
         // Normalize if magnitude > 1
         if (inputDirection.sqrMagnitude > 1f)
@@ -183,7 +193,7 @@ public class IsometricPlayerController : MonoBehaviour
         camRight.Normalize();
 
         // Calculate world direction
-        Vector3 worldDirection = camForward * input.y + camRight * input.x;
+        Vector3 worldDirection = camForward * -input.y + camRight * input.x;
         return worldDirection.normalized;
     }
 

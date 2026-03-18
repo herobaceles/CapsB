@@ -292,8 +292,27 @@ public class PreparingGoBagManager : MonoBehaviour
         if (selectedMission == null)
             return false;
 
-        quizData = selectedMission.startQuiz;
-        return quizData != null;
+        // Prefer the first valid entry from the mission's startQuizSequence
+        if (selectedMission.startQuizSequence != null && selectedMission.startQuizSequence.Count > 0)
+        {
+            foreach (var q in selectedMission.startQuizSequence)
+            {
+                if (IsQuizDataValid(q))
+                {
+                    quizData = q;
+                    return true;
+                }
+            }
+        }
+
+        // Fallback to the legacy single startQuiz field
+        if (IsQuizDataValid(selectedMission.startQuiz))
+        {
+            quizData = selectedMission.startQuiz;
+            return true;
+        }
+
+        return false;
     }
 
     private bool IsQuizDataValid(MissionQuizData quizData)

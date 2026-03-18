@@ -7,6 +7,12 @@ public enum MissionMode
     /// <summary>Collecting and cleaning recovery gear after a disaster.</summary>
     CleanupGear,
 
+    /// <summary>Scanning for specific hidden dangers (e.g. snake, mouse) in the house.</summary>
+    HiddenDanger,
+
+    /// <summary>Checking which kitchen items are safe to use after flooding.</summary>
+    KitchenSafety,
+
     /// <summary>Scanning the environment for hidden post-flood hazards (e.g. submerged debris).</summary>
     HazardScan,
 

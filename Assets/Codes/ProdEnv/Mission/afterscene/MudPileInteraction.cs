@@ -1,105 +1,130 @@
+using System;
 using UnityEngine;
+using UnityEngine.UI;
 
-/// <summary>
-/// Tap-interactable component placed on mud pile / hidden danger prefabs.
-///
-/// Initialized at spawn time by HiddenDangerSpawner.StartSpawning() via Initialize().
-/// OnMouseDown() responds to both mouse clicks (editor/desktop) and mobile first-touch
-/// (Unity maps the primary touch to mouse events automatically).
-///
-/// On interaction: plays a clean-up effect, disables its own collider to prevent
-/// re-activation, and reports completion to HiddenDangerSpawner.
-/// HiddenDangerSpawner is the single aggregation point — it forwards to
-/// MissionSceneManager.UpdateObjective() and decides when to end the AR session.
-/// </summary>
-[RequireComponent(typeof(Collider))]
 public class MudPileInteraction : MonoBehaviour
 {
-    // -----------------------------------------------------------------------
-    // Inspector fields
-    // -----------------------------------------------------------------------
+    [Header("Visuals")]
+    public ParticleSystem sprayEffect;
 
-    [Header("Feedback")]
-    [SerializeField] private GameObject cleanEffect;
-    [SerializeField] private AudioClip interactSound;
+    [Header("UI Elements")]
+    [Tooltip("The button that appears when the mud is selected.")]
+    public GameObject disinfectButton;
 
-    // -----------------------------------------------------------------------
-    // Private state (injected by HiddenDangerSpawner)
-    // -----------------------------------------------------------------------
+    [HideInInspector] public bool isHeld = false; // Tracks if the player has selected this mud pile
+    private bool isCleaned = false;
+    private MeshRenderer mudRenderer;
 
-    private HiddenDangerSpawner parentSpawner;
-    private string objectiveId;
-    private bool cleaned;
-
-    // -----------------------------------------------------------------------
-    // Initialization
-    // -----------------------------------------------------------------------
+    [Header("Scene Controller (optional)")]
+    [SerializeField] private AfterSceneController afterSceneController;
 
     /// <summary>
-    /// Called by HiddenDangerSpawner immediately after Instantiate.
-    /// Provides the spawner back-reference and the objective ID for this session.
+    /// Raised when this mud pile has been fully cleaned.
+    /// HiddenDangerSpawner and other aggregators can subscribe
+    /// to track overall progress for the AR task.
     /// </summary>
-    public void Initialize(HiddenDangerSpawner spawner, string objective)
+    public event Action<MudPileInteraction> OnCleaned;
+
+    private void Start()
     {
-        parentSpawner = spawner;
-        objectiveId   = objective;
-        cleaned       = false;
-    }
+        mudRenderer = GetComponent<MeshRenderer>();
 
-    // -----------------------------------------------------------------------
-    // Interaction
-    // -----------------------------------------------------------------------
-
-    private void OnMouseDown()
-    {
-        Interact();
-    }
-
-    /// <summary>
-    /// Programmatic entry point — can also be wired to a UI EventTrigger or AR gesture event.
-    /// </summary>
-    public void Interact()
-    {
-        if (cleaned) return;
-
-        cleaned = true;
-
-        // Disable collider immediately so follow-up taps are ignored
-        var col = GetComponent<Collider>();
-        if (col != null)
-            col.enabled = false;
-
-        PlayCleanEffect();
-
-        // Notify spawner — it handles objective update and session completion check
-        parentSpawner?.OnDangerFound();
-    }
-
-    // -----------------------------------------------------------------------
-    // Private helpers
-    // -----------------------------------------------------------------------
-
-    private void PlayCleanEffect()
-    {
-        if (cleanEffect != null)
+        // Ensure the mud has the CleanupItem tag for counting
+        if (!gameObject.CompareTag("CleanupItem"))
         {
-            cleanEffect.SetActive(true);
+            Debug.LogWarning($"Mud pile {gameObject.name} should have 'CleanupItem' tag for counting!");
+        }
+
+        if (disinfectButton == null)
+        {
+            GameObject[] allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
+            foreach (GameObject obj in allObjects)
+            {
+                if (obj.name == "DisinfectButton" && obj.scene.isLoaded)
+                {
+                    disinfectButton = obj;
+                    break;
+                }
+            }
+        }
+    }
+
+    public void PickUpMud(Camera arCamera)
+    {
+        if (isCleaned || isHeld) return;
+
+        // Prevent selecting multiple mud piles at the same time!
+        if (disinfectButton != null && disinfectButton.activeInHierarchy)
+        {
+            Debug.Log("Player tried to select another mud pile, but one is already selected!");
+            return; 
+        }
+
+        isHeld = true;
+
+        // Show the Disinfect Button
+        if (disinfectButton != null)
+        {
+            disinfectButton.SetActive(true);
+
+            Button btn = disinfectButton.GetComponent<Button>();
+            if (btn != null)
+            {
+                btn.onClick.RemoveAllListeners(); 
+                btn.onClick.AddListener(CleanPile); 
+            }
         }
         else
         {
-            // Fallback: hide renderer so the pile visually disappears
-            var rend = GetComponent<Renderer>();
-            if (rend != null)
-                rend.enabled = false;
-        }
-
-        if (interactSound != null)
-        {
-            var src = GetComponent<AudioSource>();
-            if (src != null)
-                src.PlayOneShot(interactSound);
-            else
-                AudioSource.PlayClipAtPoint(interactSound, transform.position);
+            Debug.LogWarning("MudPileInteraction: Could not find the DisinfectButton!");
         }
     }
-}
+
+    public void CleanPile()
+    {
+        if (isCleaned) return;
+        isCleaned = true;
+
+        if (disinfectButton != null)
+        {
+            disinfectButton.SetActive(false);
+        }
+
+        if (sprayEffect != null)
+        {
+            sprayEffect.Play();
+        }
+
+        if (mudRenderer != null)
+        {
+            mudRenderer.enabled = false;
+        }
+
+        OnCleaned?.Invoke(this);
+
+        Invoke(nameof(Deactivate), 0.5f);
+    }
+
+    private void Deactivate()
+    {
+        // Prefer reporting via AfterSceneController (new architecture),
+        // but keep the legacy AfterRecoveryARController path as a fallback.
+        if (afterSceneController != null)
+        {
+            afterSceneController.OnGenericItemRecovered(gameObject);
+            Debug.Log($"Mud pile {gameObject.name} cleaned and reported to AfterSceneController");
+        }
+        else if (AfterRecoveryARController.Instance != null)
+        {
+            // This will count the mud if it has CleanupItem tag
+            AfterRecoveryARController.Instance.HandleItemRecovered(gameObject); 
+            Debug.Log($"Mud pile {gameObject.name} cleaned and counted via legacy controller");
+        }
+        else
+        {
+            Debug.LogError("MudPileInteraction: No AfterSceneController or AfterRecoveryARController found for recovery reporting!");
+        }
+
+        gameObject.SetActive(false);
+    }
+}   

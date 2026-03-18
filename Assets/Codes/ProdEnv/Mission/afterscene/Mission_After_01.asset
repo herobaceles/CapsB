@@ -32,11 +32,53 @@ MonoBehaviour:
     showDialogueOnStart: 1
     startDialogue:
     - Go to the marker to begin your inspection
-    startDialogueRich: []
+    startDialogueRich:
+    - characterId: 
+      characterName: 
+      side: 0
+      expressionId: 
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: The storm has passesd
+    - characterId: 
+      characterName: 
+      side: 0
+      expressionId: 
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: It's time to go home.
+    - characterId: 
+      characterName: 
+      side: 0
+      expressionId: 
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: But be careful. The flood leaves behind many hidden dangers.
+    - characterId: 
+      characterName: 
+      side: 0
+      expressionId: 
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: 'This is your final level: The Recovery.'
     showDialogueOnComplete: 1
     completeDialogue:
     - Inspect the House {PLAYER_NAME}
-    completeDialogueRich: []
+    completeDialogueRich:
+    - characterId: 
+      characterName: 
+      side: 0
+      expressionId: 
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: GOOD WORKING FINDING the tools needed
+    - characterId: 
+      characterName: 
+      side: 0
+      expressionId: 
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: now let's find the hidden danger.
     objectives: []
   - taskId: after01_hidden_danger
     taskName: 'Hidden Danger '
@@ -66,9 +108,9 @@ MonoBehaviour:
     - Ignore standing water
     correctOptionIndex: 0
     optionSprites:
-    - {fileID: 21300000, guid: be542f9225bfbf8439c8a817b029c555, type: 3}
-    - {fileID: 21300000, guid: 9fe4254f6fb16e74cb01de3677f1dbfd, type: 3}
-    - {fileID: 21300000, guid: 70be593de7e651d46a1c7aabec27ae22, type: 3}
+    - {fileID: 21300000, guid: c62ec29a00cd81747a2496b4367dbf85, type: 3}
+    - {fileID: 21300000, guid: 551fb8b0c4a301f41beb3778b6b8bd2f, type: 3}
+    - {fileID: 21300000, guid: c4756e93cd5303041aef9c1486c4e6c4, type: 3}
     placeholderSprite: {fileID: 0}
     questionCharacterId: 
     questionExpressionId: 
@@ -76,6 +118,81 @@ MonoBehaviour:
     correctAnswerDialogue:
     - 'good work! cheking the struckture of the house '
     correctAnswerDialogueRich: []
+  startQuizSequence:
+  - question: Hold on! Before we rush inside, we must check the house for structural
+      damage. What's the first thing you should check?
+    options:
+    - A. Look for cracks in the walls or foundation.
+    - B. See if the front door is stuck.
+    - C. Turn on all electricity
+    correctOptionIndex: 0
+    optionSprites:
+    - {fileID: 21300000, guid: c62ec29a00cd81747a2496b4367dbf85, type: 3}
+    - {fileID: 21300000, guid: 34d374d94a08b4147951e55c6e71d898, type: 3}
+    - {fileID: 21300000, guid: 551fb8b0c4a301f41beb3778b6b8bd2f, type: 3}
+    placeholderSprite: {fileID: 0}
+    questionCharacterId: 
+    questionExpressionId: 
+    questionPortraitOverride: {fileID: 0}
+    correctAnswerDialogue: []
+    correctAnswerDialogueRich:
+    - characterId: 
+      characterName: 
+      side: 0
+      expressionId: 
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Exactly. We must check for deep cracks or a shifting foundation. The
+        house seems stable for now. Okay, let's go in, but carefully.
+  - question: We're inside. It's a mess. The mud isn't the only problem. What other
+      hidden dangers might the flood have brought inside?
+    options:
+    - 'A.  Wild animals (like snakes or rats) seeking shelter. '
+    - B. Valuable items washed in from outside.
+    - C. Leftover puddles of clean water.
+    correctOptionIndex: 0
+    optionSprites:
+    - {fileID: 21300000, guid: 6b19364ec0554294bb4fb8f278fcd760, type: 3}
+    - {fileID: 21300000, guid: 8656fdfce6000b44ebdb52e852810026, type: 3}
+    - {fileID: 21300000, guid: c4756e93cd5303041aef9c1486c4e6c4, type: 3}
+    placeholderSprite: {fileID: 0}
+    questionCharacterId: 
+    questionExpressionId: 
+    questionPortraitOverride: {fileID: 0}
+    correctAnswerDialogue: []
+    correctAnswerDialogueRich:
+    - characterId: 
+      characterName: 
+      side: 0
+      expressionId: 
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: That's right! Snakes and rats can be hiding in the debris. Never touch
+        anything with your bare hands. We must wear protective gear.
+  - question: What gear should you wear to clean up?
+    options:
+    - 'A. Sandals and shorts. '
+    - B. Rain boots, heavy-duty gloves, and a face mask.
+    - C. A plastic bag over your shoes.
+    correctOptionIndex: 1
+    optionSprites:
+    - {fileID: 21300000, guid: cbbeb1483e8f77a4691be83cbce7cb89, type: 3}
+    - {fileID: 21300000, guid: fa0a7f7331499e64ebd3626a604f8f38, type: 3}
+    - {fileID: 21300000, guid: 65a3b7c53f3d6ec44acc98189b124392, type: 3}
+    placeholderSprite: {fileID: 0}
+    questionCharacterId: 
+    questionExpressionId: 
+    questionPortraitOverride: {fileID: 0}
+    correctAnswerDialogue: []
+    correctAnswerDialogueRich:
+    - characterId: 
+      characterName: 
+      side: 0
+      expressionId: 
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Perfect! Boots to protect from sharp objects, gloves to protect from
+        bacteria, and a mask to protect from mold. Now we're ready.
   useMissionTimer: 1
   missionTimeLimitSeconds: 60
   completionMessage: Mission Complete!

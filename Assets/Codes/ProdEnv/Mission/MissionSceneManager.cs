@@ -209,12 +209,9 @@ public abstract class MissionSceneManager : MonoBehaviour
 
     protected virtual IEnumerator RunMissionStartQuizIfAvailable()
     {
-        var quizData = currentMission?.startQuiz;
+        var sequence = GetStartQuizSequence(currentMission);
 
-        if (quizData == null)
-            yield break;
-
-        if (!IsStartQuizValid(quizData))
+        if (sequence == null || sequence.Count == 0)
             yield break;
 
         if (quizDialogueUI == null)
@@ -226,24 +223,52 @@ public abstract class MissionSceneManager : MonoBehaviour
             yield break;
         }
 
-        bool answeredCorrectly = false;
-        quizDialogueUI.ShowQuiz(quizData, () =>
-        {
-            // After the correct answer, optionally show rich follow-up dialogue
-            var dialogueManager = ProdDialogueManager.Instance;
-            if (dialogueManager != null &&
-                quizData.correctAnswerDialogueRich != null &&
-                quizData.correctAnswerDialogueRich.Count > 0)
-            {
-                dialogueManager.ShowDialogueSequence(quizData.correctAnswerDialogueRich, () => answeredCorrectly = true);
-            }
-            else
-            {
-                answeredCorrectly = true;
-            }
-        });
+        bool sequenceCompleted = false;
+        int currentIndex = 0;
 
-        while (!answeredCorrectly)
+        System.Action runNext = null;
+        runNext = () =>
+        {
+            if (currentIndex >= sequence.Count)
+            {
+                sequenceCompleted = true;
+                return;
+            }
+
+            var quizData = sequence[currentIndex];
+
+            // Safety: skip invalid entries that slipped through
+            if (!IsStartQuizValid(quizData))
+            {
+                currentIndex++;
+                runNext();
+                return;
+            }
+
+            quizDialogueUI.ShowQuiz(quizData, () =>
+            {
+                var dialogueManager = ProdDialogueManager.Instance;
+                if (dialogueManager != null &&
+                    quizData.correctAnswerDialogueRich != null &&
+                    quizData.correctAnswerDialogueRich.Count > 0)
+                {
+                    dialogueManager.ShowDialogueSequence(quizData.correctAnswerDialogueRich, () =>
+                    {
+                        currentIndex++;
+                        runNext();
+                    });
+                }
+                else
+                {
+                    currentIndex++;
+                    runNext();
+                }
+            });
+        };
+
+        runNext();
+
+        while (!sequenceCompleted)
             yield return null;
     }
 
@@ -271,6 +296,37 @@ public abstract class MissionSceneManager : MonoBehaviour
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Returns the ordered list of start-quiz entries for the given mission.
+    /// If the mission defines a non-empty startQuizSequence, that list is used.
+    /// Otherwise, a single valid startQuiz is wrapped into a list. Invalid
+    /// entries are filtered out.
+    /// </summary>
+    protected virtual List<MissionQuizData> GetStartQuizSequence(MissionData mission)
+    {
+        var result = new List<MissionQuizData>();
+
+        if (mission == null)
+            return result;
+
+        if (mission.startQuizSequence != null && mission.startQuizSequence.Count > 0)
+        {
+            foreach (var quiz in mission.startQuizSequence)
+            {
+                if (IsStartQuizValid(quiz))
+                    result.Add(quiz);
+            }
+
+            if (result.Count > 0)
+                return result;
+        }
+
+        if (IsStartQuizValid(mission.startQuiz))
+            result.Add(mission.startQuiz);
+
+        return result;
     }
 
     protected virtual void StartMission()

@@ -36,6 +36,14 @@ public class AfterRecoveryARController : MonoBehaviour
 
     private bool arActive;
     private string activeTaskId;
+    private MissionMode currentMissionMode;
+
+    /// <summary>
+    /// Read-only accessor for the currently active mission mode.
+    /// Used by item/interactable scripts that need to branch
+    /// behaviour based on the active AR scenario.
+    /// </summary>
+    public MissionMode CurrentMissionMode => currentMissionMode;
 
     // -----------------------------------------------------------------------
     // Lifecycle
@@ -85,6 +93,7 @@ public class AfterRecoveryARController : MonoBehaviour
         }
 
         arActive = true;
+        currentMissionMode = mode;
         activeTaskId = taskId;
         Debug.Log($"AfterRecoveryARController: Starting AR recovery — mode: {mode}");
 
@@ -155,6 +164,35 @@ public class AfterRecoveryARController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Shows simple correct/incorrect feedback at a world position.
+    /// Hook this up to your AR UI (icon, particle, etc.) as needed.
+    /// </summary>
+    public void TriggerFeedback(bool isCorrect, Vector3 worldPosition)
+    {
+        // Placeholder: integrate with your AR UI system if desired.
+        Debug.Log($"AfterRecoveryARController.TriggerFeedback: isCorrect={isCorrect} at {worldPosition}");
+    }
+
+    /// <summary>
+    /// Legacy hook used by older item scripts (HiddenDangerItem,
+    /// MudPileInteraction) to report that an AR interaction item
+    /// was recovered. In the new architecture, these items should
+    /// ultimately cause DisableAR() when the scenario is complete,
+    /// and mission progression is handled by AfterMissionManager.
+    /// </summary>
+    public void HandleItemRecovered(GameObject obj)
+    {
+        if (obj == null)
+            return;
+
+        Debug.Log($"AfterRecoveryARController.HandleItemRecovered: '{obj.name}' in mode {currentMissionMode}.");
+
+        // For now, counting and completion are delegated to the
+        // scenario-specific scripts (e.g. counters on the AR
+        // prefab roots) which will call DisableAR() when done.
+    }
+
     // -----------------------------------------------------------------------
     // Private helpers
     // -----------------------------------------------------------------------
@@ -164,6 +202,8 @@ public class AfterRecoveryARController : MonoBehaviour
         switch (mode)
         {
             case MissionMode.CleanupGear:
+            case MissionMode.HiddenDanger:
+            case MissionMode.KitchenSafety:
             case MissionMode.DisinfectHouse:
             case MissionMode.HazardScan:
                 StartHiddenDangerSession();

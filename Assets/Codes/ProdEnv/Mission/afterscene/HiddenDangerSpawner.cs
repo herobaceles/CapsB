@@ -77,10 +77,19 @@ public class HiddenDangerSpawner : MonoBehaviour
             GameObject spawned = Instantiate(prefab, spawnPoints[i].position, spawnPoints[i].rotation);
             spawnedObjects.Add(spawned);
 
-            // Inject spawner reference so each interactable can report completion
-            var interaction = spawned.GetComponent<MudPileInteraction>();
-            if (interaction != null)
-                interaction.Initialize(this, objectiveId);
+            // Hook up any supported interactable types so they
+            // can report back when resolved.
+            var hiddenItem = spawned.GetComponent<HiddenDangerItem>();
+            if (hiddenItem != null)
+            {
+                hiddenItem.OnRecovered += OnHiddenDangerItemRecovered;
+            }
+
+            var mudPile = spawned.GetComponent<MudPileInteraction>();
+            if (mudPile != null)
+            {
+                mudPile.OnCleaned += OnMudPileCleaned;
+            }
         }
 
         if (requiredCount <= 0)
@@ -105,6 +114,20 @@ public class HiddenDangerSpawner : MonoBehaviour
 
         spawnedObjects.Clear();
         Debug.Log("HiddenDangerSpawner: Session stopped and spawned objects destroyed.");
+    }
+
+    // -----------------------------------------------------------------------
+    // Event handlers from spawned interactables
+    // -----------------------------------------------------------------------
+
+    private void OnHiddenDangerItemRecovered(HiddenDangerItem item)
+    {
+        OnDangerFound();
+    }
+
+    private void OnMudPileCleaned(MudPileInteraction mud)
+    {
+        OnDangerFound();
     }
 
     // -----------------------------------------------------------------------
