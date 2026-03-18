@@ -113,8 +113,9 @@ public class AfterMissionManager : MissionSceneManager
 
     /// <summary>
     /// After-phase override: if the triggered task has an AR mode bound, delegate to the
-    /// AR controller and hold mission progression until NotifyARTaskComplete() is called.
-    /// Otherwise falls back to the base behaviour (immediately completes the task).
+    /// AR controller and hold mission progression until the AR flow reports completion
+    /// via NotifyInteractionComplete(taskId). Otherwise falls back to the base behaviour
+    /// (immediately completes the task).
     /// </summary>
     public override void OnTriggerActivated(string taskId)
     {
@@ -130,7 +131,7 @@ public class AfterMissionManager : MissionSceneManager
             if (boundMode.HasValue)
             {
                 Debug.Log($"AfterMissionManager: Trigger entered for AR task '{taskId}', launching mode {boundMode.Value}.");
-                LaunchARMode(boundMode.Value);
+                LaunchARMode(boundMode.Value, taskId);
                 return;
             }
         }
@@ -139,14 +140,67 @@ public class AfterMissionManager : MissionSceneManager
     }
 
     /// <summary>
-    /// Called by AfterRecoveryARController when the active AR sub-task finishes.
-    /// Resumes mission task progression.
+    /// Backward-compatible entry point called by AfterRecoveryARController when an
+    /// AR sub-task completes but no explicit task id was bound. Delegates to
+    /// NotifyInteractionComplete for the current task when possible.
     /// </summary>
     public void NotifyARTaskComplete()
     {
-        Debug.Log("AfterMissionManager: AR task complete, advancing mission.");
+        if (currentTask == null)
+        {
+            Debug.LogWarning("AfterMissionManager: NotifyARTaskComplete called but there is no current task.");
+            return;
+        }
+
+        NotifyInteractionComplete(currentTask.taskId);
+    }
+
+    /// <summary>
+    /// Entry point for AR-driven progress from AfterRecoveryARController.
+    /// Marks all objectives for the specified task as completed and advances the
+    /// mission flow.
+    /// </summary>
+    public void NotifyInteractionComplete(string taskId)
+    {
+        if (!isMissionActive)
+        {
+            Debug.LogWarning("AfterMissionManager: NotifyInteractionComplete called while mission is not active.");
+            return;
+        }
+
+        bool isCurrentTask = currentTask != null &&
+            string.Equals(currentTask.taskId, taskId, System.StringComparison.OrdinalIgnoreCase);
+
+        if (!isCurrentTask)
+        {
+            Debug.LogWarning($"AfterMissionManager: NotifyInteractionComplete called for task '{taskId}', but current task is '{currentTask?.taskId}'.");
+            return;
+        }
+
+        if (currentTask.objectives != null && currentTask.objectives.Count > 0)
+        {
+            for (int i = 0; i < currentTask.objectives.Count; i++)
+            {
+                var objective = currentTask.objectives[i];
+                if (objective == null)
+                    continue;
+
+                if (!objective.isCompleted)
+                {
+                    objective.currentCount = objective.requiredCount;
+                    objective.isCompleted = true;
+                    OnObjectiveUpdated?.Invoke(objective);
+                }
+            }
+
+            UpdateObjectivesUI();
+        }
+
+        Debug.Log($"AfterMissionManager: AR interaction complete for task '{taskId}', advancing mission.");
+
         if (preparationUI != null)
             preparationUI.SetActive(true);
+
         CompleteCurrentTask();
     }
 
@@ -184,7 +238,7 @@ public class AfterMissionManager : MissionSceneManager
     // AR helpers
     // -----------------------------------------------------------------------
 
-    private void LaunchARMode(MissionMode mode)
+    private void LaunchARMode(MissionMode mode, string taskId)
     {
         if (arController == null)
         {
@@ -195,7 +249,7 @@ public class AfterMissionManager : MissionSceneManager
         if (preparationUI != null)
             preparationUI.SetActive(false);
 
-        arController.EnableARRecovery(mode);
+        arController.EnableARRecovery(mode, taskId);
     }
 
     private MissionMode? FindARMode(string taskId)

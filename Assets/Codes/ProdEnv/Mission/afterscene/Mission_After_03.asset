@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Mission_After_03
   m_EditorClassIdentifier: 
   missionId: after_03
-  missionName: Hiddendanger
-  missionDescription: "\tLearn how to prepare an emergency kit before a flood strikes."
+  missionName: remove the mud
+  missionDescription: clean the mud
   missionIcon: {fileID: 0}
   phase: 2
   missionSceneName: Aftermission
@@ -22,9 +22,9 @@ MonoBehaviour:
   requiredMissionId: 
   sortOrder: 1
   tasks:
-  - taskId: after_01_clean_up_items
+  - taskId: after_03_disinfect_mud
     taskName: find and select clean up items
-    taskDescription: find the Cleaning tools that can be use to clean the house
+    taskDescription: remove the mud using the tolls spray bottle and cloth
     taskIcon: {fileID: 0}
     taskType: 6
     isOptional: 0

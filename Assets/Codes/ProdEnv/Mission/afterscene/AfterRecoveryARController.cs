@@ -35,6 +35,7 @@ public class AfterRecoveryARController : MonoBehaviour
     // -----------------------------------------------------------------------
 
     private bool arActive;
+    private string activeTaskId;
 
     // -----------------------------------------------------------------------
     // Lifecycle
@@ -62,9 +63,20 @@ public class AfterRecoveryARController : MonoBehaviour
 
     /// <summary>
     /// Activates AR and starts the recovery sub-task for <paramref name="mode"/>.
-    /// Called by AfterMissionManager when a trigger fires for an AR-bound task.
+    /// Legacy entry point without an explicit task id. Delegates to the
+    /// task-aware overload with a null id.
     /// </summary>
     public void EnableARRecovery(MissionMode mode)
+    {
+        EnableARRecovery(mode, null);
+    }
+
+    /// <summary>
+    /// Task-aware overload used by AfterMissionManager. Binds the active
+    /// mission task id so DisableAR() can report completion back to
+    /// AfterMissionManager via NotifyInteractionComplete(taskId).
+    /// </summary>
+    public void EnableARRecovery(MissionMode mode, string taskId)
     {
         if (arActive)
         {
@@ -73,6 +85,7 @@ public class AfterRecoveryARController : MonoBehaviour
         }
 
         arActive = true;
+        activeTaskId = taskId;
         Debug.Log($"AfterRecoveryARController: Starting AR recovery — mode: {mode}");
 
         if (ARRuntimeContext.Instance != null)
@@ -112,7 +125,34 @@ public class AfterRecoveryARController : MonoBehaviour
         if (arUIRoot != null)
             arUIRoot.SetActive(false);
 
-        AfterMissionManager.Instance?.NotifyARTaskComplete();
+        if (!string.IsNullOrEmpty(activeTaskId))
+        {
+            AfterMissionManager.Instance?.NotifyInteractionComplete(activeTaskId);
+        }
+        else
+        {
+            // Fallback for legacy flows that did not bind a task id.
+            AfterMissionManager.Instance?.NotifyARTaskComplete();
+        }
+    }
+
+    /// <summary>
+    /// Called by HiddenDangerSpawner whenever a hidden danger / mud pile is
+    /// cleared. Aggregates progress at the AR layer and decides when to end
+    /// the AR session.
+    /// </summary>
+    public void OnHiddenDangerCleared(int clearedCount, int requiredCount)
+    {
+        if (!arActive)
+            return;
+
+        Debug.Log($"AfterRecoveryARController: Hidden danger cleared {clearedCount}/{requiredCount}.");
+
+        if (clearedCount >= requiredCount)
+        {
+            Debug.Log("AfterRecoveryARController: All hidden dangers cleared — ending AR session.");
+            DisableAR();
+        }
     }
 
     // -----------------------------------------------------------------------

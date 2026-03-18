@@ -5,12 +5,12 @@ using System.Collections.Generic;
 /// Task-bound spawner for After-phase AR recovery sessions.
 ///
 /// Instantiates hidden danger / mud pile prefabs at designated spawn points and tracks
-/// how many the player has resolved. When all required dangers are cleared, notifies
-/// AfterRecoveryARController to end the AR session.
+/// how many the player has resolved. When all required dangers are cleared, reports
+/// completion to AfterRecoveryARController, which in turn notifies AfterMissionManager.
 ///
 /// Activated by AfterRecoveryARController — never ticks independently.
-/// Progress reported via MissionSceneManager.UpdateObjective() to stay decoupled from
-/// the specific manager subclass.
+/// Does not talk to MissionSceneManager directly; mission progression is owned
+/// exclusively by AfterMissionManager.
 /// </summary>
 public class HiddenDangerSpawner : MonoBehaviour
 {
@@ -113,8 +113,8 @@ public class HiddenDangerSpawner : MonoBehaviour
 
     /// <summary>
     /// Reports that a spawned danger has been resolved by the player.
-    /// Forwards an objective increment to MissionSceneManager and checks for
-    /// session completion.
+    /// Forwards progress to AfterRecoveryARController, which decides when to
+    /// end the AR session.
     /// </summary>
     public void OnDangerFound()
     {
@@ -123,12 +123,6 @@ public class HiddenDangerSpawner : MonoBehaviour
         foundCount++;
         Debug.Log($"HiddenDangerSpawner: Danger cleared {foundCount}/{requiredCount}.");
 
-        MissionSceneManager.Instance?.UpdateObjective(objectiveId, 1);
-
-        if (foundCount >= requiredCount)
-        {
-            Debug.Log("HiddenDangerSpawner: All dangers cleared — ending AR session.");
-            AfterRecoveryARController.Instance?.DisableAR();
-        }
+        AfterRecoveryARController.Instance?.OnHiddenDangerCleared(foundCount, requiredCount);
     }
 }
