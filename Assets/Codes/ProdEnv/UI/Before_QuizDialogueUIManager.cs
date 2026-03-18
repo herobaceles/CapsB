@@ -75,12 +75,14 @@ public class QuizDialogueUIManager : MonoBehaviour
         SetOption(optionButton2, optionButton2Text, optionButton2Image, quizData.options[1], GetOptionSprite(quizData, 1), 1, quizData.placeholderSprite);
         SetOption(optionButton3, optionButton3Text, optionButton3Image, quizData.options[2], GetOptionSprite(quizData, 2), 2, quizData.placeholderSprite);
 
+        // Ensure the quiz panel (and its children, including the question portrait)
+        // are active before configuring any facial animation that starts coroutines.
+        quizPanel.SetActive(true);
+
         ConfigureQuestionPortrait(quizData);
 
         if (feedbackText != null)
             feedbackText.text = string.Empty;
-
-        quizPanel.SetActive(true);
     }
 
     public void HideQuiz()
@@ -161,10 +163,73 @@ public class QuizDialogueUIManager : MonoBehaviour
             questionPortraitImage.sprite = portraitSprite;
             questionPortraitImage.enabled = true;
             questionPortraitImage.preserveAspect = true;
+
+            ConfigureQuestionPortraitAnimator(quizData, portraitSprite);
         }
         else
         {
             questionPortraitImage.enabled = false;
+            // Ensure any existing animator is not left in a talking state
+            var existingAnimator = questionPortraitImage.GetComponent<PortraitFaceAnimator>();
+            if (existingAnimator != null)
+                existingAnimator.SetTalking(false);
+        }
+    }
+
+    /// <summary>
+    /// Optionally configures a PortraitFaceAnimator on the question portrait so it
+    /// can reuse the same expression sprites (idle, blink, talking) as dialogue portraits.
+    /// </summary>
+    private void ConfigureQuestionPortraitAnimator(MissionQuizData quizData, Sprite baseSprite)
+    {
+        if (questionPortraitImage == null || quizData == null)
+            return;
+
+        var dialogueManager = ProdDialogueManager.Instance;
+        if (dialogueManager == null)
+            return;
+
+        var faceAnimator = questionPortraitImage.GetComponent<PortraitFaceAnimator>();
+        if (faceAnimator == null)
+            faceAnimator = questionPortraitImage.gameObject.AddComponent<PortraitFaceAnimator>();
+
+        if (faceAnimator == null)
+            return;
+
+        Sprite idle = baseSprite;
+        Sprite blink = null;
+        Sprite[] talkingFrames = null;
+
+        // If a character id is provided, try to pull the full expression data
+        // (idle, blink, talking frames) from the character presets.
+        if (!string.IsNullOrEmpty(quizData.questionCharacterId))
+        {
+            dialogueManager.GetExpressionSpritesForCharacter(
+                quizData.questionCharacterId,
+                quizData.questionExpressionId,
+                out var exprIdle,
+                out var exprBlink,
+                out var exprTalking
+            );
+
+            if (exprIdle != null)
+                idle = exprIdle;
+
+            blink = exprBlink;
+            talkingFrames = exprTalking;
+        }
+
+        faceAnimator.SetExpressionSprites(idle, blink, talkingFrames);
+
+        // Treat the question as the character "talking" while the quiz is visible
+        // when we have talking frames available.
+        if (talkingFrames != null && talkingFrames.Length > 0)
+        {
+            faceAnimator.SetTalking(true);
+        }
+        else
+        {
+            faceAnimator.SetTalking(false);
         }
     }
 }

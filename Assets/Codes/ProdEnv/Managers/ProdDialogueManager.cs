@@ -151,6 +151,65 @@ public class ProdDialogueManager : MonoBehaviour
         return preset.GetPortrait(expressionId);
     }
 
+    /// <summary>
+    /// Returns expression sprites (idle, blink, talking frames) for the given character
+    /// and expression id, using the configured CharacterPresets. This mirrors the logic
+    /// used for dialogue portraits so other UIs (like quiz panels) can reuse it.
+    /// </summary>
+    public void GetExpressionSpritesForCharacter(string characterId, string expressionId,
+        out Sprite idleSprite, out Sprite blinkSprite, out Sprite[] talkingFrames)
+    {
+        idleSprite = null;
+        blinkSprite = null;
+        talkingFrames = null;
+
+        if (string.IsNullOrEmpty(characterId))
+            return;
+
+        if (!characterLookup.TryGetValue(characterId, out CharacterPreset preset) || preset == null)
+            return;
+
+        // Start with the preset's base portrait as idle.
+        idleSprite = preset.portrait;
+
+        Sprite exprIdle;
+        Sprite exprBlink;
+        Sprite[] exprTalking;
+
+        preset.GetExpressionSprites(expressionId, out exprIdle, out exprBlink, out exprTalking);
+
+        if (exprIdle != null)
+            idleSprite = exprIdle;
+
+        blinkSprite = exprBlink;
+        talkingFrames = exprTalking;
+
+        // Fallback: if there are no talking frames for the requested expression,
+        // use the first expression on this preset that has talking sprites.
+        if ((talkingFrames == null || talkingFrames.Length == 0) && preset.expressions != null)
+        {
+            for (int i = 0; i < preset.expressions.Count; i++)
+            {
+                var expr = preset.expressions[i];
+                if (expr == null || expr.talkingSprites == null || expr.talkingSprites.Count == 0)
+                    continue;
+
+                if (idleSprite == null)
+                {
+                    idleSprite = expr.sprite != null ? expr.sprite : preset.portrait;
+                }
+
+                if (blinkSprite == null)
+                {
+                    blinkSprite = expr.blinkSprite;
+                }
+
+                talkingFrames = expr.talkingSprites.ToArray();
+                break;
+            }
+        }
+    }
+
     private void Awake()
     {
         if (Instance != null && Instance != this)

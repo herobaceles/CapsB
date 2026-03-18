@@ -59,6 +59,7 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
     private bool appliancesRegistered;
     private Transform spawnedHouseRoot;
     private ApplianceSecureItem selectedAppliance;
+    private bool arGuidanceShown;
 
     private void Awake()
     {
@@ -363,8 +364,9 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
             statusText.gameObject.SetActive(true);
         DisableFloodLineVisuals();
 
-        // Skip intro dialogue; go straight into gameplay.
-        ShowStartQuizGate();
+        // Show optional AR guidance dialogue for this task so the player
+        // knows how to interact with appliances while in AR.
+        TryShowArGuidanceDialogue();
 
         UpdateStatusText();
         UpdateTimerUI();
@@ -381,6 +383,31 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
     {
         if (floodWarningUI != null)
             floodWarningUI.SetActive(false);
+    }
+
+    private void TryShowArGuidanceDialogue()
+    {
+        if (arGuidanceShown)
+            return;
+
+        var mission = GetActiveMission();
+        var task = GetTask(mission);
+        var dialogueManager = ProdDialogueManager.Instance;
+
+        if (dialogueManager == null || task == null ||
+            task.arGuidanceDialogueRich == null || task.arGuidanceDialogueRich.Count == 0)
+        {
+            // No AR guidance configured; just proceed with normal flow.
+            ShowStartQuizGate();
+            return;
+        }
+
+        arGuidanceShown = true;
+
+        // While guidance is showing, we keep missionActive true but rely on
+        // the dialogue UI to focus the player's attention. When the dialogue
+        // finishes, proceed into normal gameplay.
+        dialogueManager.ShowDialogueSequence(task.arGuidanceDialogueRich, ShowStartQuizGate);
     }
 
     private TaskData GetTask(MissionData mission)

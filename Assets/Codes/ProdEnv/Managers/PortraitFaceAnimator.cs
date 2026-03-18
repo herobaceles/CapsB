@@ -103,6 +103,14 @@ public class PortraitFaceAnimator : MonoBehaviour
 
         if (isTalking)
         {
+            // Do not attempt to start coroutines if this component or its
+            // GameObject is currently inactive in the hierarchy.
+            if (!enabled || !gameObject.activeInHierarchy)
+            {
+                isTalking = false;
+                return;
+            }
+
             if (talkingCoroutine != null)
             {
                 StopCoroutine(talkingCoroutine);

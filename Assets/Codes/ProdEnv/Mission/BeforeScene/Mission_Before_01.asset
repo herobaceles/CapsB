@@ -59,6 +59,60 @@ MonoBehaviour:
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
       message: 
+    arScanForPlaneDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Move your device slowly and point it at the floor.
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: "We\u2019re looking for a flat surface. Keep scanning until dots or
+        a grid appear."
+    arTapToPlaceDialogueRich:
+    - characterId: professor_lingap
+      characterName: 
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Great, I can see a surface now!
+    - characterId: professor_lingap
+      characterName: 
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Tap on the detected area to place our table.
+    arGuidanceDialogueRich:
+    - characterId: professor_lingap
+      characterName: 
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Nice work. You should now see a table and a go bag
+    - characterId: professor_lingap
+      characterName: 
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: "Avoid toys and unrelated objects\u2014they don\u2019t belong in your
+        go bag."
+    - characterId: professor_lingap
+      characterName: 
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Drag the important emergency items from the table into the bag.
     taskStartQuiz:
       question: 
       options:
@@ -102,8 +156,8 @@ MonoBehaviour:
     - {fileID: 21300000, guid: 2ccea1ff2a2ee6c4c83d4bf39cc4fecb, type: 3}
     - {fileID: 21300000, guid: 7c1b218f56d9533458e31441bb4c72d5, type: 3}
     placeholderSprite: {fileID: 0}
-    questionCharacterId: 
-    questionExpressionId: 
+    questionCharacterId: professor_lingap
+    questionExpressionId: explaining
     questionPortraitOverride: {fileID: 0}
     correctAnswerDialogue: []
     correctAnswerDialogueRich: []

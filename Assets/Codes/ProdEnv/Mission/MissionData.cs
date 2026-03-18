@@ -134,6 +134,16 @@ public class TaskData
     [Tooltip("Rich completion dialogue for this task.")]
     public List<DialogueLineData> completeDialogueRich = new List<DialogueLineData>();
 
+    [Header("AR Guidance (Optional)")]
+    [Tooltip("Dialogue that explains how to scan/detect AR planes (e.g., move device to look at the floor).")]
+    public List<DialogueLineData> arScanForPlaneDialogueRich = new List<DialogueLineData>();
+
+    [Tooltip("Dialogue shown once a plane is detected, instructing the player to tap to place the AR content.")]
+    public List<DialogueLineData> arTapToPlaceDialogueRich = new List<DialogueLineData>();
+
+    [Tooltip("General dialogue shown while the player is in an AR session for this task (e.g., how to interact with AR objects).")]
+    public List<DialogueLineData> arGuidanceDialogueRich = new List<DialogueLineData>();
+
     [Header("Quiz (Optional)")]
     [Tooltip("Optional quiz gate for this specific task. Used by scene managers that support per-task quizzes.")]
     public MissionQuizData taskStartQuiz;

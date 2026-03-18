@@ -104,6 +104,9 @@ public class ARMissionManager : MonoBehaviour
     private int totalItems;
 
     private bool missionPlaced = false;
+    private bool arGuidanceShown = false;
+    private bool arScanHintShown = false;
+    private bool arTapHintShown = false;
 
     void Awake()
     {
@@ -206,6 +209,10 @@ public class ARMissionManager : MonoBehaviour
     if (BeforeMissionManager.Instance == null || MissionSelectManager.SelectedMission == null)
         return;
 
+    // Only drive AR placement and hints while an AR mission is active.
+    if (!BeforeMissionManager.Instance.IsARMissionActive)
+        return;
+
     TryInitializeGoBagInventory();
 
     string missionId = MissionSelectManager.SelectedMission.missionId;
@@ -213,6 +220,8 @@ public class ARMissionManager : MonoBehaviour
     // Go Bag AR logic
     if (missionId == "before_01")
     {
+        UpdateGoBagArHints();
+
         // Prevent player movement if locked
         if (movementLocked)
             return;
@@ -354,7 +363,118 @@ public class ARMissionManager : MonoBehaviour
             missionPlaced = true;
 
             Debug.Log("Table, Bag, and Items Spawned");
+
+            // Show AR guidance dialogue (from the corresponding mission task) so
+            // the player knows what to do while in the AR session.
+            TryShowArGuidanceDialogue();
         }
+    }
+
+    private void UpdateGoBagArHints()
+    {
+        if (missionPlaced)
+            return;
+
+        var dialogueManager = ProdDialogueManager.Instance;
+        if (dialogueManager == null)
+            return;
+
+        var mission = MissionSelectManager.SelectedMission;
+        if (mission == null || mission.tasks == null)
+            return;
+
+        const string PreparingGoBagTaskId = "before_01_prepare_go_bag";
+        TaskData targetTask = null;
+        for (int i = 0; i < mission.tasks.Count; i++)
+        {
+            var t = mission.tasks[i];
+            if (t != null && t.taskId == PreparingGoBagTaskId)
+            {
+                targetTask = t;
+                break;
+            }
+        }
+
+        if (targetTask == null)
+            return;
+
+        // 1) If no plane yet, tell the player how to scan the floor.
+        if (!arScanHintShown && !dialogueManager.IsDialogueActive &&
+            targetTask.arScanForPlaneDialogueRich != null && targetTask.arScanForPlaneDialogueRich.Count > 0)
+        {
+            arScanHintShown = true;
+            dialogueManager.ShowDialogueSequence(targetTask.arScanForPlaneDialogueRich, null);
+            return;
+        }
+
+        // 2) Once planes are detectable under the center of the screen, tell the
+        //    player to tap to place the Go Bag table.
+        if (!arTapHintShown && arScanHintShown && !dialogueManager.IsDialogueActive)
+        {
+            var activeRaycastManager = ResolveRaycastManager();
+            if (activeRaycastManager == null)
+                return;
+
+            bool didHitPlane = false;
+            var screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+
+            try
+            {
+                didHitPlane = activeRaycastManager.Raycast(screenCenter, hits, TrackableType.PlaneWithinPolygon);
+            }
+            catch (System.ArgumentNullException exception)
+            {
+                Debug.LogError($"ARMissionManager: Center-screen AR raycast failed while checking for planes. {exception.Message}");
+                return;
+            }
+
+            if (didHitPlane &&
+                targetTask.arTapToPlaceDialogueRich != null && targetTask.arTapToPlaceDialogueRich.Count > 0)
+            {
+                arTapHintShown = true;
+                dialogueManager.ShowDialogueSequence(targetTask.arTapToPlaceDialogueRich, null);
+            }
+        }
+    }
+
+    private void TryShowArGuidanceDialogue()
+    {
+        if (arGuidanceShown)
+            return;
+
+        var mission = MissionSelectManager.SelectedMission;
+        if (mission == null || mission.tasks == null)
+            return;
+
+        // Reuse the same task id as the main Preparing Go Bag task so
+        // guidance is authored on that task asset.
+        const string PreparingGoBagTaskId = "before_01_prepare_go_bag";
+        TaskData targetTask = null;
+        for (int i = 0; i < mission.tasks.Count; i++)
+        {
+            var t = mission.tasks[i];
+            if (t != null && t.taskId == PreparingGoBagTaskId)
+            {
+                targetTask = t;
+                break;
+            }
+        }
+
+        if (targetTask == null || targetTask.arGuidanceDialogueRich == null || targetTask.arGuidanceDialogueRich.Count == 0)
+            return;
+
+        var dialogueManager = ProdDialogueManager.Instance;
+        if (dialogueManager == null)
+            return;
+
+        arGuidanceShown = true;
+
+        // While guidance is showing, keep movement locked; unlock when it finishes.
+        movementLocked = true;
+        dialogueManager.ShowDialogueSequence(targetTask.arGuidanceDialogueRich, () =>
+        {
+            movementLocked = false;
+        });
     }
 
     // Spawns items scattered on the table, avoiding the center (bag position)
