@@ -10,23 +10,35 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -6689036041284674117, guid: bf30e3c8d1a3c374db1968c9b28daa86, type: 3}
       propertyPath: m_Name
-      value: medkit 1
+      value: medkit
       objectReference: {fileID: 0}
     - target: {fileID: -6689036041284674117, guid: bf30e3c8d1a3c374db1968c9b28daa86, type: 3}
       propertyPath: m_TagString
       value: EmergencyItem
       objectReference: {fileID: 0}
+    - target: {fileID: -2030507463915354120, guid: bf30e3c8d1a3c374db1968c9b28daa86, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -2030507463915354120, guid: bf30e3c8d1a3c374db1968c9b28daa86, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -2030507463915354120, guid: bf30e3c8d1a3c374db1968c9b28daa86, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
     - target: {fileID: 2774220344278030320, guid: bf30e3c8d1a3c374db1968c9b28daa86, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.03
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 2774220344278030320, guid: bf30e3c8d1a3c374db1968c9b28daa86, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.03
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 2774220344278030320, guid: bf30e3c8d1a3c374db1968c9b28daa86, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.03
+      value: 0.01
       objectReference: {fileID: 0}
     - target: {fileID: 2774220344278030320, guid: bf30e3c8d1a3c374db1968c9b28daa86, type: 3}
       propertyPath: m_LocalPosition.x

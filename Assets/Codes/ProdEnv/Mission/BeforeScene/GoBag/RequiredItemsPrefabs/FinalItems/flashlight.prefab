@@ -16,6 +16,14 @@ PrefabInstance:
       propertyPath: m_TagString
       value: EmergencyItem
       objectReference: {fileID: 0}
+    - target: {fileID: -6057104419851716650, guid: a4f72d1bf96ac574c8a8bca1dcb09314, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -6057104419851716650, guid: a4f72d1bf96ac574c8a8bca1dcb09314, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2774220344278030320, guid: a4f72d1bf96ac574c8a8bca1dcb09314, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.005

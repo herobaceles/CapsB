@@ -10,11 +10,23 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -6689036041284674117, guid: 0a1c7dcecdfbc9c40a459963788471b4, type: 3}
       propertyPath: m_Name
-      value: map_texture
+      value: Map
       objectReference: {fileID: 0}
     - target: {fileID: -6689036041284674117, guid: 0a1c7dcecdfbc9c40a459963788471b4, type: 3}
       propertyPath: m_TagString
       value: EmergencyItem
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: 0a1c7dcecdfbc9c40a459963788471b4, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: 0a1c7dcecdfbc9c40a459963788471b4, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: 0a1c7dcecdfbc9c40a459963788471b4, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 2774220344278030320, guid: 0a1c7dcecdfbc9c40a459963788471b4, type: 3}
       propertyPath: m_LocalPosition.x
