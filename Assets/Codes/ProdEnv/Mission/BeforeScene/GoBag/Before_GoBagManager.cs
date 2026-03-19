@@ -698,7 +698,16 @@ public class ARMissionManager : MonoBehaviour
         if (achievementsPanel != null)
             achievementsPanel.SetActive(true);
         if (achievementText != null)
-            achievementText.text = "Mission Complete!";
+        {
+            var missionId = MissionSelectManager.SelectedMission != null
+                ? MissionSelectManager.SelectedMission.missionId
+                : null;
+
+            if (string.Equals(missionId, "before_01", System.StringComparison.OrdinalIgnoreCase))
+                achievementText.text = "Preparing Go Bag Complete!";
+            else
+                achievementText.text = "Mission Complete!";
+        }
 
         // Unlock movement
         movementLocked = false;

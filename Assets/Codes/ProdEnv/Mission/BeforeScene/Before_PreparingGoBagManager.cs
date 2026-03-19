@@ -396,10 +396,7 @@ public class PreparingGoBagManager : MonoBehaviour
         var dialogueManager = ProdDialogueManager.Instance;
         if (dialogueManager != null && goBagCompleteDialogueRich != null && goBagCompleteDialogueRich.Count > 0)
         {
-            dialogueManager.ShowDialogueSequence(goBagCompleteDialogueRich, () => {
-                CompleteMissionTask();
-                ShowAchievementPanel();
-            });
+            dialogueManager.ShowDialogueSequence(goBagCompleteDialogueRich, CompleteMissionTask);
         }
         else
         {
@@ -413,7 +410,6 @@ public class PreparingGoBagManager : MonoBehaviour
             }
 
             CompleteMissionTask();
-            ShowAchievementPanel();
         }
     }
 
