@@ -67,6 +67,7 @@ public abstract class MissionSceneManager : MonoBehaviour
     protected bool isMissionActive = false;
     protected bool isPaused = false;
     protected List<TaskData> completedTasks = new List<TaskData>();
+    protected bool introSequenceCompleted = false;
 
     // Properties
     public MissionData CurrentMission => currentMission;
@@ -76,6 +77,7 @@ public abstract class MissionSceneManager : MonoBehaviour
     public bool IsMissionActive => isMissionActive;
     public bool IsPaused => isPaused;
     public float Progress => TotalTasks > 0 ? (float)completedTasks.Count / TotalTasks : 0f;
+    public bool HasIntroSequenceCompleted => introSequenceCompleted;
 
     protected virtual void Awake()
     {
@@ -173,6 +175,7 @@ public abstract class MissionSceneManager : MonoBehaviour
 
     protected virtual IEnumerator BeginMissionSequence()
     {
+        introSequenceCompleted = false;
         yield return new WaitForSeconds(0.5f);
 
         if (currentMission == null)
@@ -202,6 +205,8 @@ public abstract class MissionSceneManager : MonoBehaviour
         }
 
         yield return RunMissionStartQuizIfAvailable();
+
+        introSequenceCompleted = true;
 
         Debug.Log($"{GetType().Name}: Starting mission after intro dialogue/start quiz");
         StartMission();

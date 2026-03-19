@@ -20,12 +20,16 @@ public class ApplianceARPlacementManager03 : MonoBehaviour
     private Before_SecuringAppliancesManager pendingMissionManager;
     private bool waitingForPlacement;
     private bool placed;
+    private bool arScanHintShown;
+    private bool arTapHintShown;
 
     public void BeginPlacement(Before_SecuringAppliancesManager manager)
     {
         pendingMissionManager = manager;
         waitingForPlacement = true;
         placed = false;
+        arScanHintShown = false;
+        arTapHintShown = false;
         ResolveRaycastManager();
         Debug.Log($"ApplianceARPlacementManager03: BeginPlacement called. Waiting for tap. raycastManager={raycastManager}, prefab={houseInteriorPrefab}");
     }
@@ -40,6 +44,8 @@ public class ApplianceARPlacementManager03 : MonoBehaviour
     {
         if (!waitingForPlacement || placed)
             return;
+
+        UpdateArHints();
 
         if (MissionSelectManager.SelectedMission == null)
         {
@@ -63,6 +69,70 @@ public class ApplianceARPlacementManager03 : MonoBehaviour
             }
 
             TryPlaceHouse(screenPosition);
+        }
+    }
+
+    private void UpdateArHints()
+    {
+        var dialogueManager = ProdDialogueManager.Instance;
+        if (dialogueManager == null)
+            return;
+
+        var mission = MissionSelectManager.SelectedMission;
+        if (mission == null || mission.tasks == null)
+            return;
+
+        const string SecuringAppliancesTaskId = "before_03_secure_appliances";
+        TaskData targetTask = null;
+        for (int i = 0; i < mission.tasks.Count; i++)
+        {
+            var t = mission.tasks[i];
+            if (t != null && t.taskId == SecuringAppliancesTaskId)
+            {
+                targetTask = t;
+                break;
+            }
+        }
+
+        if (targetTask == null)
+            return;
+
+        // 1) While no plane is yet detected, show scan guidance once.
+        if (!arScanHintShown && !dialogueManager.IsDialogueActive &&
+            targetTask.arScanForPlaneDialogueRich != null && targetTask.arScanForPlaneDialogueRich.Count > 0)
+        {
+            arScanHintShown = true;
+            dialogueManager.ShowDialogueSequence(targetTask.arScanForPlaneDialogueRich, null);
+            return;
+        }
+
+        // 2) Once a plane is detectable at the center of the screen, tell the
+        //    player to tap to place the AR house interior.
+        if (!arTapHintShown && arScanHintShown && !dialogueManager.IsDialogueActive)
+        {
+            ResolveRaycastManager();
+            if (raycastManager == null)
+                return;
+
+            bool didHitPlane = false;
+            var screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+
+            try
+            {
+                didHitPlane = raycastManager.Raycast(screenCenter, hits, TrackableType.PlaneWithinPolygon);
+            }
+            catch (System.ArgumentNullException exception)
+            {
+                Debug.LogError($"ApplianceARPlacementManager03: Center-screen AR raycast failed while checking for planes. {exception.Message}");
+                return;
+            }
+
+            if (didHitPlane &&
+                targetTask.arTapToPlaceDialogueRich != null && targetTask.arTapToPlaceDialogueRich.Count > 0)
+            {
+                arTapHintShown = true;
+                dialogueManager.ShowDialogueSequence(targetTask.arTapToPlaceDialogueRich, null);
+            }
         }
     }
 

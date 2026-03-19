@@ -36,6 +36,12 @@ public class BeforeMissionManager : MissionSceneManager
     [Header("Mission Trigger Bindings")]
     [SerializeField] private List<MissionTriggerBinding> missionTriggerBindings = new List<MissionTriggerBinding>();
 
+    /// <summary>
+    /// True while an AR mission is currently active (AR camera and AR UI are in use).
+    /// Used by AR helpers to avoid running AR logic while still in normal Before scene.
+    /// </summary>
+    public bool IsARMissionActive { get; private set; }
+
     protected override void Awake()
     {
         base.Awake();
@@ -53,6 +59,8 @@ public class BeforeMissionManager : MissionSceneManager
 
         if (ARRuntimeContext.Instance != null)
             ARRuntimeContext.Instance.SetARActive(false);
+
+        IsARMissionActive = false;
 
         // Show preparation UI by default
         if (preparationUI != null)
@@ -221,6 +229,8 @@ public class BeforeMissionManager : MissionSceneManager
 
         ARRuntimeContext.Instance.SetARActive(true);
 
+        IsARMissionActive = true;
+
         if (disableGameplayCameraInAR)
             StartCoroutine(DisableGameplayCameraWhenARReady());
         else
@@ -254,6 +264,8 @@ public class BeforeMissionManager : MissionSceneManager
     {
         if (ARRuntimeContext.Instance != null)
             ARRuntimeContext.Instance.SetARActive(false);
+
+        IsARMissionActive = false;
 
         SetGameplayCameraActive(true);
 

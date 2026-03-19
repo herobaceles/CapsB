@@ -104,6 +104,9 @@ public class ARMissionManager : MonoBehaviour
     private int totalItems;
 
     private bool missionPlaced = false;
+    private bool arGuidanceShown = false;
+    private bool arScanHintShown = false;
+    private bool arTapHintShown = false;
 
     void Awake()
     {
@@ -206,6 +209,10 @@ public class ARMissionManager : MonoBehaviour
     if (BeforeMissionManager.Instance == null || MissionSelectManager.SelectedMission == null)
         return;
 
+    // Only drive AR placement and hints while an AR mission is active.
+    if (!BeforeMissionManager.Instance.IsARMissionActive)
+        return;
+
     TryInitializeGoBagInventory();
 
     string missionId = MissionSelectManager.SelectedMission.missionId;
@@ -213,6 +220,8 @@ public class ARMissionManager : MonoBehaviour
     // Go Bag AR logic
     if (missionId == "before_01")
     {
+        UpdateGoBagArHints();
+
         // Prevent player movement if locked
         if (movementLocked)
             return;
@@ -354,32 +363,269 @@ public class ARMissionManager : MonoBehaviour
             missionPlaced = true;
 
             Debug.Log("Table, Bag, and Items Spawned");
+
+            // Show AR guidance dialogue (from the corresponding mission task) so
+            // the player knows what to do while in the AR session.
+            TryShowArGuidanceDialogue();
         }
     }
 
-    // Spawns items scattered on the table, avoiding the center (bag position)
+    private void UpdateGoBagArHints()
+    {
+        if (missionPlaced)
+            return;
+
+        var dialogueManager = ProdDialogueManager.Instance;
+        if (dialogueManager == null)
+            return;
+
+        var mission = MissionSelectManager.SelectedMission;
+        if (mission == null || mission.tasks == null)
+            return;
+
+        const string PreparingGoBagTaskId = "before_01_prepare_go_bag";
+        TaskData targetTask = null;
+        for (int i = 0; i < mission.tasks.Count; i++)
+        {
+            var t = mission.tasks[i];
+            if (t != null && t.taskId == PreparingGoBagTaskId)
+            {
+                targetTask = t;
+                break;
+            }
+        }
+
+        if (targetTask == null)
+            return;
+
+        // 1) If no plane yet, tell the player how to scan the floor.
+        if (!arScanHintShown && !dialogueManager.IsDialogueActive &&
+            targetTask.arScanForPlaneDialogueRich != null && targetTask.arScanForPlaneDialogueRich.Count > 0)
+        {
+            arScanHintShown = true;
+            dialogueManager.ShowDialogueSequence(targetTask.arScanForPlaneDialogueRich, null);
+            return;
+        }
+
+        // 2) Once planes are detectable under the center of the screen, tell the
+        //    player to tap to place the Go Bag table.
+        if (!arTapHintShown && arScanHintShown && !dialogueManager.IsDialogueActive)
+        {
+            var activeRaycastManager = ResolveRaycastManager();
+            if (activeRaycastManager == null)
+                return;
+
+            bool didHitPlane = false;
+            var screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+
+            try
+            {
+                didHitPlane = activeRaycastManager.Raycast(screenCenter, hits, TrackableType.PlaneWithinPolygon);
+            }
+            catch (System.ArgumentNullException exception)
+            {
+                Debug.LogError($"ARMissionManager: Center-screen AR raycast failed while checking for planes. {exception.Message}");
+                return;
+            }
+
+            if (didHitPlane &&
+                targetTask.arTapToPlaceDialogueRich != null && targetTask.arTapToPlaceDialogueRich.Count > 0)
+            {
+                arTapHintShown = true;
+                dialogueManager.ShowDialogueSequence(targetTask.arTapToPlaceDialogueRich, null);
+            }
+        }
+    }
+
+    private void TryShowArGuidanceDialogue()
+    {
+        if (arGuidanceShown)
+            return;
+
+        var mission = MissionSelectManager.SelectedMission;
+        if (mission == null || mission.tasks == null)
+            return;
+
+        // Reuse the same task id as the main Preparing Go Bag task so
+        // guidance is authored on that task asset.
+        const string PreparingGoBagTaskId = "before_01_prepare_go_bag";
+        TaskData targetTask = null;
+        for (int i = 0; i < mission.tasks.Count; i++)
+        {
+            var t = mission.tasks[i];
+            if (t != null && t.taskId == PreparingGoBagTaskId)
+            {
+                targetTask = t;
+                break;
+            }
+        }
+
+        if (targetTask == null || targetTask.arGuidanceDialogueRich == null || targetTask.arGuidanceDialogueRich.Count == 0)
+            return;
+
+        var dialogueManager = ProdDialogueManager.Instance;
+        if (dialogueManager == null)
+            return;
+
+        arGuidanceShown = true;
+
+        // While guidance is showing, keep movement locked; unlock when it finishes.
+        movementLocked = true;
+        dialogueManager.ShowDialogueSequence(targetTask.arGuidanceDialogueRich, () =>
+        {
+            movementLocked = false;
+        });
+    }
+
+    // Spawns items on the table, avoiding the bag and trying to
+    // avoid overlap between items. If a good random position
+    // cannot be found, a safe fallback ring position is used so
+    // that all items still appear.
     void SpawnItemsOnTable(Vector3 tableCenter, Vector3 tableSize, float tableHeight, Vector3 bagPosition)
     {
         totalItems = requiredItemNames.Count;
 
         float y = tableCenter.y + tableHeight + 0.05f;
-        float minDistanceFromBag = Mathf.Min(tableSize.x, tableSize.z) * 0.25f; // Avoid center
 
-        for (int i = 0; i < itemPrefabs.Length; i++)
+        // Define a spawn rectangle slightly inset from the table edges.
+        float halfX = tableSize.x * 0.5f;
+        float halfZ = tableSize.z * 0.5f;
+        const float insetFactor = 0.8f; // use 80% of the table area
+        float spawnHalfX = halfX * insetFactor;
+        float spawnHalfZ = halfZ * insetFactor;
+
+        float tableMinSide = Mathf.Min(tableSize.x, tableSize.z);
+
+        // Precompute item radii so we can also compute a safe ring radius.
+        int itemCount = itemPrefabs != null ? itemPrefabs.Length : 0;
+        float[] itemRadii = new float[itemCount];
+        float maxItemRadius = 0f;
+        for (int i = 0; i < itemCount; i++)
         {
             GameObject item = itemPrefabs[i];
-            Vector3 spawnPos;
-            int attempts = 0;
-            do
+            if (item == null)
             {
-                float x = UnityEngine.Random.Range(-tableSize.x * 0.4f, tableSize.x * 0.4f);
-                float z = UnityEngine.Random.Range(-tableSize.z * 0.4f, tableSize.z * 0.4f);
-                spawnPos = tableCenter + new Vector3(x, 0, z);
-                spawnPos.y = y;
-                attempts++;
-            } while (Vector3.Distance(spawnPos, bagPosition) < minDistanceFromBag && attempts < 10);
-            Instantiate(item, spawnPos, Quaternion.identity);
+                itemRadii[i] = 0f;
+                continue;
+            }
+
+            float itemFallbackRadius = tableMinSide * 0.05f;
+            float r = GetApproxPrefabRadius(item, itemFallbackRadius) * 1.1f;
+            itemRadii[i] = r;
+            if (r > maxItemRadius)
+                maxItemRadius = r;
         }
+
+        // Approximate bag radius from its prefab size so we keep
+        // a generous clear circle around it.
+        float bagFallbackRadius = tableMinSide * 0.2f;
+        float bagRadius = GetApproxPrefabRadius(bagPrefab, bagFallbackRadius) * 1.7f;
+        const float spacingMargin = 0.02f; // extra space between shapes
+
+        Vector2 bagXZ = new Vector2(bagPosition.x, bagPosition.z);
+
+        // Track already placed items as circles on the table.
+        List<Vector2> placedCenters = new List<Vector2>(itemCount);
+        List<float> placedRadii = new List<float>(itemCount);
+
+        const int maxAttemptsPerItem = 80;
+
+        // Fallback ring around the bag, inside the table bounds.
+        float maxRingRadius = Mathf.Min(spawnHalfX, spawnHalfZ) * 0.95f;
+        float minRingRadius = bagRadius + maxItemRadius + spacingMargin;
+        float ringRadius = Mathf.Clamp(minRingRadius, minRingRadius, maxRingRadius);
+        int fallbackIndex = 0;
+
+        for (int i = 0; i < itemCount; i++)
+        {
+            GameObject item = itemPrefabs[i];
+            if (item == null)
+                continue;
+
+            float itemRadius = itemRadii[i];
+            if (itemRadius <= 0f)
+                itemRadius = tableMinSide * 0.05f;
+
+            bool found = false;
+            Vector3 spawnPos = tableCenter;
+
+            for (int attempt = 0; attempt < maxAttemptsPerItem && !found; attempt++)
+            {
+                float x = Random.Range(-spawnHalfX, spawnHalfX);
+                float z = Random.Range(-spawnHalfZ, spawnHalfZ);
+                spawnPos = tableCenter + new Vector3(x, 0f, z);
+                spawnPos.y = y;
+
+                Vector2 candidateXZ = new Vector2(spawnPos.x, spawnPos.z);
+
+                // 1) Keep away from the bag.
+                float minBagDist = bagRadius + itemRadius + spacingMargin;
+                if (Vector2.Distance(candidateXZ, bagXZ) < minBagDist)
+                    continue;
+
+                // 2) Keep away from already spawned items.
+                bool overlapsExisting = false;
+                for (int j = 0; j < placedCenters.Count; j++)
+                {
+                    float minItemDist = placedRadii[j] + itemRadius + spacingMargin;
+                    if (Vector2.Distance(candidateXZ, placedCenters[j]) < minItemDist)
+                    {
+                        overlapsExisting = true;
+                        break;
+                    }
+                }
+
+                if (overlapsExisting)
+                    continue;
+
+                found = true;
+            }
+
+            if (!found)
+            {
+                // Fallback: place the item on a ring around the bag so
+                // that it still appears and stays away from the bag.
+                if (ringRadius > 0f)
+                {
+                    float angle = (Mathf.PI * 2f / Mathf.Max(1, itemCount)) * fallbackIndex;
+                    fallbackIndex++;
+
+                    Vector3 offset = new Vector3(Mathf.Cos(angle) * ringRadius, 0f, Mathf.Sin(angle) * ringRadius);
+                    spawnPos = tableCenter + offset;
+                    spawnPos.y = y;
+                }
+                else
+                {
+                    Debug.LogWarning($"ARMissionManager: Could not find non-overlapping position for item {item.name} after {maxAttemptsPerItem} attempts and ringRadius invalid. Spawning at table center.");
+                    spawnPos = tableCenter + Vector3.up * (tableHeight + 0.05f);
+                }
+            }
+
+            GameObject spawnedItem = Instantiate(item, spawnPos, Quaternion.identity);
+
+            Vector3 finalPos = spawnedItem.transform.position;
+            Vector2 finalXZ = new Vector2(finalPos.x, finalPos.z);
+            placedCenters.Add(finalXZ);
+            placedRadii.Add(itemRadius);
+        }
+    }
+
+    // Approximate a 2D radius for a prefab using its renderer bounds.
+    private float GetApproxPrefabRadius(GameObject prefab, float fallbackRadius)
+    {
+        if (prefab == null)
+            return fallbackRadius;
+
+        var renderer = prefab.GetComponentInChildren<Renderer>();
+        if (renderer == null)
+            return fallbackRadius;
+
+        var extents = renderer.bounds.extents;
+        float radius = Mathf.Max(extents.x, extents.z);
+        if (radius <= 0f)
+            return fallbackRadius;
+
+        return radius;
     }
 
     // Populate the item list UI with required items
@@ -452,7 +698,16 @@ public class ARMissionManager : MonoBehaviour
         if (achievementsPanel != null)
             achievementsPanel.SetActive(true);
         if (achievementText != null)
-            achievementText.text = "Mission Complete!";
+        {
+            var missionId = MissionSelectManager.SelectedMission != null
+                ? MissionSelectManager.SelectedMission.missionId
+                : null;
+
+            if (string.Equals(missionId, "before_01", System.StringComparison.OrdinalIgnoreCase))
+                achievementText.text = "Preparing Go Bag Complete!";
+            else
+                achievementText.text = "Mission Complete!";
+        }
 
         // Unlock movement
         movementLocked = false;
