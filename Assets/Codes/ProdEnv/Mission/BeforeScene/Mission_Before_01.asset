@@ -152,7 +152,7 @@ MonoBehaviour:
     - Eco Bag
     correctOptionIndex: 0
     optionSprites:
-    - {fileID: 21300000, guid: 6ffef52f5cb7397439aecc013fb6acb7, type: 3}
+    - {fileID: 21300000, guid: f9cf4aaab50ea3340ac903c681cb719c, type: 3}
     - {fileID: 21300000, guid: 2ccea1ff2a2ee6c4c83d4bf39cc4fecb, type: 3}
     - {fileID: 21300000, guid: 7c1b218f56d9533458e31441bb4c72d5, type: 3}
     placeholderSprite: {fileID: 0}

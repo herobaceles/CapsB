@@ -47,6 +47,9 @@ public class BreakerTaskManager : MonoBehaviour
     [Header("Breaker Task Prefab")]
     [SerializeField] private GameObject breakerPrefab; // Assign in inspector if you want to spawn it
 
+    [Header("Temporary AR Exit UI")]
+    [SerializeField] private GameObject breakerExitButton; // Shown only while breaker AR task is active
+
     [Header("Dialogue (asset-driven)")]
     [SerializeField] private List<DialogueLineData> instructionDialogueRich;
     [SerializeField] private List<DialogueLineData> completionDialogueRich;
@@ -71,6 +74,9 @@ public class BreakerTaskManager : MonoBehaviour
             return;
         taskStarted = true;
         taskComplete = false;
+
+        if (breakerExitButton != null)
+            breakerExitButton.SetActive(true);
 
         // Enable AR tap-to-place for breaker prefab
         if (breakerPrefab != null && ARMissionManager.Instance != null)
@@ -107,6 +113,9 @@ public class BreakerTaskManager : MonoBehaviour
         if (taskComplete)
             return;
         taskComplete = true;
+
+        if (breakerExitButton != null)
+            breakerExitButton.SetActive(false);
 
         // First, end AR and return to the normal scene
         if (BeforeMissionManager.Instance != null)
@@ -169,5 +178,12 @@ public class BreakerTaskManager : MonoBehaviour
             achievementText.text = "Breaker Task Complete!";
         if (onComplete != null)
             onComplete.Invoke();
+    }
+
+    // Temporary helper for UI button: call this from a button to
+    // end the AR breaker task and show the completion flow manually.
+    public void OnBreakerExitButtonClicked()
+    {
+        CompleteBreakerTask();
     }
 }
