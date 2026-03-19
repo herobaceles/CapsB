@@ -20,24 +20,28 @@ public class HiddenDangerItem : MonoBehaviour
 
     private MissionMode GetCurrentMissionMode()
     {
-        // Use the scene controller as the primary source:
-        // it is updated to the actual AR mode when AR starts
-        // (CleanupGear, HiddenDanger, etc.).
-        // Primary source: AfterSceneController, which is updated
-        // to the actual AR mode (CleanupGear, HiddenDanger, etc.)
-        // whenever AR starts for a given task.
+        // When an AR session is running, prefer the shared AfterRecoveryARController
+        // as the source of truth for the current mission mode. This keeps
+        // behaviour consistent even if the legacy AfterSceneController isn't
+        // kept in sync with the new mission flow.
+        if (AfterRecoveryARController.Instance != null && AfterRecoveryARController.Instance.IsARActive)
+        {
+            return AfterRecoveryARController.Instance.CurrentMissionMode;
+        }
+
+        // Otherwise, fall back to the scene controller if available.
         if (afterSceneController != null)
         {
             return afterSceneController.GetCurrentMissionMode();
         }
 
-        // Fallback: legacy AR controller cached mode.
+        // Final fallback: cached AR controller mode if present, or a
+        // safe default when nothing else is available.
         if (AfterRecoveryARController.Instance != null)
         {
             return AfterRecoveryARController.Instance.CurrentMissionMode;
         }
 
-        // Safe default.
         return MissionMode.HiddenDanger;
     }
 
@@ -72,11 +76,35 @@ public class HiddenDangerItem : MonoBehaviour
 
     private void OnMouseDown()
     {
+        // During AR sessions we rely on AfterARTapDetector driving
+        // interactions, so ignore legacy OnMouseDown in that case.
+        if (AfterRecoveryARController.Instance != null && AfterRecoveryARController.Instance.IsARActive)
+            return;
+
+        HandleTap();
+    }
+
+    /// <summary>
+    /// Public entry point for AR tap detectors. This allows AR-specific
+    /// raycasters (using the AR camera) to drive the same behaviour that
+    /// OnMouseDown uses, which is more reliable on mobile AR than the
+    /// legacy OnMouseDown callback.
+    /// </summary>
+    public void OnTappedFromAR()
+    {
+        HandleTap();
+    }
+
+    /// <summary>
+    /// Core tap handling shared by both OnMouseDown and OnTappedFromAR.
+    /// </summary>
+    private void HandleTap()
+    {
         if (IsRecovered) return;
 
         MissionMode mode = GetCurrentMissionMode();
 
-        Debug.LogWarning($"HiddenDangerItem.OnMouseDown: Item '{gameObject.name}' clicked in mode {mode}");
+        Debug.LogWarning($"HiddenDangerItem.HandleTap: Item '{gameObject.name}' clicked in mode {mode}");
 
         // In Hidden Danger mission, we DON'T want to recover on tap
         // We want the player to drag to bucket
@@ -105,7 +133,13 @@ public class HiddenDangerItem : MonoBehaviour
 
         if (isCorrectItem)
         {
-            if (afterSceneController != null)
+            // Prefer AR controller feedback when an AR session is active,
+            // otherwise fall back to the legacy AfterSceneController path.
+            if (AfterRecoveryARController.Instance != null && AfterRecoveryARController.Instance.IsARActive)
+            {
+                AfterRecoveryARController.Instance.TriggerFeedback(true, transform.position);
+            }
+            else if (afterSceneController != null)
             {
                 afterSceneController.ShowFeedback(true, transform.position);
             }
@@ -113,6 +147,7 @@ public class HiddenDangerItem : MonoBehaviour
             {
                 AfterRecoveryARController.Instance.TriggerFeedback(true, transform.position);
             }
+
             Recover();
         }
         else
@@ -120,7 +155,11 @@ public class HiddenDangerItem : MonoBehaviour
             // Red X for anything else
             Debug.LogWarning($"HiddenDangerItem: Item '{gameObject.name}' with tag '{gameObject.tag}' is incorrect for mode {mode}");
 
-            if (afterSceneController != null)
+            if (AfterRecoveryARController.Instance != null && AfterRecoveryARController.Instance.IsARActive)
+            {
+                AfterRecoveryARController.Instance.TriggerFeedback(false, transform.position);
+            }
+            else if (afterSceneController != null)
             {
                 afterSceneController.ShowFeedback(false, transform.position);
             }

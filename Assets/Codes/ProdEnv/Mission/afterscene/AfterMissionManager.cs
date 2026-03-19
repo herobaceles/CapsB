@@ -15,6 +15,9 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class AfterMissionManager : MissionSceneManager
 {
+    // Helper for AfterSceneController to check mission state
+    public bool IsStartQuizCompleted() => startQuizCompleted;
+    public bool CurrentMissionIdIs(string id) => currentMission != null && string.Equals(currentMission.missionId, id, System.StringComparison.OrdinalIgnoreCase);
     public new static AfterMissionManager Instance { get; private set; }
 
     // -----------------------------------------------------------------------
@@ -38,6 +41,9 @@ public class AfterMissionManager : MissionSceneManager
     [Header("After Phase UI")]
     [SerializeField] private GameObject preparationUI;
 
+    [Header("After Achievements UI")]
+    [SerializeField] private GameObject achievementsPanel;
+
     [Header("Camera")]
     [SerializeField] private Camera gameplayCamera;
 
@@ -55,6 +61,7 @@ public class AfterMissionManager : MissionSceneManager
 
     private bool waitingForContinue;
     private bool startQuizCompleted;
+    private AfterSceneController sceneController;
 
     // -----------------------------------------------------------------------
     // Lifecycle
@@ -67,6 +74,8 @@ public class AfterMissionManager : MissionSceneManager
 
         if (arController == null)
             arController = FindObjectOfType<AfterRecoveryARController>();
+        
+        sceneController = FindObjectOfType<AfterSceneController>();
     }
 
     protected override void LoadMission()
@@ -133,18 +142,37 @@ public class AfterMissionManager : MissionSceneManager
 
         Debug.Log("AfterMissionManager: Starting mission after intro dialogue (no auto start quiz).");
 
-        // For After_01, start in a quiz-only exploration phase so only the
-        // quiz zone trigger is visible/active before AR tasks.
+        // For After_01 and After_03, start in a quiz-only exploration phase so only the
+        // quiz zone/AR trigger is visible/active before AR tasks. The quiz
+        // itself is shown when the player enters the correct trigger.
         if (currentMission != null &&
-            string.Equals(currentMission.missionId, "after_01", System.StringComparison.OrdinalIgnoreCase))
+            (string.Equals(currentMission.missionId, "after_01", System.StringComparison.OrdinalIgnoreCase)
+            || string.Equals(currentMission.missionId, "after_03", System.StringComparison.OrdinalIgnoreCase)))
         {
-            var sceneController = FindObjectOfType<AfterSceneController>();
             if (sceneController != null)
             {
+                // Initialize mission mode for correct AR trigger logic
+                sceneController.InitializeMission(currentMission, MissionMode.DisinfectHouse);
                 sceneController.StartQuizOnlyPhase();
             }
+
+            // For after_03, start the quiz immediately after dialog (no trigger required)
+            if (string.Equals(currentMission.missionId, "after_03", System.StringComparison.OrdinalIgnoreCase) && !IsStartQuizCompleted())
+            {
+                StartStartQuizForCurrentTask("after03_quiz_zone");
+                yield break;
+            }
+
+            StartMission();
+            yield break;
         }
 
+        // For other After-phase missions (after_02, etc.) we
+        // want the normal mission-level start quiz (if configured) to
+        // run before tasks begin, just like in the base class.
+        yield return RunMissionStartQuizIfAvailable();
+
+        Debug.Log("AfterMissionManager: Starting mission after intro dialogue/start quiz.");
         StartMission();
     }
 
@@ -162,22 +190,76 @@ public class AfterMissionManager : MissionSceneManager
         bool isCurrentTask = currentTask != null &&
             string.Equals(currentTask.taskId, taskId, System.StringComparison.OrdinalIgnoreCase);
 
-        // Special-case: for Mission_After_01 we want the mission-level
-        // startQuiz to appear only when the player enters the quiz zone
-        // trigger (taskId "after01_quiz_zone"), not immediately on load.
-        if (isCurrentTask &&
-            currentMission != null &&
-            string.Equals(currentMission.missionId, "after_01", System.StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(taskId, "after01_quiz_zone", System.StringComparison.OrdinalIgnoreCase) &&
+        if (!isCurrentTask)
+        {
+            Debug.LogWarning($"AfterMissionManager: Trigger '{taskId}' entered but current task is '{currentTask?.taskId}'. Ignoring for mission flow. MissionId: {currentMission?.missionId}");
+        }
+
+        // FIX 1: Support quiz trigger for both after_01 and after_03
+        if (currentMission != null &&
+            (
+                string.Equals(currentMission.missionId, "after_01", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(currentMission.missionId, "after_03", System.StringComparison.OrdinalIgnoreCase)
+            ) &&
+            (
+                string.Equals(taskId, "after01_quiz_zone", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(taskId, "after03_quiz_zone", System.StringComparison.OrdinalIgnoreCase)
+            ) &&
             !startQuizCompleted)
         {
+            Debug.Log($"AfterMissionManager: Quiz trigger activated for mission '{currentMission.missionId}', task '{taskId}'. Showing quiz.");
             StartStartQuizForCurrentTask(taskId);
+            return;
+        }
+
+        // FIX: For After_03, handle AR trigger separately from quiz logic
+        if (currentMission != null &&
+            string.Equals(currentMission.missionId, "after_03", System.StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(taskId, "ARTrigger_DisinfectHouse", System.StringComparison.OrdinalIgnoreCase))
+        {
+            Debug.Log($"AfterMissionManager: AR trigger entered for mission 'after_03', task '{taskId}'. Starting AR task.");
+            
+            // Make sure the quiz is completed before allowing AR trigger
+            if (!startQuizCompleted)
+            {
+                Debug.LogWarning("AfterMissionManager: AR trigger entered but quiz not completed yet. Ignoring.");
+                return;
+            }
+
+            MissionMode? boundMode = FindARMode(taskId);
+            if (boundMode.HasValue)
+            {
+                LaunchARMode(boundMode.Value, taskId);
+            }
+            else
+            {
+                // Fallback to default AR mode if binding not found
+                LaunchARMode(MissionMode.DisinfectHouse, taskId);
+            }
             return;
         }
 
         if (isCurrentTask)
         {
             MissionMode? boundMode = FindARMode(taskId);
+
+            // Fallbacks for missions that rely on conventional task ids
+            // instead of explicit AR Mode Bindings configured in the
+            // inspector. These are keyed by task id only so they work
+            // even if the mission asset ids are misconfigured.
+            if (!boundMode.HasValue)
+            {
+                if (string.Equals(taskId, "after_02_Safe_items", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    boundMode = MissionMode.KitchenSafety;
+                }
+                else if (string.Equals(taskId, "AR_DisinfectHouse", System.StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(taskId, "after_03_disinfect_mud", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    boundMode = MissionMode.DisinfectHouse;
+                }
+            }
+
             if (boundMode.HasValue)
             {
                 Debug.Log($"AfterMissionManager: Trigger entered for AR task '{taskId}', launching mode {boundMode.Value}.");
@@ -197,10 +279,9 @@ public class AfterMissionManager : MissionSceneManager
     private void StartStartQuizForCurrentTask(string taskId)
     {
         var sequence = GetStartQuizSequence(currentMission);
-
         if (sequence == null || sequence.Count == 0)
         {
-            Debug.LogWarning("AfterMissionManager: Start quiz sequence missing or invalid for Mission_After_01; completing quiz task immediately.");
+            Debug.LogWarning($"AfterMissionManager: Start quiz sequence missing or invalid for mission '{currentMission?.missionId}', task '{taskId}'. Completing quiz task immediately.");
             OnStartQuizAnsweredCorrectlyForTask(taskId);
             return;
         }
@@ -210,7 +291,7 @@ public class AfterMissionManager : MissionSceneManager
 
         if (quizDialogueUI == null)
         {
-            Debug.LogWarning("AfterMissionManager: QuizDialogueUIManager not found; skipping quiz gate to avoid soft lock.");
+            Debug.LogError($"AfterMissionManager: QuizDialogueUIManager not found for mission '{currentMission?.missionId}', task '{taskId}'. Skipping quiz gate to avoid soft lock.");
             OnStartQuizAnsweredCorrectlyForTask(taskId);
             return;
         }
@@ -262,22 +343,39 @@ public class AfterMissionManager : MissionSceneManager
     private void OnStartQuizAnsweredCorrectlyForTask(string taskId)
     {
         startQuizCompleted = true;
-        Debug.Log($"AfterMissionManager: Start quiz for task '{taskId}' answered correctly; completing quiz-zone task.");
+        Debug.Log($"AfterMissionManager: Start quiz for mission '{currentMission?.missionId}', task '{taskId}' answered correctly; completing quiz-zone task.");
 
-        // When the quiz gate is cleared for After_01, switch the scene
-        // controller into full exploration mode so AR triggers become
-        // visible/active for the next task.
-        if (currentMission != null &&
-            string.Equals(currentMission.missionId, "after_01", System.StringComparison.OrdinalIgnoreCase))
+        if (sceneController == null)
+            sceneController = FindObjectOfType<AfterSceneController>();
+
+        if (currentMission != null && sceneController != null)
         {
-            var sceneController = FindObjectOfType<AfterSceneController>();
-            if (sceneController != null)
+            if (string.Equals(currentMission.missionId, "after_01", System.StringComparison.OrdinalIgnoreCase))
             {
                 sceneController.StartExplorationPhaseInternal();
+                CompleteCurrentTask();
+                AutoLaunchFirstBoundARAfterQuiz();
+            }
+            else if (string.Equals(currentMission.missionId, "after_03", System.StringComparison.OrdinalIgnoreCase))
+            {
+                // FIX: For After_03, deactivate quiz trigger and activate AR trigger
+                sceneController.DeactivateQuizTrigger();
+                sceneController.ActivateDisinfectTrigger();
+                
+                // Complete the quiz task and move to next task (AR task)
+                CompleteCurrentTask();
+            }
+            else
+            {
+                CompleteCurrentTask();
+                AutoLaunchFirstBoundARAfterQuiz();
             }
         }
-
-        CompleteCurrentTask();
+        else
+        {
+            CompleteCurrentTask();
+            AutoLaunchFirstBoundARAfterQuiz();
+        }
     }
 
     /// <summary>
@@ -314,8 +412,37 @@ public class AfterMissionManager : MissionSceneManager
 
         if (!isCurrentTask)
         {
-            Debug.LogWarning($"AfterMissionManager: NotifyInteractionComplete called for task '{taskId}', but current task is '{currentTask?.taskId}'.");
-            return;
+            // Special-case: for Mission_After_01, CleanupGear AR is auto-launched
+            // after the quiz and can legitimately report completion even if the
+            // mission's currentTask was not updated as expected. In that case,
+            // force-switch the current task to the reported one so progression
+            // can continue to the HiddenDanger task.
+            if (currentMission != null &&
+                string.Equals(currentMission.missionId, "after_01", System.StringComparison.OrdinalIgnoreCase))
+            {
+                var tasks = currentMission.tasks;
+                if (tasks != null)
+                {
+                    for (int i = 0; i < tasks.Count; i++)
+                    {
+                        var t = tasks[i];
+                        if (t != null && string.Equals(t.taskId, taskId, System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            Debug.LogWarning($"AfterMissionManager: NotifyInteractionComplete for '{taskId}' did not match current task '{currentTask?.taskId}'. For After_01, forcing current task index to {i}.");
+                            currentTaskIndex = i;
+                            currentTask = t;
+                            isCurrentTask = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!isCurrentTask)
+            {
+                Debug.LogWarning($"AfterMissionManager: NotifyInteractionComplete called for task '{taskId}', but current task is '{currentTask?.taskId}'.");
+                return;
+            }
         }
 
         if (currentTask.objectives != null && currentTask.objectives.Count > 0)
@@ -343,12 +470,24 @@ public class AfterMissionManager : MissionSceneManager
             preparationUI.SetActive(true);
 
         CompleteCurrentTask();
+
+        if (currentTask != null)
+        {
+            Debug.Log($"AfterMissionManager: Next current task is '{currentTask.taskId}'.");
+        }
+        else
+        {
+            Debug.Log("AfterMissionManager: No next current task; mission may be complete.");
+        }
     }
 
     protected override void CompleteMission()
     {
         if (preparationUI != null)
             preparationUI.SetActive(false);
+
+        if (achievementsPanel != null)
+            achievementsPanel.SetActive(true);
 
         if (missionCompletePanel != null)
             missionCompletePanel.SetActive(true);
@@ -372,6 +511,8 @@ public class AfterMissionManager : MissionSceneManager
         waitingForContinue = false;
         if (missionCompletePanel != null)
             missionCompletePanel.SetActive(false);
+        if (achievementsPanel != null)
+            achievementsPanel.SetActive(false);
         base.CompleteMission();
     }
 
@@ -381,11 +522,12 @@ public class AfterMissionManager : MissionSceneManager
 
     protected override void UpdateTaskUI()
     {
-        // For Mission_After_01 we want the on-screen TaskPanel to
-        // stay hidden so the player is guided by world-space cues,
-        // quiz, and AR rather than a traditional task list.
+        // For After-phase missions (after_01, after_02, after_03, etc.) we
+        // want the on-screen TaskPanel to stay hidden so the player is
+        // guided by world-space cues, dialogue, and AR triggers instead of
+        // a traditional task list.
         if (currentMission != null &&
-            string.Equals(currentMission.missionId, "after_01", System.StringComparison.OrdinalIgnoreCase))
+            currentMission.phase == MissionPhase.After)
         {
             if (taskPanel != null)
                 taskPanel.SetActive(false);
@@ -400,44 +542,47 @@ public class AfterMissionManager : MissionSceneManager
     // -----------------------------------------------------------------------
 
     /// <summary>
-    /// After-phase hook: when moving from the quiz-zone task to the first
-    /// AR task in Mission_After_01, automatically launch the bound AR mode
-    /// once all completion dialogue has finished.
+    /// Immediately launches AR for the first AR-bound task after the quiz,
+    /// using AR Mode Bindings as the source of truth. This does NOT require
+    /// any additional TaskTrigger for after01_cleanup_gear.
     /// </summary>
+    private void AutoLaunchFirstBoundARAfterQuiz()
+    {
+        if (currentMission == null ||
+            !string.Equals(currentMission.missionId, "after_01", System.StringComparison.OrdinalIgnoreCase))
+            return;
+
+        if (arModeBindings == null || arModeBindings.Count == 0)
+        {
+            Debug.LogWarning("AfterMissionManager: No AR Mode Bindings configured; cannot auto-launch AR after quiz.");
+            return;
+        }
+
+        // Find the first AR binding that is NOT the quiz task itself.
+        foreach (var binding in arModeBindings)
+        {
+            if (binding == null) continue;
+            if (string.Equals(binding.TaskId, "after01_quiz_zone", System.StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            Debug.LogWarning($"AfterMissionManager: Auto-launching AR mode {binding.Mode} for task '{binding.TaskId}' immediately after quiz.");
+            LaunchARMode(binding.Mode, binding.TaskId);
+            return;
+        }
+
+        Debug.LogWarning("AfterMissionManager: No suitable AR task found in bindings to auto-launch after quiz.");
+    }
+
     protected override void MoveToNextTask()
     {
-        bool shouldAutoLaunchAR = false;
-
-        // We only care about the transition from the quiz gate task to the
-        // next task in Mission_After_01, and only after the quiz sequence
-        // has been completed.
-        if (currentMission != null &&
-            string.Equals(currentMission.missionId, "after_01", System.StringComparison.OrdinalIgnoreCase) &&
-            currentTask != null &&
-            string.Equals(currentTask.taskId, "after01_quiz_zone", System.StringComparison.OrdinalIgnoreCase) &&
-            startQuizCompleted)
+        if (currentMission == null)
         {
-            shouldAutoLaunchAR = true;
+            Debug.LogWarning("AfterMissionManager: MoveToNextTask called but no currentMission is assigned. Did you forget to set the mission asset in the inspector?");
         }
 
+        // Use the base implementation for task progression; AR auto-launch
+        // after the quiz is handled by AutoLaunchARAfterQuiz().
         base.MoveToNextTask();
-
-        // After base.MoveToNextTask, currentTask now points at the next task
-        // (or the mission has completed). If this was the special After_01
-        // transition, automatically start the AR mode bound to the new task.
-        if (shouldAutoLaunchAR && isMissionActive && currentTask != null)
-        {
-            MissionMode? boundMode = FindARMode(currentTask.taskId);
-            if (boundMode.HasValue)
-            {
-                Debug.Log($"AfterMissionManager: Auto-launching AR mode {boundMode.Value} for task '{currentTask.taskId}' after quiz sequence.");
-                LaunchARMode(boundMode.Value, currentTask.taskId);
-            }
-            else
-            {
-                Debug.LogWarning($"AfterMissionManager: No AR mode bound for task '{currentTask.taskId}' to auto-launch after quiz.");
-            }
-        }
     }
 
     private void LaunchARMode(MissionMode mode, string taskId)

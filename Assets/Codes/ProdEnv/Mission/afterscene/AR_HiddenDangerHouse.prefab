@@ -44,7 +44,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f16676ac6d070364c8fccae079e2b29f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dangerPrefabs: []
+  dangerPrefabs:
+  - {fileID: 1724339258806086063}
+  - {fileID: 6595164575834734300}
+  - {fileID: 3802640384211541981}
   spawnPoints: []
   objectiveId: 
   requiredCount: 0

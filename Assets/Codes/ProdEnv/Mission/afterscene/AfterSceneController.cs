@@ -2,6 +2,17 @@ using UnityEngine;
 
 public class AfterSceneController : MonoBehaviour
 {
+    /// <summary>
+    /// Activates the DisinfectHouse AR trigger and disables the quiz trigger (for After_03 flow).
+    /// </summary>
+    public void ActivateDisinfectTrigger()
+    {
+        if (arTriggerDisinfectHouse != null)
+            arTriggerDisinfectHouse.SetActive(true);
+        if (quizZoneTrigger != null)
+            quizZoneTrigger.SetActive(false);
+        Debug.Log("AfterSceneController: DisinfectHouse AR trigger activated, quiz trigger deactivated.");
+    }
     [Header("Managers")]
     [SerializeField] private AfterSceneARManager arManager;
     [SerializeField] private AfterSceneMissionTracker missionTracker;
@@ -73,9 +84,17 @@ public class AfterSceneController : MonoBehaviour
         if (quizZoneTrigger != null) quizZoneTrigger.SetActive(true);
         if (arTriggerHiddenDanger != null) arTriggerHiddenDanger.SetActive(false);
         if (arTriggerKitchenSafety != null) arTriggerKitchenSafety.SetActive(false);
-        if (arTriggerDisinfectHouse != null) arTriggerDisinfectHouse.SetActive(false);
 
-        Debug.Log("AfterSceneController: Quiz-only phase started. QuizZoneTrigger is now active.");
+        // Only disable arTriggerDisinfectHouse if quiz is not completed (for After_03)
+        bool shouldDisableDisinfect = true;
+        var afterMissionManager = AfterMissionManager.Instance;
+        if (afterMissionManager != null && afterMissionManager.CurrentMissionIdIs("after_03") && afterMissionManager.IsStartQuizCompleted())
+        {
+            shouldDisableDisinfect = false;
+        }
+        if (arTriggerDisinfectHouse != null) arTriggerDisinfectHouse.SetActive(!shouldDisableDisinfect ? true : false);
+
+        Debug.Log($"AfterSceneController: Quiz-only phase started. QuizZoneTrigger is now active. arTriggerDisinfectHouse active: {arTriggerDisinfectHouse?.activeSelf}");
     }
 
     public void StartExplorationPhaseInternal()
@@ -213,5 +232,13 @@ public class AfterSceneController : MonoBehaviour
         // forwards recovered items into the mission tracker.
         item.OnRecovered -= OnItemRecovered;
         item.OnRecovered += OnItemRecovered;
+    }
+    // Deactivates the quiz trigger (quizZoneTrigger) if it exists
+    public void DeactivateQuizTrigger()
+    {
+        if (quizZoneTrigger != null)
+        {
+            quizZoneTrigger.SetActive(false);
+        }
     }
 }

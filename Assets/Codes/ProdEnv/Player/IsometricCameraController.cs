@@ -130,8 +130,10 @@ public class IsometricCameraController : MonoBehaviour
 
     private void HandleZoom()
     {
-#if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
-        // Input System zoom (mouse scroll)
+#if ENABLE_INPUT_SYSTEM
+        // Input System zoom (mouse scroll). This avoids using
+        // UnityEngine.Input when the project is configured for
+        // the new Input System only.
         if (Mouse.current != null)
         {
             float scroll = Mouse.current.scroll.ReadValue().y;
@@ -141,14 +143,16 @@ public class IsometricCameraController : MonoBehaviour
                 height = distance;
             }
         }
-#else
-        // Legacy Input zoom (mouse scroll)
+#elif ENABLE_LEGACY_INPUT_MANAGER
+        // Legacy Input zoom (mouse scroll) for old-input projects.
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         if (Mathf.Abs(scroll) > 0.01f)
         {
             distance = Mathf.Clamp(distance - scroll * zoomSpeed * 10f, minDistance, maxDistance);
             height = distance;
         }
+#else
+        // No supported input backend configured; do nothing.
 #endif
     }
 

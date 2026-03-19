@@ -94,7 +94,7 @@ public class IsometricPlayerController : MonoBehaviour
         }
         else
         {
-            // Fallback to keyboard for testing
+            // Original fallback to keyboard for testing
             inputDirection = new Vector2(
                 Input.GetAxisRaw("Horizontal"),
                 Input.GetAxisRaw("Vertical")
@@ -166,34 +166,23 @@ public class IsometricPlayerController : MonoBehaviour
         }
     }
 
-    // /// <summary>
-    /// Convert 2D input to isometric 3D direction based on camera orientation
+    /// <summary>
+    /// Convert 2D joystick input to a fixed isometric 3D direction.
+    /// This ignores camera rotation so movement feels the same in
+    /// Before/After missions. Use invertHorizontalInput /
+    /// invertVerticalInput to flip axes per-scene if needed.
     /// </summary>
     private Vector3 ConvertToIsometric(Vector2 input)
     {
         if (input.sqrMagnitude < 0.01f)
             return Vector3.zero;
 
-        if (cameraTransform == null)
-        {
-            // Default isometric direction (45 degrees rotated)
-            Vector3 forward = new Vector3(1, 0, 1).normalized;
-            Vector3 right = new Vector3(1, 0, -1).normalized;
-            return (forward * input.y + right * input.x).normalized;
-        }
-
-        // Use camera's forward/right projected on ground plane
-        Vector3 camForward = cameraTransform.forward;
-        Vector3 camRight = cameraTransform.right;
-
-        // Flatten to horizontal plane
-        camForward.y = 0;
-        camRight.y = 0;
-        camForward.Normalize();
-        camRight.Normalize();
-
-        // Calculate world direction
-        Vector3 worldDirection = camForward * -input.y + camRight * input.x;
+        // 45-degree isometric mapping. Invert here so that pushing the
+        // joystick UP moves the boy visually "up" on screen and pushing
+        // LEFT moves him left.
+        Vector3 forward = new Vector3(1f, 0f, 1f).normalized;
+        Vector3 right = new Vector3(1f, 0f, -1f).normalized;
+        Vector3 worldDirection = forward * -input.y + right * -input.x;
         return worldDirection.normalized;
     }
 

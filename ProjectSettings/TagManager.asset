@@ -8,6 +8,11 @@ TagManager:
   - Breaker
   - Flood
   - NPC
+  - UnsafeItem
+  - SafeItem
+  - CleanupItem
+  - Bucket
+  - HiddenDanger
   layers:
   - Default
   - TransparentFX

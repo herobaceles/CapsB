@@ -71,14 +71,23 @@ MonoBehaviour:
       expressionId: 
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
-      message: GOOD WORKING FINDING the tools needed
-    - characterId: 
-      characterName: 
-      side: 0
-      expressionId: 
-      portraitOverride: {fileID: 0}
-      backgroundSprite: {fileID: 0}
-      message: now let's find the hidden danger.
+      message: 'nice
+
+'
+    objectives: []
+  - taskId: after01_cleanup_gear
+    taskName: Cleanup Gear
+    taskDescription: Find and put on the protective gear
+    taskIcon: {fileID: 0}
+    taskType: 6
+    isOptional: 0
+    showDialogueOnStart: 0
+    startDialogue:
+    - go find the hidden danger
+    startDialogueRich: []
+    showDialogueOnComplete: 0
+    completeDialogue: []
+    completeDialogueRich: []
     objectives: []
   - taskId: after01_hidden_danger
     taskName: 'Hidden Danger '
@@ -196,4 +205,4 @@ MonoBehaviour:
   useMissionTimer: 1
   missionTimeLimitSeconds: 60
   completionMessage: Mission Complete!
-  unlocksMissionId: aftersafeitemsmission
+  unlocksMissionId: after_02
