@@ -41,17 +41,12 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
 
     [Header("UI")]
     [SerializeField] private GameObject floodWarningUI;
-    [SerializeField] private TMP_Text timerText;
+    [SerializeField] private GameObject statusPanel;
     [SerializeField] private TMP_Text statusText;
-
-    [Header("Timer (visual only)")]
-    [SerializeField] private float missionTimeSeconds = 300f; // 5 minutes
 
     [Header("AR Return Sync")]
     [SerializeField] private bool syncPlacementsBackToScene = true;
     [SerializeField] private bool despawnSpawnedHouseOnReturn = true;
-
-    private float timeRemaining;
     private bool missionActive;
     private int illegalMoves;
     private bool missionStarted;
@@ -123,7 +118,6 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
         if (!missionActive)
             return;
 
-        UpdateTimer();
         HandleTapInput();
     }
 
@@ -267,6 +261,7 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
 
         ShowWarning($"Selected {selectedAppliance.ApplianceName}. Tap an elevated area.");
         UpdateStatusText();
+    UpdateAreaMarkers();
     }
 
     private void TryPlaceSelectedOnArea(ApplianceElevatedArea area)
@@ -311,6 +306,7 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
             selectedAppliance.SetSelected(false);
 
         selectedAppliance = null;
+        UpdateAreaMarkers();
     }
 
     private void HookApplianceEvents()
@@ -352,15 +348,14 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
 
     private void StartMissionFlow()
     {
-        timeRemaining = missionTimeSeconds;
         missionActive = true;
 
         // Show all mission UI
         if (floodWarningUI != null)
             floodWarningUI.SetActive(true);
-        if (timerText != null)
-            timerText.gameObject.SetActive(true);
-        if (statusText != null)
+        if (statusPanel != null)
+            statusPanel.SetActive(true);
+        else if (statusText != null)
             statusText.gameObject.SetActive(true);
         DisableFloodLineVisuals();
 
@@ -369,8 +364,6 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
         TryShowArGuidanceDialogue();
 
         UpdateStatusText();
-        UpdateTimerUI();
-
     }
 
     private void ShowStartQuizGate()
@@ -440,21 +433,6 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
         return lines.Count > 0 ? lines : null;
     }
 
-    private void UpdateTimer()
-    {
-        timeRemaining = Mathf.Max(0f, timeRemaining - Time.deltaTime);
-        UpdateTimerUI();
-        // Visual-only timer; no hard fail
-    }
-
-    private void UpdateTimerUI()
-    {
-        if (timerText == null) return;
-        int minutes = Mathf.FloorToInt(timeRemaining / 60f);
-        int seconds = Mathf.FloorToInt(timeRemaining % 60f);
-        timerText.text = $"{minutes:00}:{seconds:00}";
-    }
-
     private void OnApplianceSecuredChanged()
     {
         UpdateStatusText();
@@ -487,12 +465,12 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
         ClearSelection();
 
         // Hide mission UI
-        if (timerText != null)
-            timerText.gameObject.SetActive(false);
+        if (statusPanel != null)
+            statusPanel.SetActive(false);
+        else if (statusText != null)
+            statusText.gameObject.SetActive(false);
         if (floodLineVisualizer != null)
             floodLineVisualizer.gameObject.SetActive(false);
-        if (statusText != null)
-            statusText.gameObject.SetActive(false);
 
         if (suppressDialogue)
         {
@@ -644,6 +622,21 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
 
         if (floodHeightHintText != null)
             floodHeightHintText.gameObject.SetActive(false);
+    }
+
+    private void UpdateAreaMarkers()
+    {
+        if (elevatedAreas == null)
+            return;
+
+        foreach (var area in elevatedAreas)
+        {
+            if (area == null)
+                continue;
+
+            bool show = selectedAppliance != null && area.CanAccept(selectedAppliance);
+            area.SetMarkerVisible(show);
+        }
     }
 
     private MissionData GetActiveMission()

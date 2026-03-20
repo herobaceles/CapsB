@@ -14,6 +14,9 @@ public class ApplianceSecureItem : MonoBehaviour
     [SerializeField] private Color selectedColor = Color.yellow;
     [SerializeField] private Color safeColor = Color.green;
 
+    [Header("Marker (optional)")]
+    [SerializeField] private GameObject marker;
+
     [Header("Events")]
     public UnityAction OnSecuredChanged;
     public UnityAction OnIllegalMove;
@@ -31,6 +34,7 @@ public class ApplianceSecureItem : MonoBehaviour
     {
         EvaluateSecure();
         UpdateVisual();
+        UpdateMarker();
     }
 
     public void SetSelected(bool selected)
@@ -80,6 +84,7 @@ public class ApplianceSecureItem : MonoBehaviour
         }
 
         UpdateVisual();
+        UpdateMarker();
     }
 
     private void UpdateVisual()
@@ -100,5 +105,14 @@ public class ApplianceSecureItem : MonoBehaviour
 
             rendererRef.material.color = color;
         }
+    }
+
+    private void UpdateMarker()
+    {
+        if (marker == null)
+            return;
+
+        // Show the marker while the appliance is not yet secured, hide it once secured.
+        marker.SetActive(!IsSecured);
     }
 }
