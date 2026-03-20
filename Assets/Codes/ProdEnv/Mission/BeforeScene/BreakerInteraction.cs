@@ -83,6 +83,8 @@ public class BreakerInteraction : MonoBehaviour
         isOn = false;
         UpdateVisual();
 
+        bool willCompleteFromAnimation = (switchAnimator != null && completeOnAnimationEvent);
+
         if (switchAnimator != null)
         {
             // Enable the Animator only when we actually toggle the switch
@@ -98,6 +100,13 @@ public class BreakerInteraction : MonoBehaviour
                 // Fallback: play the default state
                 switchAnimator.Play(0, 0, 0f);
             }
+        }
+
+        // If we are not waiting for an animation event to signal
+        // completion, complete the task immediately after toggling.
+        if (!willCompleteFromAnimation)
+        {
+            CompleteTask();
         }
     }
 

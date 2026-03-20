@@ -107,6 +107,9 @@ public class ARMissionManager : MonoBehaviour
     private bool arGuidanceShown = false;
     private bool arScanHintShown = false;
     private bool arTapHintShown = false;
+    private bool breakerArScanHintShown = false;
+    private bool breakerArTapHintShown = false;
+    private bool breakerArGuidanceShown = false;
 
     void Awake()
     {
@@ -204,76 +207,91 @@ public class ARMissionManager : MonoBehaviour
     }
 
     void Update()
-{
-    // Only run for Go Bag or Breaker mission
-    if (BeforeMissionManager.Instance == null || MissionSelectManager.SelectedMission == null)
-        return;
-
-    // Only drive AR placement and hints while an AR mission is active.
-    if (!BeforeMissionManager.Instance.IsARMissionActive)
-        return;
-
-    TryInitializeGoBagInventory();
-
-    string missionId = MissionSelectManager.SelectedMission.missionId;
-
-    // Go Bag AR logic
-    if (missionId == "before_01")
     {
-        UpdateGoBagArHints();
-
-        // Prevent player movement if locked
-        if (movementLocked)
+        // Only run for Go Bag or Breaker mission
+        if (BeforeMissionManager.Instance == null || MissionSelectManager.SelectedMission == null)
             return;
 
-        if (missionPlaced)
+        // Only drive AR placement and hints while an AR mission is active.
+        if (!BeforeMissionManager.Instance.IsARMissionActive)
             return;
 
-        // Use Unity Input System for both mouse and touch
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        TryInitializeGoBagInventory();
+
+        string missionId = MissionSelectManager.SelectedMission.missionId;
+
+        // For the circuit breaker mission, completion is now
+        // triggered automatically from the breaker switch, so
+        // hide the generic Proceed button to remove that step.
+        if (proceedButton != null)
         {
-            // Prevent AR placement if pointer is over UI
-            if (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
-                return;
-            TryPlaceMission(Mouse.current.position.ReadValue());
+            bool isBreakerMission = string.Equals(missionId, "before_02", System.StringComparison.OrdinalIgnoreCase);
+            proceedButton.gameObject.SetActive(!isBreakerMission);
         }
-        else if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
+
+        // Go Bag AR logic
+        if (missionId == "before_01")
         {
-            // Prevent AR placement if touch is over UI
-            int fingerId = 0; // primary touch
-            if (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(fingerId))
+            UpdateGoBagArHints();
+
+            // Prevent player movement if locked
+            if (movementLocked)
                 return;
-            TryPlaceMission(Touchscreen.current.primaryTouch.position.ReadValue());
+
+            if (missionPlaced)
+                return;
+
+            // Use Unity Input System for both mouse and touch
+            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                // Prevent AR placement if pointer is over UI
+                if (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+                    return;
+                TryPlaceMission(Mouse.current.position.ReadValue());
+            }
+            else if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
+            {
+                // Prevent AR placement if touch is over UI
+                int fingerId = 0; // primary touch
+                if (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(fingerId))
+                    return;
+                TryPlaceMission(Touchscreen.current.primaryTouch.position.ReadValue());
+            }
+            return;
         }
-        return;
+
+        // Breaker AR logic (tap to place breaker prefab + AR guidance)
+        if (missionId == "before_02")
+        {
+            UpdateBreakerArHints();
+
+            if (!allowBreakerPlacement || breakerPrefabToPlace == null)
+                return;
+
+            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                if (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+                    return;
+                TryPlaceBreaker(Mouse.current.position.ReadValue());
+            }
+            else if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
+            {
+                int fingerId = 0;
+                if (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(fingerId))
+                    return;
+                TryPlaceBreaker(Touchscreen.current.primaryTouch.position.ReadValue());
+            }
+        }
     }
-
-    // Breaker AR logic (tap to place breaker prefab)
-    if (missionId == "before_02" && allowBreakerPlacement && breakerPrefabToPlace != null)
-    {
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            if (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
-                return;
-            TryPlaceBreaker(Mouse.current.position.ReadValue());
-        }
-        else if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
-        {
-            int fingerId = 0;
-            if (UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(fingerId))
-                return;
-            TryPlaceBreaker(Touchscreen.current.primaryTouch.position.ReadValue());
-        }
-    }
-
-
-
-}
 
     public void EnableBreakerPlacement(GameObject breakerPrefab)
     {
         breakerPrefabToPlace = breakerPrefab;
         allowBreakerPlacement = true;
+
+        breakerArScanHintShown = false;
+        breakerArTapHintShown = false;
+        breakerArGuidanceShown = false;
     }
 
     void TryPlaceBreaker(Vector2 screenPosition)
@@ -304,6 +322,10 @@ public class ARMissionManager : MonoBehaviour
             Instantiate(breakerPrefabToPlace, hitPose.position, spawnRotation);
             allowBreakerPlacement = false;
             Debug.Log("Breaker prefab placed in AR.");
+
+            // Show breaker-specific AR guidance dialogue authored on the
+            // Mission_Before_02 asset for the breaker task.
+            TryShowBreakerArGuidanceDialogue();
         }
     }
 
@@ -437,6 +459,70 @@ public class ARMissionManager : MonoBehaviour
         }
     }
 
+    private void UpdateBreakerArHints()
+    {
+        var dialogueManager = ProdDialogueManager.Instance;
+        if (dialogueManager == null)
+            return;
+
+        var mission = MissionSelectManager.SelectedMission;
+        if (mission == null || mission.tasks == null)
+            return;
+
+        const string BreakerTaskId = "before_02_secure_circuit_breaker";
+        TaskData targetTask = null;
+        for (int i = 0; i < mission.tasks.Count; i++)
+        {
+            var t = mission.tasks[i];
+            if (t != null && t.taskId == BreakerTaskId)
+            {
+                targetTask = t;
+                break;
+            }
+        }
+
+        if (targetTask == null)
+            return;
+
+        // 1) If no plane yet, tell the player how to scan for it.
+        if (!breakerArScanHintShown && !dialogueManager.IsDialogueActive &&
+            targetTask.arScanForPlaneDialogueRich != null && targetTask.arScanForPlaneDialogueRich.Count > 0)
+        {
+            breakerArScanHintShown = true;
+            dialogueManager.ShowDialogueSequence(targetTask.arScanForPlaneDialogueRich, null);
+            return;
+        }
+
+        // 2) Once planes are detectable under the center of the screen, tell the
+        //    player to tap to place the breaker.
+        if (!breakerArTapHintShown && breakerArScanHintShown && !dialogueManager.IsDialogueActive)
+        {
+            var activeRaycastManager = ResolveRaycastManager();
+            if (activeRaycastManager == null)
+                return;
+
+            bool didHitPlane = false;
+            var screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+
+            try
+            {
+                didHitPlane = activeRaycastManager.Raycast(screenCenter, hits, TrackableType.PlaneWithinPolygon);
+            }
+            catch (System.ArgumentNullException exception)
+            {
+                Debug.LogError($"ARMissionManager: Center-screen AR raycast failed while checking for planes. {exception.Message}");
+                return;
+            }
+
+            if (didHitPlane &&
+                targetTask.arTapToPlaceDialogueRich != null && targetTask.arTapToPlaceDialogueRich.Count > 0)
+            {
+                breakerArTapHintShown = true;
+                dialogueManager.ShowDialogueSequence(targetTask.arTapToPlaceDialogueRich, null);
+            }
+        }
+    }
+
     private void TryShowArGuidanceDialogue()
     {
         if (arGuidanceShown)
@@ -475,6 +561,39 @@ public class ARMissionManager : MonoBehaviour
         {
             movementLocked = false;
         });
+    }
+
+    private void TryShowBreakerArGuidanceDialogue()
+    {
+        if (breakerArGuidanceShown)
+            return;
+
+        var mission = MissionSelectManager.SelectedMission;
+        if (mission == null || mission.tasks == null)
+            return;
+
+        const string BreakerTaskId = "before_02_secure_circuit_breaker";
+        TaskData targetTask = null;
+        for (int i = 0; i < mission.tasks.Count; i++)
+        {
+            var t = mission.tasks[i];
+            if (t != null && t.taskId == BreakerTaskId)
+            {
+                targetTask = t;
+                break;
+            }
+        }
+
+        if (targetTask == null || targetTask.arGuidanceDialogueRich == null || targetTask.arGuidanceDialogueRich.Count == 0)
+            return;
+
+        var dialogueManager = ProdDialogueManager.Instance;
+        if (dialogueManager == null)
+            return;
+
+        breakerArGuidanceShown = true;
+
+        dialogueManager.ShowDialogueSequence(targetTask.arGuidanceDialogueRich, null);
     }
 
     // Spawns items on the table, avoiding the bag and trying to

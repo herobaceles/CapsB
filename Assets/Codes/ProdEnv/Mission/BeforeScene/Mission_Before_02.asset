@@ -32,14 +32,87 @@ MonoBehaviour:
     showDialogueOnStart: 0
     startDialogue:
     - 
+    startDialogueRich: []
     showDialogueOnComplete: 0
     completeDialogue:
     - Correct! Now find and interact with the circuit breaker.
+    completeDialogueRich: []
+    arScanForPlaneDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Move your device slowly and point it at the wall.
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: "We\u2019re looking for a flat surface. Keep scanning until dots or
+        a grid appear."
+    arTapToPlaceDialogueRich:
+    - characterId: professor_lingap
+      characterName: 
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Great, I can see the wall now!
+    - characterId: professor_lingap
+      characterName: 
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Tap on the detected wall  to place the breaker.
+    arGuidanceDialogueRich:
+    - characterId: professor_lingap
+      characterName: 
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Nice work. You should now see cuircuit breaker.
+    - characterId: professor_lingap
+      characterName: 
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Tap the switch now to turn off.
+    taskStartQuiz:
+      question: 
+      options:
+      - 
+      - 
+      - 
+      correctOptionIndex: 0
+      optionSprites:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      placeholderSprite: {fileID: 0}
+      questionCharacterId: 
+      questionExpressionId: 
+      questionPortraitOverride: {fileID: 0}
+      correctAnswerDialogue: []
+      correctAnswerDialogueRich: []
     objectives: []
   introDialogue:
   - hi
+  introDialogueRich:
+  - characterId: professor_lingap
+    characterName: 
+    side: 3
+    expressionId: center
+    portraitOverride: {fileID: 0}
+    backgroundSprite: {fileID: 0}
+    message: "Good job. Now let\u2019s proceed to your next task."
   startQuiz:
-    question: What Do you need to turn off
+    question: What needs to be turned off before evacuation?
     options:
     - Lights
     - PS5
@@ -50,8 +123,19 @@ MonoBehaviour:
     - {fileID: 21300000, guid: d37e4023305eb6f44b6f906349dc67d8, type: 3}
     - {fileID: 21300000, guid: d7071f204cd81c84ca4dab2a7a54f6d8, type: 3}
     placeholderSprite: {fileID: 0}
+    questionCharacterId: professor_lingap
+    questionExpressionId: explaining
+    questionPortraitOverride: {fileID: 0}
     correctAnswerDialogue:
     - Now go find the Cuircuit Breaker it is beside the door
+    correctAnswerDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Linap
+      side: 3
+      expressionId: center
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: "Now, find the circuit breaker\u2014it\u2019s in the kitchen."
   useMissionTimer: 0
   missionTimeLimitSeconds: 0
   completionMessage: Mission Complete! Great job!
