@@ -112,7 +112,25 @@ public class ApplianceSecureItem : MonoBehaviour
         if (marker == null)
             return;
 
-        // Show the marker while the appliance is not yet secured, hide it once secured.
+        // Only show markers for appliances that are part of the AR content
+        // (spawned under the AR root). Scene appliances should not display
+        // markers even if they share the same prefab.
+        if (!IsUnderArRoot())
+        {
+            marker.SetActive(false);
+            return;
+        }
+
+        // In AR, show the marker while the appliance is not yet secured,
+        // and hide it once secured.
         marker.SetActive(!IsSecured);
+    }
+
+    private bool IsUnderArRoot()
+    {
+        if (ARRuntimeContext.Instance == null || ARRuntimeContext.Instance.ARRoot == null)
+            return false;
+
+        return transform.IsChildOf(ARRuntimeContext.Instance.ARRoot.transform);
     }
 }

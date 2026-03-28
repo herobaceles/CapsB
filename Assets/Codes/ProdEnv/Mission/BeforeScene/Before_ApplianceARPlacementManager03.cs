@@ -186,6 +186,15 @@ public class ApplianceARPlacementManager03 : MonoBehaviour
         Debug.Log("ApplianceARPlacementManager03: Raycast hit! Spawning house prefab.");
         Pose pose = hits[0].pose;
         GameObject spawnedRoot = Instantiate(houseInteriorPrefab, pose.position, pose.rotation);
+
+        // Ensure the spawned AR house is parented under the AR root so that
+        // appliance/elevated-area scripts can detect that they are part of the
+        // AR environment (e.g., for showing markers only in AR).
+        if (ARRuntimeContext.Instance != null && ARRuntimeContext.Instance.ARRoot != null)
+        {
+            spawnedRoot.transform.SetParent(ARRuntimeContext.Instance.ARRoot.transform, true);
+        }
+
         FixSpawnedVisuals(spawnedRoot);
         Debug.Log($"ApplianceARPlacementManager03: House spawned at {pose.position}");
 

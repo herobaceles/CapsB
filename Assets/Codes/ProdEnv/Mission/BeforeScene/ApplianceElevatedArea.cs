@@ -66,8 +66,27 @@ public class ApplianceElevatedArea : MonoBehaviour
 
     public void SetMarkerVisible(bool visible)
     {
-        if (marker != null)
-            marker.SetActive(visible);
+        if (marker == null)
+            return;
+
+        // Only allow markers to be shown for elevated areas that are part of
+        // the AR content (under the AR root). Scene elevated areas should not
+        // display markers even if they reuse the same prefab.
+        if (!IsUnderArRoot())
+        {
+            marker.SetActive(false);
+            return;
+        }
+
+        marker.SetActive(visible);
+    }
+
+    private bool IsUnderArRoot()
+    {
+        if (ARRuntimeContext.Instance == null || ARRuntimeContext.Instance.ARRoot == null)
+            return false;
+
+        return transform.IsChildOf(ARRuntimeContext.Instance.ARRoot.transform);
     }
 
     private void GetPlacementPose(out Vector3 position, out Quaternion rotation)

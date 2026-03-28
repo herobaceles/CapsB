@@ -299,6 +299,38 @@ public class BeforeMissionManager : MissionSceneManager
 
     protected override void CompleteMission()
     {
+        // Determine if this mission is an intermediate step (has a valid next
+        // mission + scene) or the final mission in the Before phase.
+
+        bool hasValidNextMission = false;
+
+        if (currentMission != null && !string.IsNullOrWhiteSpace(currentMission.unlocksMissionId))
+        {
+            MissionData nextMission = FindMissionById(currentMission.unlocksMissionId);
+            if (nextMission != null)
+            {
+                string sceneName = ResolveMissionSceneName(nextMission);
+                if (!string.IsNullOrWhiteSpace(sceneName) && Application.CanStreamedLevelBeLoaded(sceneName))
+                {
+                    hasValidNextMission = true;
+                }
+            }
+        }
+
+        // For intermediate missions, skip the Before-phase banner entirely and
+        // delegate to the base implementation, which will save progress and
+        // auto-proceed to the next mission.
+        if (hasValidNextMission)
+        {
+            waitingForContinue = false;
+            base.CompleteMission();
+            return;
+        }
+
+        // For the final Before mission (or if something is misconfigured and
+        // there's no valid next mission), show the Before-phase completion
+        // banner once and wait for the player to press Continue.
+
         // Hide game UI to prevent overlap
         if (gameUI != null)
             gameUI.SetActive(false);
