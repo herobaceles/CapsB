@@ -9,12 +9,6 @@ using TMPro;
 /// </summary>
 public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
 {
-    [Header("Camera Focus")]
-    [SerializeField] private IsometricCameraController cameraController;
-    [SerializeField] private Transform focusPoint;
-    [SerializeField] private float focusDistance = 16f;
-    [SerializeField] private float focusAngle = 45f;
-
     [Header("Drag Settings")]
     [SerializeField] private RectTransform draggablePanel;
     [SerializeField] private Canvas parentCanvas;
@@ -55,9 +49,6 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
     private bool choiceMade;
     private bool correctChoice;
     private Vector2 dragOffset;
-    private Transform previousCameraTarget;
-    private float previousCameraDistance;
-    private float previousCameraAngle;
     private bool[] previousUIStates;
     private bool previousMovementEnabled;
 
@@ -146,19 +137,6 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
         if (secondaryCameraOverlay != null)
             secondaryCameraOverlay.SetActive(true);
 
-        // Focus camera on the route choice area
-        if (cameraController != null && focusPoint != null)
-        {
-            previousCameraTarget = cameraController.Target;
-            previousCameraDistance = cameraController.CurrentDistance;
-            previousCameraAngle = cameraController.CurrentAngle;
-
-            cameraController.Target = focusPoint;
-            cameraController.SetDistance(focusDistance);
-            cameraController.SetAngle(focusAngle);
-            cameraController.SnapToTarget();
-        }
-
         // Hide gameplay HUD while this choice is active
         if (gameplayUIRoots != null && gameplayUIRoots.Length > 0)
         {
@@ -215,15 +193,6 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
 
         if (riskyRouteButton != null)
             riskyRouteButton.onClick.RemoveListener(OnRiskyRouteSelected);
-
-        // Restore camera to previous follow target
-        if (cameraController != null && previousCameraTarget != null)
-        {
-            cameraController.Target = previousCameraTarget;
-            cameraController.SetDistance(previousCameraDistance);
-            cameraController.SetAngle(previousCameraAngle);
-            cameraController.SnapToTarget();
-        }
 
         // Restore gameplay HUD visibility
         if (gameplayUIRoots != null && gameplayUIRoots.Length > 0)

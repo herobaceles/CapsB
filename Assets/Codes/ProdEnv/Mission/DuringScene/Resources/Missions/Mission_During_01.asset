@@ -31,8 +31,30 @@ MonoBehaviour:
     isOptional: 0
     showDialogueOnStart: 1
     startDialogue: []
+    startDialogueRich: []
     showDialogueOnComplete: 0
     completeDialogue: []
+    completeDialogueRich: []
+    arScanForPlaneDialogueRich: []
+    arTapToPlaceDialogueRich: []
+    arGuidanceDialogueRich: []
+    taskStartQuiz:
+      question: 
+      options:
+      - 
+      - 
+      - 
+      correctOptionIndex: 0
+      optionSprites:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      placeholderSprite: {fileID: 0}
+      questionCharacterId: 
+      questionExpressionId: 
+      questionPortraitOverride: {fileID: 0}
+      correctAnswerDialogue: []
+      correctAnswerDialogueRich: []
     objectives: []
   - taskId: street_route_choice
     taskName: Choose Safe Route
@@ -40,10 +62,32 @@ MonoBehaviour:
     taskIcon: {fileID: 0}
     taskType: 0
     isOptional: 0
-    showDialogueOnStart: 1
+    showDialogueOnStart: 0
     startDialogue: []
+    startDialogueRich: []
     showDialogueOnComplete: 0
     completeDialogue: []
+    completeDialogueRich: []
+    arScanForPlaneDialogueRich: []
+    arTapToPlaceDialogueRich: []
+    arGuidanceDialogueRich: []
+    taskStartQuiz:
+      question: Which street is safer to take?
+      options:
+      - Opalo st.
+      - Esmeralda st.
+      - Stay here
+      correctOptionIndex: 0
+      optionSprites:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      placeholderSprite: {fileID: 0}
+      questionCharacterId: professor_lingap
+      questionExpressionId: explaining
+      questionPortraitOverride: {fileID: 0}
+      correctAnswerDialogue: []
+      correctAnswerDialogueRich: []
     objectives: []
   - taskId: hazard_electrical
     taskName: Isolate Fallen Post
@@ -53,8 +97,27 @@ MonoBehaviour:
     isOptional: 0
     showDialogueOnStart: 1
     startDialogue: []
+    startDialogueRich: []
     showDialogueOnComplete: 0
     completeDialogue: []
+    completeDialogueRich: []
+    arScanForPlaneDialogueRich: []
+    arTapToPlaceDialogueRich: []
+    arGuidanceDialogueRich: []
+    taskStartQuiz:
+      question: 
+      options: []
+      correctOptionIndex: 0
+      optionSprites:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      placeholderSprite: {fileID: 0}
+      questionCharacterId: 
+      questionExpressionId: 
+      questionPortraitOverride: {fileID: 0}
+      correctAnswerDialogue: []
+      correctAnswerDialogueRich: []
     objectives: []
   - taskId: evac_center_registration
     taskName: Register at Shelter
@@ -64,10 +127,33 @@ MonoBehaviour:
     isOptional: 0
     showDialogueOnStart: 1
     startDialogue: []
+    startDialogueRich: []
     showDialogueOnComplete: 0
     completeDialogue: []
+    completeDialogueRich: []
+    arScanForPlaneDialogueRich: []
+    arTapToPlaceDialogueRich: []
+    arGuidanceDialogueRich: []
+    taskStartQuiz:
+      question: 
+      options:
+      - 
+      - 
+      - 
+      correctOptionIndex: 0
+      optionSprites:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      placeholderSprite: {fileID: 0}
+      questionCharacterId: 
+      questionExpressionId: 
+      questionPortraitOverride: {fileID: 0}
+      correctAnswerDialogue: []
+      correctAnswerDialogueRich: []
     objectives: []
   introDialogue: []
+  introDialogueRich: []
   startQuiz:
     question: 
     options:
@@ -80,7 +166,11 @@ MonoBehaviour:
     - {fileID: 0}
     - {fileID: 0}
     placeholderSprite: {fileID: 0}
+    questionCharacterId: 
+    questionExpressionId: 
+    questionPortraitOverride: {fileID: 0}
     correctAnswerDialogue: []
+    correctAnswerDialogueRich: []
   useMissionTimer: 1
   missionTimeLimitSeconds: 600
   completionMessage: Mission Complete! Great job!
