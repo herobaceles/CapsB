@@ -163,6 +163,7 @@ public class CircuitBreakerManager : MonoBehaviour
     private bool TryGetStartQuiz(out MissionQuizData quizData)
     {
         quizData = null;
+
         var selectedMission = MissionSelectManager.SelectedMission;
         if (selectedMission == null)
             return false;

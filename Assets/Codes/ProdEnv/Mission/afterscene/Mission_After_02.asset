@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08d18cca6f19690448d81eb0c24d5ca0, type: 3}
+  m_Name: Mission_After_02
+  m_EditorClassIdentifier: 
+  missionId: after_02
+  missionName: Safe_items
+  missionDescription: Learn to identify safeitem to eat afte the flood and whats
+    is not safe
+  missionIcon: {fileID: 0}
+  phase: 2
+  missionSceneName: AfterMission
+  isLocked: 0
+  requiredMissionId: after_01
+  sortOrder: 2
+  tasks:
+  - taskId: after_02_Safe_items
+    taskName: find the safeitems to consime after the flood
+    taskDescription: get the safe itesm
+    taskIcon: {fileID: 0}
+    taskType: 6
+    isOptional: 0
+    showDialogueOnStart: 1
+    startDialogue: []
+    startDialogueRich: []
+    showDialogueOnComplete: 1
+    completeDialogue:
+    - Now find the table that has the go bag.
+    - Now find the table that has the go bag.
+    completeDialogueRich:
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 3
+      expressionId: ThumbsUp
+      portraitOverride: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
+      backgroundSprite: {fileID: 0}
+      message: Excellent! Undamaged canned goods are safe if you wash the can first.
+        And sealed water is our only safe drinking source. Everything else... THROW
+        IT AWAY. When in doubt, throw it out.
+    arScanForPlaneDialogueRich: []
+    arTapToPlaceDialogueRich: []
+    arGuidanceDialogueRich: []
+    taskStartQuiz:
+      question: 
+      options:
+      - 
+      - 
+      - 
+      correctOptionIndex: 0
+      optionSprites:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      placeholderSprite: {fileID: 0}
+      questionCharacterId: 
+      questionExpressionId: 
+      questionPortraitOverride: {fileID: 0}
+      correctAnswerDialogue: []
+      correctAnswerDialogueRich: []
+    objectives: []
+  introDialogue:
+  - Oh no! That's a Signal Red warning. This is serious. The water could rise fast,
+    so we need to act smartly before the flood hits.
+  introDialogueRich:
+  - characterId: professor_lingap
+    characterName: Professor Lingap
+    side: 3
+    expressionId: explaining
+    portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
+    backgroundSprite: {fileID: 0}
+    message: Now, the kitchen. This is critical. Floodwater is toxic. We have to
+      know what's safe to eat and drink.
+  - characterId: professor_lingap
+    characterName: Professor Lingap
+    side: 3
+    expressionId: explaining
+    portraitOverride: {fileID: 21300000, guid: 6ce24a6d694c3f34cb36e2effad451ac, type: 3}
+    backgroundSprite: {fileID: 0}
+    message: "Let\u2019s take one final look to separate what\u2019s safe from what\u2019s
+      not\u2014your health depends on it."
+  startQuiz:
+    question: 
+    options: []
+    correctOptionIndex: 0
+    optionSprites: []
+    placeholderSprite: {fileID: 0}
+    questionCharacterId: 
+    questionExpressionId: 
+    questionPortraitOverride: {fileID: 0}
+    correctAnswerDialogue: []
+    correctAnswerDialogueRich: []
+  startQuizSequence: []
+  useMissionTimer: 0
+  missionTimeLimitSeconds: 0
+  completionMessage: Mission Complete! Great job!
+  unlocksMissionId: after_03

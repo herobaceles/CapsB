@@ -60,6 +60,7 @@ public class QuizDialogueUIManager : MonoBehaviour
             return;
         }
 
+
         if (quizData.options == null || quizData.options.Length < 3)
         {
             Debug.LogWarning("QuizDialogueUIManager: Quiz options are not valid. Skipping quiz.");
