@@ -16,6 +16,13 @@ public class FloodWave : MonoBehaviour
     [Range(0.1f, 3f)]
     public float waveScale = 0.7f;
 
+    [Header("Local Ripple Around Target (Optional)")]
+    [Tooltip("If assigned, ripples will be strongest at this target and fade out to zero at rippleRadius.")]
+    public Transform rippleTarget;
+
+    [Tooltip("Radius in world units where ripples are visible around the target. 0 = affect whole mesh like before.")]
+    public float rippleRadius = 0f;
+
     private Mesh mesh;
     private Vector3[] baseVertices;
     private Vector3[] vertices;
@@ -35,6 +42,23 @@ public class FloodWave : MonoBehaviour
         {
             Vector3 vertex = baseVertices[i];
 
+            // If a rippleTarget and radius are set, compute distance falloff so
+            // vertices farther away are affected less (or not at all).
+            float radiusWeight = 1f;
+            if (rippleTarget != null && rippleRadius > 0.01f)
+            {
+                // Convert local vertex to world position to compare with target
+                Vector3 worldVertex = transform.TransformPoint(vertex);
+                Vector2 vertexXZ = new Vector2(worldVertex.x, worldVertex.z);
+                Vector2 targetXZ = new Vector2(rippleTarget.position.x, rippleTarget.position.z);
+                float distance = Vector2.Distance(vertexXZ, targetXZ);
+
+                // 1 at center, 0 at or beyond rippleRadius (with smooth falloff)
+                float t = Mathf.Clamp01(distance / rippleRadius);
+                radiusWeight = 1f - t;
+                radiusWeight = radiusWeight * radiusWeight; // soften edges (quadratic falloff)
+            }
+
             // Gentle, low-amplitude ripples suitable for flood water.
             // Two blended sine waves keep the motion soft and continuous.
             float wave1 = Mathf.Sin(vertex.x * waveScale + time * 0.7f);
@@ -45,7 +69,7 @@ public class FloodWave : MonoBehaviour
             float normalized = (combined * 0.5f) + 0.5f;      // [0, 1]
 
             // Offset only upwards from the base height so water never dips into terrain
-            float offset = normalized * waveHeight;
+            float offset = normalized * waveHeight * radiusWeight;
             vertex.y = baseVertices[i].y + offset;
 
             vertices[i] = vertex;
