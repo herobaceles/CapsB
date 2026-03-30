@@ -22,6 +22,15 @@ public class PlayerData : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         LoadPlayerData();
+
+#if !UNITY_EDITOR
+        // TEMP: Force-unlock After missions on device builds for testing
+        PlayerPrefs.SetInt("Mission_after_01_Unlocked", 1);
+        PlayerPrefs.SetInt("Mission_after_02_Unlocked", 1);
+        PlayerPrefs.SetInt("Mission_after_03_Unlocked", 1);
+        PlayerPrefs.Save();
+        Debug.Log("PlayerData: TEMP unlock for After missions applied on device.");
+#endif
     }
 
     public bool IsFirstTimePlaying() => !IsOnboardingComplete;

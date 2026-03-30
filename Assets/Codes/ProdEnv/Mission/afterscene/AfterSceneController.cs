@@ -2,17 +2,6 @@ using UnityEngine;
 
 public class AfterSceneController : MonoBehaviour
 {
-    /// <summary>
-    /// Activates the DisinfectHouse AR trigger and disables the quiz trigger (for After_03 flow).
-    /// </summary>
-    public void ActivateDisinfectTrigger()
-    {
-        if (arTriggerDisinfectHouse != null)
-            arTriggerDisinfectHouse.SetActive(true);
-        if (quizZoneTrigger != null)
-            quizZoneTrigger.SetActive(false);
-        Debug.Log("AfterSceneController: DisinfectHouse AR trigger activated, quiz trigger deactivated.");
-    }
     [Header("Managers")]
     [SerializeField] private AfterSceneARManager arManager;
     [SerializeField] private AfterSceneMissionTracker missionTracker;
@@ -41,6 +30,37 @@ public class AfterSceneController : MonoBehaviour
         currentMissionMode = mode;
     }
 
+    /// <summary>
+    /// Configures only the visibility of AR/quiz triggers based on the
+    /// current mission mode, without enabling player controls or camera.
+    /// Useful for ensuring the correct trigger is visible even while
+    /// intro dialogue is still playing.
+    /// </summary>
+    public void ConfigureTriggersForCurrentMode()
+    {
+        if (currentMissionMode == MissionMode.DisinfectHouse)
+        {
+            if (arTriggerDisinfectHouse != null) arTriggerDisinfectHouse.SetActive(true);
+            if (arTriggerKitchenSafety != null) arTriggerKitchenSafety.SetActive(false);
+            if (arTriggerHiddenDanger != null) arTriggerHiddenDanger.SetActive(false);
+            if (quizZoneTrigger != null) quizZoneTrigger.SetActive(false);
+        }
+        else if (currentMissionMode == MissionMode.KitchenSafety)
+        {
+            if (arTriggerKitchenSafety != null) arTriggerKitchenSafety.SetActive(true);
+            if (arTriggerHiddenDanger != null) arTriggerHiddenDanger.SetActive(false);
+            if (arTriggerDisinfectHouse != null) arTriggerDisinfectHouse.SetActive(false);
+            if (quizZoneTrigger != null) quizZoneTrigger.SetActive(false);
+        }
+        else
+        {
+            if (arTriggerHiddenDanger != null) arTriggerHiddenDanger.SetActive(true);
+            if (quizZoneTrigger != null) quizZoneTrigger.SetActive(true);
+            if (arTriggerKitchenSafety != null) arTriggerKitchenSafety.SetActive(false);
+            if (arTriggerDisinfectHouse != null) arTriggerDisinfectHouse.SetActive(false);
+        }
+    }
+
     public void ShowFeedback(bool isCorrect, Vector3 worldPosition)
     {
         if (uiManager != null)
@@ -54,11 +74,9 @@ public class AfterSceneController : MonoBehaviour
             uiManager.ShowFeedbackIconAtWorldPosition(isCorrect, worldPosition, cam);
             return;
         }
-
-        if (AfterRecoveryARController.Instance != null)
-        {
-            AfterRecoveryARController.Instance.TriggerFeedback(isCorrect, worldPosition);
-        }
+        
+        // Fallback when no UI manager is configured: log only.
+        Debug.Log($"AfterSceneController.ShowFeedback: No UI manager available. Feedback={{correct={isCorrect}}} at {worldPosition}.");
     }
 
     /// <summary>
@@ -84,17 +102,9 @@ public class AfterSceneController : MonoBehaviour
         if (quizZoneTrigger != null) quizZoneTrigger.SetActive(true);
         if (arTriggerHiddenDanger != null) arTriggerHiddenDanger.SetActive(false);
         if (arTriggerKitchenSafety != null) arTriggerKitchenSafety.SetActive(false);
+        if (arTriggerDisinfectHouse != null) arTriggerDisinfectHouse.SetActive(false);
 
-        // Only disable arTriggerDisinfectHouse if quiz is not completed (for After_03)
-        bool shouldDisableDisinfect = true;
-        var afterMissionManager = AfterMissionManager.Instance;
-        if (afterMissionManager != null && afterMissionManager.CurrentMissionIdIs("after_03") && afterMissionManager.IsStartQuizCompleted())
-        {
-            shouldDisableDisinfect = false;
-        }
-        if (arTriggerDisinfectHouse != null) arTriggerDisinfectHouse.SetActive(!shouldDisableDisinfect ? true : false);
-
-        Debug.Log($"AfterSceneController: Quiz-only phase started. QuizZoneTrigger is now active. arTriggerDisinfectHouse active: {arTriggerDisinfectHouse?.activeSelf}");
+        Debug.Log("AfterSceneController: Quiz-only phase started. QuizZoneTrigger is now active.");
     }
 
     public void StartExplorationPhaseInternal()
@@ -144,8 +154,8 @@ public class AfterSceneController : MonoBehaviour
         }
         else if (AfterRecoveryARController.Instance != null)
         {
-            // Fallback to the shared AfterRecoveryARController if no local AR manager
-            AfterRecoveryARController.Instance.EnableARRecovery(mode);
+            // Fallback to legacy controller behavior if AR manager is not configured
+            AfterRecoveryARController.Instance.EnableARRecovery_Internal(mode);
         }
     }
 
@@ -196,9 +206,7 @@ public class AfterSceneController : MonoBehaviour
         // so that dialogue, UI, and mission chaining remain identical.
         if (AfterRecoveryARController.Instance != null)
         {
-            // In the new architecture, ending AR flows through DisableAR,
-            // which reports completion back to AfterMissionManager.
-            AfterRecoveryARController.Instance.DisableAR();
+            AfterRecoveryARController.Instance.HandleMissionCompletionFromController(mode);
             return;
         }
 
@@ -233,12 +241,16 @@ public class AfterSceneController : MonoBehaviour
         item.OnRecovered -= OnItemRecovered;
         item.OnRecovered += OnItemRecovered;
     }
-    // Deactivates the quiz trigger (quizZoneTrigger) if it exists
-    public void DeactivateQuizTrigger()
-    {
-        if (quizZoneTrigger != null)
+
+        // Deactivates the quiz trigger (add your logic here)
+        public void DeactivateQuizTrigger()
         {
-            quizZoneTrigger.SetActive(false);
+            if (quizZoneTrigger != null) quizZoneTrigger.SetActive(false);
         }
-    }
+
+        // Activates the disinfect trigger (add your logic here)
+        public void ActivateDisinfectTrigger()
+        {
+            if (arTriggerDisinfectHouse != null) arTriggerDisinfectHouse.SetActive(true);
+        }
 }

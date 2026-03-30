@@ -17,9 +17,9 @@ MonoBehaviour:
   missionDescription: clean the mud
   missionIcon: {fileID: 0}
   phase: 2
-  missionSceneName: Aftermission
+  missionSceneName: AfterMission
   isLocked: 0
-  requiredMissionId: 
+  requiredMissionId: after_02
   sortOrder: 3
   tasks:
   - taskId: after03_quiz_zone
@@ -34,8 +34,8 @@ MonoBehaviour:
     - characterId: professor_lingap
       characterName: Professor Lingap
       side: 3
-      expressionId: center
-      portraitOverride: {fileID: 0}
+      expressionId: explaining
+      portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
       backgroundSprite: {fileID: 0}
       message: let's now clean this house
     showDialogueOnComplete: 1
@@ -43,14 +43,34 @@ MonoBehaviour:
     - Now find the table that has the go bag.
     - Now find the table that has the go bag.
     completeDialogueRich:
-    - characterId: Professor Lingap
-      characterName: 
-      side: 1
-      expressionId: approved
-      portraitOverride: {fileID: 0}
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 3
+      expressionId: ThumbsUp
+      portraitOverride: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
       backgroundSprite: {fileID: 0}
       message: Yes! A solution of bleach and water will kill the germs. It's a lot
         of work, but it's the only way to make your home safe again.
+    arScanForPlaneDialogueRich: []
+    arTapToPlaceDialogueRich: []
+    arGuidanceDialogueRich: []
+    taskStartQuiz:
+      question: 
+      options:
+      - 
+      - 
+      - 
+      correctOptionIndex: 0
+      optionSprites:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      placeholderSprite: {fileID: 0}
+      questionCharacterId: 
+      questionExpressionId: 
+      questionPortraitOverride: {fileID: 0}
+      correctAnswerDialogue: []
+      correctAnswerDialogueRich: []
     objectives: []
   - taskId: after_03_disinfect_mud
     taskName: find and select clean up items
@@ -63,29 +83,108 @@ MonoBehaviour:
     startDialogueRich:
     - characterId: professor_lingap
       characterName: Professor Lingap
-      side: 3
-      expressionId: center
+      side: 1
+      expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
-      message: let's now clean this house
+      message: "Now that you know the right cleaning solution, it\u2019s time to
+        put it into action."
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Go to the disinfect area and use the AR tools to clean all the mud
+        inside the house.
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Tap on each mud patch, then press the Disinfect button to remove it.
     showDialogueOnComplete: 1
     completeDialogue:
     - Now find the table that has the go bag.
     - Now find the table that has the go bag.
     completeDialogueRich:
-    - characterId: Professor Lingap
-      characterName: 
-      side: 1
-      expressionId: approved
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 3
+      expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
-      message: Yes! A solution of bleach and water will kill the germs. It's a lot
-        of work, but it's the only way to make your home safe again.
-    objectives: []
+      message: You did it, {PLAYER_NAME}. You faced the warning, survived the storm,
+        and recovered from the aftermath.
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 3
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: You learned how to prepare, how to stay safe, and how to rebuild.
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 3
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Disasters are a part of life, but with the right knowledge and preparation,
+        we can be stronger than any storm.
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 3
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: "Remember these lessons. You are no longer just {PLAYER_NAME}\u2026
+        you are truly BaHanda!"
+    arScanForPlaneDialogueRich: []
+    arTapToPlaceDialogueRich: []
+    arGuidanceDialogueRich: []
+    taskStartQuiz:
+      question: 
+      options:
+      - 
+      - 
+      - 
+      correctOptionIndex: 0
+      optionSprites:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      placeholderSprite: {fileID: 0}
+      questionCharacterId: 
+      questionExpressionId: 
+      questionPortraitOverride: {fileID: 0}
+      correctAnswerDialogue: []
+      correctAnswerDialogueRich: []
+    objectives:
+    - objectiveId: after_03_mud
+      description: Disinfect all mud patches in the house.
+      requiredCount: 6
+      isCompleted: 0
+      currentCount: 0
   introDialogue:
   - Oh no! That's a Signal Red warning. This is serious. The water could rise fast,
     so we need to act smartly before the flood hits.
-  introDialogueRich: []
+  introDialogueRich:
+  - characterId: professor_lingap
+    characterName: Professor Lingap
+    side: 3
+    expressionId: explaining
+    portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
+    backgroundSprite: {fileID: 0}
+    message: The last step is cleaning. That mud is full of bacteria.
+  - characterId: professor_lingap
+    characterName: Professor Lingap
+    side: 3
+    expressionId: explaining
+    portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
+    backgroundSprite: {fileID: 0}
+    message: We need to disinfect everything. What is the correct solution to clean
+      walls and floors?
   startQuiz:
     question: The last step is cleaning. That mud is full of bacteria. We need to
       disinfect everything. What is the correct solution to clean walls and floors?
@@ -105,31 +204,37 @@ MonoBehaviour:
     correctAnswerDialogue: []
     correctAnswerDialogueRich: []
   startQuizSequence:
-  - question: The last step is cleaning. That mud is full of bacteria. We need to
-      disinfect everything. What is the correct solution to clean walls and floors?
+  - question: "What is the correct solution\u2026"
     options:
     - 'A. Plain water. '
     - B. Bleach and water.
-    - 'C.  Dish soap. '
+    - 'C. Dish soap. '
     correctOptionIndex: 1
     optionSprites:
     - {fileID: 21300000, guid: 6ab867e10a9f8ea49b626493b69b4586, type: 3}
     - {fileID: 21300000, guid: c1e9cdb3a83bb5f4d9078a03c466c467, type: 3}
     - {fileID: 21300000, guid: 84abeb9dfcf2bc04fb0fba6e0a53bcf3, type: 3}
     placeholderSprite: {fileID: 0}
-    questionCharacterId: 
-    questionExpressionId: 
-    questionPortraitOverride: {fileID: 0}
+    questionCharacterId: professor_lingap
+    questionExpressionId: asking
+    questionPortraitOverride: {fileID: 21300000, guid: 3a3c749aba8bbdf4785d7e79b3d77815, type: 3}
     correctAnswerDialogue: []
     correctAnswerDialogueRich:
-    - characterId: 
-      characterName: 
-      side: 0
-      expressionId: 
-      portraitOverride: {fileID: 0}
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 3
+      expressionId: ThumbsUp
+      portraitOverride: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
       backgroundSprite: {fileID: 0}
-      message: Yes! A solution of bleach and water will kill the germs. It's a lot
-        of work, but it's the only way to make your home safe again.
+      message: Yes! A solution of bleach and water will kill the germs.
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 3
+      expressionId: ThumbsUp
+      portraitOverride: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
+      backgroundSprite: {fileID: 0}
+      message: "It\u2019s a lot of work, but it\u2019s the only way to make your
+        home safe again."
   useMissionTimer: 0
   missionTimeLimitSeconds: 0
   completionMessage: Mission Complete! Great job!

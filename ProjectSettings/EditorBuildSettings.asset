@@ -20,6 +20,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/DuringMission.unity
     guid: 9ce2f337869b828428292d66ddf78db2
+  - enabled: 1
+    path: Assets/Scenes/AfterMission.unity
+    guid: 77d2c9a75508b0243a9761d6f26933ad
   m_configObjects:
     UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: 6ee72d15cf39dd748a13eac57397b9af, type: 2}
     UnityEditor.XR.ARKit.ARKitSettings: {fileID: 11400000, guid: 0465d33c6aee55f44b0237db8b0e0259, type: 2}

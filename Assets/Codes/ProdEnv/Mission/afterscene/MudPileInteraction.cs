@@ -1,15 +1,14 @@
 using System;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class MudPileInteraction : MonoBehaviour
 {
     [Header("Visuals")]
     public ParticleSystem sprayEffect;
 
-    [Header("UI Elements")]
-    [Tooltip("The button that appears when the mud is selected.")]
-    public GameObject disinfectButton;
+    [Header("Disinfect UI")]
+    [Tooltip("Reference to the central DisinfectButton controller.")]
+    [SerializeField] private DisinfectButton disinfectButton;
 
     [HideInInspector] public bool isHeld = false; // Tracks if the player has selected this mud pile
     private bool isCleaned = false;
@@ -35,16 +34,25 @@ public class MudPileInteraction : MonoBehaviour
             Debug.LogWarning($"Mud pile {gameObject.name} should have 'CleanupItem' tag for counting!");
         }
 
+        // Try to auto-bind the DisinfectButton if it was not wired in the Inspector.
+        // Use Resources.FindObjectsOfTypeAll so we can find it even if the UI is inactive
+        // when this mud pile starts up.
         if (disinfectButton == null)
         {
-            GameObject[] allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
-            foreach (GameObject obj in allObjects)
+            var buttons = Resources.FindObjectsOfTypeAll<DisinfectButton>();
+            foreach (var button in buttons)
             {
-                if (obj.name == "DisinfectButton" && obj.scene.isLoaded)
+                if (button != null && button.gameObject.scene.isLoaded)
                 {
-                    disinfectButton = obj;
+                    disinfectButton = button;
+                    Debug.Log($"MudPileInteraction: Bound DisinfectButton reference at Start for {gameObject.name}", this);
                     break;
                 }
+            }
+
+            if (disinfectButton == null)
+            {
+                Debug.LogWarning("MudPileInteraction: DisinfectButton reference not set in Inspector and could not be found in loaded scenes.", this);
             }
         }
     }
@@ -53,8 +61,31 @@ public class MudPileInteraction : MonoBehaviour
     {
         if (isCleaned || isHeld) return;
 
+        // If the button reference was lost (e.g., due to AR scene activation order),
+        // try to resolve it again at tap time.
+        if (disinfectButton == null)
+        {
+            var buttons = Resources.FindObjectsOfTypeAll<DisinfectButton>();
+            foreach (var button in buttons)
+            {
+                if (button != null && button.gameObject.scene.isLoaded)
+                {
+                    disinfectButton = button;
+                    Debug.Log($"MudPileInteraction: Rebound DisinfectButton reference at tap time for {gameObject.name}", this);
+                    break;
+                }
+            }
+        }
+
+        // If we still can't find the button, do NOT lock this mud as held.
+        if (disinfectButton == null)
+        {
+            Debug.LogWarning("MudPileInteraction: Could not find the DisinfectButton controller! Mud will not be held.", this);
+            return;
+        }
+
         // Prevent selecting multiple mud piles at the same time!
-        if (disinfectButton != null && disinfectButton.activeInHierarchy)
+        if (disinfectButton.gameObject.activeInHierarchy)
         {
             Debug.Log("Player tried to select another mud pile, but one is already selected!");
             return; 
@@ -62,33 +93,15 @@ public class MudPileInteraction : MonoBehaviour
 
         isHeld = true;
 
-        // Show the Disinfect Button
-        if (disinfectButton != null)
-        {
-            disinfectButton.SetActive(true);
-
-            Button btn = disinfectButton.GetComponent<Button>();
-            if (btn != null)
-            {
-                btn.onClick.RemoveAllListeners(); 
-                btn.onClick.AddListener(CleanPile); 
-            }
-        }
-        else
-        {
-            Debug.LogWarning("MudPileInteraction: Could not find the DisinfectButton!");
-        }
+        // Show the central Disinfect Button for this mud pile
+        disinfectButton.ShowButtonForMud(this);
     }
 
     public void CleanPile()
     {
         if (isCleaned) return;
         isCleaned = true;
-
-        if (disinfectButton != null)
-        {
-            disinfectButton.SetActive(false);
-        }
+        isHeld = false;
 
         if (sprayEffect != null)
         {
@@ -102,7 +115,9 @@ public class MudPileInteraction : MonoBehaviour
 
         OnCleaned?.Invoke(this);
 
-        Invoke(nameof(Deactivate), 0.5f);
+        // Now that the wipe animation and delay have completed in DisinfectButton,
+        // we can immediately report recovery and deactivate this mud pile.
+        Deactivate();
     }
 
     private void Deactivate()

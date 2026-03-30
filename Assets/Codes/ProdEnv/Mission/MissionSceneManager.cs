@@ -738,7 +738,17 @@ public abstract class MissionSceneManager : MonoBehaviour
         }
 
         bool finished = false;
-        dialogueManager.ShowDialogueSequence(richLines, () => finished = true);
+        // Provide a default placeholder map so missions can use
+        // {PLAYER_NAME} in rich dialogue lines (e.g., endings).
+        var placeholders = new System.Collections.Generic.Dictionary<string, string>();
+        string playerName = PlayerData.Instance != null ? PlayerData.Instance.PlayerName : null;
+        if (!string.IsNullOrEmpty(playerName))
+        {
+            placeholders["{PLAYER_NAME}"] = playerName;
+        }
+
+        // Use the overload that accepts placeholders when available.
+        dialogueManager.ShowDialogueSequence(richLines, () => finished = true, placeholders);
 
         StartCoroutine(WaitForDialogueThenCallback(finishedGetter: () => finished, onComplete));
     }

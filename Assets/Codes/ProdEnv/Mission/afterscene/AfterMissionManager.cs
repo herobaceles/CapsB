@@ -123,6 +123,17 @@ public class AfterMissionManager : MissionSceneManager
             yield break;
         }
 
+        // Before showing any intro dialogue, pre-configure triggers for
+        // missions that have a dedicated AR trigger so that only the
+        // appropriate trigger is visible even while the dialogue is
+        // on-screen. This avoids briefly showing unrelated triggers.
+        if (sceneController != null &&
+            string.Equals(currentMission.missionId, "after_02", System.StringComparison.OrdinalIgnoreCase))
+        {
+            sceneController.InitializeMission(currentMission, MissionMode.KitchenSafety);
+            sceneController.ConfigureTriggersForCurrentMode();
+        }
+
         if (ProdDialogueManager.Instance != null)
         {
             bool dialogueFinished = false;
@@ -151,8 +162,14 @@ public class AfterMissionManager : MissionSceneManager
         {
             if (sceneController != null)
             {
-                // Initialize mission mode for correct AR trigger logic
-                sceneController.InitializeMission(currentMission, MissionMode.DisinfectHouse);
+                // Initialize mission mode for correct AR trigger logic.
+                // After_01 is a HiddenDanger-style mission, while After_03
+                // is the DisinfectHouse mission.
+                var initialMode = string.Equals(currentMission.missionId, "after_03", System.StringComparison.OrdinalIgnoreCase)
+                    ? MissionMode.DisinfectHouse
+                    : MissionMode.HiddenDanger;
+
+                sceneController.InitializeMission(currentMission, initialMode);
                 sceneController.StartQuizOnlyPhase();
             }
 
@@ -167,7 +184,24 @@ public class AfterMissionManager : MissionSceneManager
             yield break;
         }
 
-        // For other After-phase missions (after_02, etc.) we
+        // For After_02, we want to land directly in a KitchenSafety
+        // exploration phase so that only the kitchen safety trigger is
+        // visible and no global mission-level start quiz runs.
+        if (currentMission != null &&
+            string.Equals(currentMission.missionId, "after_02", System.StringComparison.OrdinalIgnoreCase))
+        {
+            if (sceneController != null)
+            {
+                sceneController.InitializeMission(currentMission, MissionMode.KitchenSafety);
+                sceneController.StartExplorationPhaseInternal();
+            }
+
+            Debug.Log("AfterMissionManager: Starting After_02 mission in KitchenSafety exploration phase.");
+            StartMission();
+            yield break;
+        }
+
+        // For other After-phase missions we
         // want the normal mission-level start quiz (if configured) to
         // run before tasks begin, just like in the base class.
         yield return RunMissionStartQuizIfAvailable();
@@ -249,7 +283,12 @@ public class AfterMissionManager : MissionSceneManager
             // even if the mission asset ids are misconfigured.
             if (!boundMode.HasValue)
             {
-                if (string.Equals(taskId, "after_02_Safe_items", System.StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(taskId, "after01_hidden_danger", System.StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(taskId, "ARTrigger_HiddenDanger", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    boundMode = MissionMode.HiddenDanger;
+                }
+                else if (string.Equals(taskId, "after_02_Safe_items", System.StringComparison.OrdinalIgnoreCase))
                 {
                     boundMode = MissionMode.KitchenSafety;
                 }
@@ -362,8 +401,43 @@ public class AfterMissionManager : MissionSceneManager
                 sceneController.DeactivateQuizTrigger();
                 sceneController.ActivateDisinfectTrigger();
                 
+                // Ensure the mission is actually started before completing the quiz
+                // task; otherwise CompleteCurrentTask will be a no-op and the
+                // disinfect trigger will never be activated by the mission system.
+                if (!isMissionActive)
+                {
+                    Debug.Log("AfterMissionManager: Starting After_03 mission after quiz so disinfect task can activate.");
+                    StartMission();
+                }
+
                 // Complete the quiz task and move to next task (AR task)
                 CompleteCurrentTask();
+
+                // Safety: ensure that after the quiz we really land on the
+                // disinfect-mud task and that its trigger is activated. If, for
+                // any reason, the base progression did not advance as expected,
+                // force-switch the current task to after_03_disinfect_mud and
+                // manually activate its trigger.
+                if (currentMission != null && currentMission.tasks != null)
+                {
+                    for (int i = 0; i < currentMission.tasks.Count; i++)
+                    {
+                        var t = currentMission.tasks[i];
+                        if (t != null &&
+                            string.Equals(t.taskId, "after_03_disinfect_mud", System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (currentTask == null ||
+                                !string.Equals(currentTask.taskId, "after_03_disinfect_mud", System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                Debug.LogWarning("AfterMissionManager: Forcing current task to 'after_03_disinfect_mud' after quiz.");
+                                currentTaskIndex = i;
+                                currentTask = t;
+                                ActivateTaskTrigger(currentTask.taskId);
+                            }
+                            break;
+                        }
+                    }
+                }
             }
             else
             {
@@ -486,7 +560,12 @@ public class AfterMissionManager : MissionSceneManager
         if (preparationUI != null)
             preparationUI.SetActive(false);
 
-        if (achievementsPanel != null)
+        // For Mission_After_02, we only want to show the
+        // MissionCompletePanel (no achievements panel).
+        bool isAfter02 = currentMission != null &&
+            string.Equals(currentMission.missionId, "after_02", System.StringComparison.OrdinalIgnoreCase);
+
+        if (!isAfter02 && achievementsPanel != null)
             achievementsPanel.SetActive(true);
 
         if (missionCompletePanel != null)

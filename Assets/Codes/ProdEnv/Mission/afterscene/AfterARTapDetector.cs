@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 /// <summary>
 /// Central AR tap detector for the After-phase AR missions.
@@ -15,6 +16,22 @@ using UnityEngine.InputSystem;
 /// </summary>
 public class AfterARTapDetector : MonoBehaviour
 {
+    [System.Serializable]
+    private class TapTaskConfig
+    {
+        [Tooltip("Mission mode this tap task applies to (e.g. CleanupGear, KitchenSafety).")]
+        public MissionMode mode = MissionMode.CleanupGear;
+
+        [Tooltip("Tag that marks items counted toward this task (e.g. CleanupItem, SafeItem).")]
+        public string requiredTag = "CleanupItem";
+
+        [Tooltip("How many correctly recovered items are required to complete this tap task.")]
+        public int requiredCount = 1;
+
+        [Tooltip("Mission task id to report completion to AfterMissionManager (e.g. after01_cleanup_gear).")]
+        public string taskId;
+    }
+
     [Header("Raycast Settings")]
     [Tooltip("Optional explicit AR camera. If not set, the detector will try ARRuntimeContext.ResolveARCamera().")]
     [SerializeField] private Camera arCameraOverride;
@@ -36,6 +53,12 @@ public class AfterARTapDetector : MonoBehaviour
 
     [Tooltip("How far to pull hazards toward the AR camera when drag starts.")]
     [SerializeField] private float dragPullTowardsCamera = 0.25f;
+
+    [Header("Tap Task Counters")] 
+    [Tooltip("Optional per-mode tap tasks (e.g. CleanupGear: 6 CleanupItem taps for after01_cleanup_gear).")]
+    [SerializeField] private TapTaskConfig[] tapTasks;
+
+    private readonly Dictionary<string, int> tapProgressByTaskId = new Dictionary<string, int>();
 
     private HiddenDangerItem currentDraggedItem;
     private Vector3 currentDragOffset;
@@ -117,8 +140,13 @@ public class AfterARTapDetector : MonoBehaviour
         Ray ray = cam.ScreenPointToRay(screenPosition);
         if (!Physics.Raycast(ray, out RaycastHit hit, maxDistance, raycastLayers))
         {
+            // Single log per pointer press when nothing was hit; helps
+            // debug layer/collider issues without flooding the console.
+            Debug.Log($"AfterARTapDetector: Pointer at {screenPosition} hit nothing (mode={AfterRecoveryARController.Instance?.CurrentMissionMode}).");
             return;
         }
+
+        Debug.Log($"AfterARTapDetector: Pointer at {screenPosition} hit '{hit.collider.gameObject.name}' on layer {hit.collider.gameObject.layer}.");
 
         // First, try HiddenDangerItem
         HiddenDangerItem hiddenItem = hit.collider.GetComponentInParent<HiddenDangerItem>();
@@ -142,7 +170,15 @@ public class AfterARTapDetector : MonoBehaviour
                 return;
             }
 
+            bool wasRecovered = hiddenItem.IsRecovered;
             hiddenItem.OnTappedFromAR();
+
+            // If this tap caused the item to be recovered (correct tap in
+            // non-HiddenDanger modes), feed it into the generic tap counter.
+            if (!wasRecovered && hiddenItem.IsRecovered)
+            {
+                HandleRecoveredItemFromTap(hiddenItem, mode);
+            }
             return;
         }
 
@@ -275,5 +311,111 @@ public class AfterARTapDetector : MonoBehaviour
 
         // Fallback to main camera if needed (for editor/testing)
         return Camera.main;
+    }
+
+    private void HandleRecoveredItemFromTap(HiddenDangerItem item, MissionMode mode)
+    {
+        if (item == null)
+            return;
+
+        // HiddenDanger mode uses drag-to-bucket completion instead of tap
+        // counting, so we ignore recovered items here.
+        if (mode == MissionMode.HiddenDanger)
+            return;
+
+        string tag = item.gameObject.tag;
+        var config = FindTapTaskConfig(mode, tag);
+        if (config == null || string.IsNullOrEmpty(config.taskId))
+            return;
+
+        int current;
+        if (!tapProgressByTaskId.TryGetValue(config.taskId, out current))
+        {
+            current = 0;
+        }
+
+        current++;
+        tapProgressByTaskId[config.taskId] = current;
+
+        Debug.Log($"AfterARTapDetector: Tap progress for task '{config.taskId}' (mode={mode}, tag={tag}) => {current}/{config.requiredCount}.");
+
+        if (current >= Mathf.Max(1, config.requiredCount))
+        {
+            OnTapTaskCompleted(config);
+        }
+    }
+
+    private TapTaskConfig FindTapTaskConfig(MissionMode mode, string tag)
+    {
+        if (string.IsNullOrEmpty(tag))
+            return null;
+
+        // First, try explicit configurations from the inspector.
+        if (tapTasks != null)
+        {
+            for (int i = 0; i < tapTasks.Length; i++)
+            {
+                var cfg = tapTasks[i];
+                if (cfg == null)
+                    continue;
+
+                if (cfg.mode == mode &&
+                    !string.IsNullOrEmpty(cfg.requiredTag) &&
+                    string.Equals(cfg.requiredTag, tag, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return cfg;
+                }
+            }
+        }
+
+        // Fallback: built-in configuration for Mission_After_01 CleanupGear
+        // so that the user does not have to wire this by hand. When the
+        // current mission is after_01 and we are in CleanupGear mode, 
+        // count 6 objects tagged CleanupItem for task after01_cleanup_gear.
+        var afterMissionManager = AfterMissionManager.Instance;
+        if (afterMissionManager != null &&
+            afterMissionManager.CurrentMissionIdIs("after_01") &&
+            mode == MissionMode.CleanupGear &&
+            string.Equals(tag, "CleanupItem", System.StringComparison.OrdinalIgnoreCase))
+        {
+            return new TapTaskConfig
+            {
+                mode = MissionMode.CleanupGear,
+                requiredTag = "CleanupItem",
+                requiredCount = 6,
+                taskId = "after01_cleanup_gear"
+            };
+        }
+
+        return null;
+    }
+
+    private void OnTapTaskCompleted(TapTaskConfig config)
+    {
+        if (config == null || string.IsNullOrEmpty(config.taskId))
+            return;
+
+        Debug.Log($"AfterARTapDetector: Tap task '{config.taskId}' completed for mode {config.mode}.");
+
+        tapProgressByTaskId[config.taskId] = Mathf.Max(1, config.requiredCount);
+
+        // First, shut down AR so that any follow-up dialogue and the
+        // achievement/mission-complete UI are shown in the normal
+        // gameplay view instead of on top of the AR house.
+        if (AfterRecoveryARController.Instance != null &&
+            AfterRecoveryARController.Instance.IsARActive)
+        {
+            AfterRecoveryARController.Instance.DisableAR();
+        }
+
+        var missionManager = AfterMissionManager.Instance;
+        if (missionManager != null)
+        {
+            missionManager.NotifyInteractionComplete(config.taskId);
+        }
+        else
+        {
+            Debug.LogWarning("AfterARTapDetector: AfterMissionManager.Instance is null; cannot report tap task completion.");
+        }
     }
 }
