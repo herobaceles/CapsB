@@ -14,6 +14,9 @@ public class ApplianceSecureItem : MonoBehaviour
     [SerializeField] private Color selectedColor = Color.yellow;
     [SerializeField] private Color safeColor = Color.green;
 
+    [Header("Marker (optional)")]
+    [SerializeField] private GameObject marker;
+
     [Header("Events")]
     public UnityAction OnSecuredChanged;
     public UnityAction OnIllegalMove;
@@ -31,6 +34,7 @@ public class ApplianceSecureItem : MonoBehaviour
     {
         EvaluateSecure();
         UpdateVisual();
+        UpdateMarker();
     }
 
     public void SetSelected(bool selected)
@@ -80,6 +84,7 @@ public class ApplianceSecureItem : MonoBehaviour
         }
 
         UpdateVisual();
+        UpdateMarker();
     }
 
     private void UpdateVisual()
@@ -100,5 +105,32 @@ public class ApplianceSecureItem : MonoBehaviour
 
             rendererRef.material.color = color;
         }
+    }
+
+    private void UpdateMarker()
+    {
+        if (marker == null)
+            return;
+
+        // Only show markers for appliances that are part of the AR content
+        // (spawned under the AR root). Scene appliances should not display
+        // markers even if they share the same prefab.
+        if (!IsUnderArRoot())
+        {
+            marker.SetActive(false);
+            return;
+        }
+
+        // In AR, show the marker while the appliance is not yet secured,
+        // and hide it once secured.
+        marker.SetActive(!IsSecured);
+    }
+
+    private bool IsUnderArRoot()
+    {
+        if (ARRuntimeContext.Instance == null || ARRuntimeContext.Instance.ARRoot == null)
+            return false;
+
+        return transform.IsChildOf(ARRuntimeContext.Instance.ARRoot.transform);
     }
 }

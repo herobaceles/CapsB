@@ -47,9 +47,17 @@ public class BreakerTaskManager : MonoBehaviour
     [Header("Breaker Task Prefab")]
     [SerializeField] private GameObject breakerPrefab; // Assign in inspector if you want to spawn it
 
+    [Header("Temporary AR Exit UI")]
+    [SerializeField] private GameObject breakerExitButton; // Shown only while breaker AR task is active
+
     [Header("Dialogue (asset-driven)")]
     [SerializeField] private List<DialogueLineData> instructionDialogueRich;
     [SerializeField] private List<DialogueLineData> completionDialogueRich;
+
+    [Header("Completion Settings")]
+    [SerializeField]
+    [Tooltip("If enabled, the completion dialogue plays while still in AR, then exits back to the scene. If disabled, AR ends first and the dialogue plays in the normal scene.")]
+    private bool showCompletionDialogueInAR = false;
 
     private bool taskStarted = false;
     private bool taskComplete = false;
@@ -108,34 +116,73 @@ public class BreakerTaskManager : MonoBehaviour
             return;
         taskComplete = true;
 
-        // First, end AR and return to the normal scene
-        if (BeforeMissionManager.Instance != null)
-            BeforeMissionManager.Instance.EndARMission();
-
-        // Now show completion dialogue (player is back in the scene with normal camera)
+        if (breakerExitButton != null)
+            breakerExitButton.SetActive(false);
         var dialogueManager = ProdDialogueManager.Instance;
-        UnityAction afterDialogue = () =>
-        {
-            CompleteExpectedTask();
-            ShowAchievementPanel(onComplete);
-        };
 
-        if (dialogueManager != null && completionDialogueRich != null && completionDialogueRich.Count > 0)
+        // Decide whether to play the completion dialogue while still in AR
+        // or after returning to the normal scene.
+        if (showCompletionDialogueInAR)
         {
-            dialogueManager.ShowDialogueSequence(completionDialogueRich, afterDialogue);
-        }
-        else
-        {
-            if (dialogueManager == null)
+            // Play completion dialogue first (using the current AR camera),
+            // then exit AR and finalize the task.
+            UnityAction afterDialogue = () =>
             {
-                Debug.LogWarning("BreakerTaskManager: ProdDialogueManager not found; skipping completion dialogue.");
+                if (BeforeMissionManager.Instance != null)
+                    BeforeMissionManager.Instance.EndARMission();
+
+                CompleteExpectedTask();
+                ShowAchievementPanel(onComplete);
+            };
+
+            if (dialogueManager != null && completionDialogueRich != null && completionDialogueRich.Count > 0)
+            {
+                dialogueManager.ShowDialogueSequence(completionDialogueRich, afterDialogue);
             }
             else
             {
-                Debug.LogWarning("BreakerTaskManager: completionDialogueRich is empty; skipping completion dialogue.");
-            }
+                if (dialogueManager == null)
+                {
+                    Debug.LogWarning("BreakerTaskManager: ProdDialogueManager not found; skipping completion dialogue.");
+                }
+                else
+                {
+                    Debug.LogWarning("BreakerTaskManager: completionDialogueRich is empty; skipping completion dialogue.");
+                }
 
-            afterDialogue();
+                afterDialogue();
+            }
+        }
+        else
+        {
+            // Original behaviour: end AR first so the dialogue appears in the
+            // normal scene view, then complete the task.
+            if (BeforeMissionManager.Instance != null)
+                BeforeMissionManager.Instance.EndARMission();
+
+            UnityAction afterDialogue = () =>
+            {
+                CompleteExpectedTask();
+                ShowAchievementPanel(onComplete);
+            };
+
+            if (dialogueManager != null && completionDialogueRich != null && completionDialogueRich.Count > 0)
+            {
+                dialogueManager.ShowDialogueSequence(completionDialogueRich, afterDialogue);
+            }
+            else
+            {
+                if (dialogueManager == null)
+                {
+                    Debug.LogWarning("BreakerTaskManager: ProdDialogueManager not found; skipping completion dialogue.");
+                }
+                else
+                {
+                    Debug.LogWarning("BreakerTaskManager: completionDialogueRich is empty; skipping completion dialogue.");
+                }
+
+                afterDialogue();
+            }
         }
     }
 
@@ -169,5 +216,12 @@ public class BreakerTaskManager : MonoBehaviour
             achievementText.text = "Breaker Task Complete!";
         if (onComplete != null)
             onComplete.Invoke();
+    }
+
+    // Temporary helper for UI button: call this from a button to
+    // end the AR breaker task and show the completion flow manually.
+    public void OnBreakerExitButtonClicked()
+    {
+        CompleteBreakerTask();
     }
 }

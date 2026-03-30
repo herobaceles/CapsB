@@ -28,31 +28,122 @@ MonoBehaviour:
     taskIcon: {fileID: 0}
     taskType: 6
     isOptional: 0
-    showDialogueOnStart: 0
+    showDialogueOnStart: 1
     startDialogue:
     - Water can rise fast. Lift heavy appliances above the flood line to prevent
       damage.
     - Before you begin, answer this quick question.
+    startDialogueRich:
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Water can rise fast. Lift heavy appliances above the flood line to
+        prevent damage.
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Approach the microwave on the floor.
     showDialogueOnComplete: 0
     completeDialogue:
     - Great! Now raise each appliance onto a higher surface above the blue line.
+    completeDialogueRich:
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 1
+      expressionId: approved
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Great! You kept the appliances above the flood line.
+    arScanForPlaneDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Move your device slowly and point it at the floor.
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: We need to detect a flat surface where we can place the house.
+    arTapToPlaceDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Great, I can see a surface now.
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Tap on the detected area to place the house interior.
+    arGuidanceDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Tap an appliance, then tap a higher surface above the blue flood line.
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Make sure every important appliance is raised before the water rises.
+    taskStartQuiz:
+      question: 
+      options:
+      - 
+      - 
+      - 
+      correctOptionIndex: 0
+      optionSprites:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      placeholderSprite: {fileID: 0}
+      questionCharacterId: 
+      questionExpressionId: 
+      questionPortraitOverride: {fileID: 0}
+      correctAnswerDialogue: []
+      correctAnswerDialogueRich: []
     objectives: []
   introDialogue:
   - hello
+  introDialogueRich: []
   startQuiz:
     question: When leaving the house or evacuating what is the best way to do?
     options:
     - Just leave
     - 'Secure important appliences '
-    - Hide them
+    - Hide themd
     correctOptionIndex: 1
     optionSprites:
     - {fileID: 0}
     - {fileID: 0}
     - {fileID: 0}
     placeholderSprite: {fileID: 0}
+    questionCharacterId: professor_lingap
+    questionExpressionId: explaining
+    questionPortraitOverride: {fileID: 0}
     correctAnswerDialogue:
     - Approah the microwave in the floor
+    correctAnswerDialogueRich: []
   useMissionTimer: 0
   missionTimeLimitSeconds: 0
   completionMessage: Mission Complete! Great job!
