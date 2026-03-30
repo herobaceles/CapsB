@@ -57,6 +57,7 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
     private bool previousMovementEnabled;
     private bool startDialogueCompleted;
     private bool hasShownChoicePrompt;
+    private Coroutine gateRoutine;
 
     private void OnValidate()
     {
@@ -103,6 +104,24 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
 
         if (playerController == null)
             playerController = FindObjectOfType<IsometricPlayerController>();
+
+        // Ensure route choices and the gate button start hidden so they
+        // don't briefly appear when the task canvas is first shown.
+        if (routeButtonsRoot != null)
+        {
+            routeButtonsRoot.SetActive(false);
+        }
+        else
+        {
+            if (safeRouteButton != null)
+                safeRouteButton.gameObject.SetActive(false);
+
+            if (riskyRouteButton != null)
+                riskyRouteButton.gameObject.SetActive(false);
+        }
+
+        if (chooseNowButton != null)
+            chooseNowButton.gameObject.SetActive(false);
 
         base.Awake();
     }
@@ -181,19 +200,13 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
             chooseNowButton.onClick.AddListener(OnChooseNowClicked);
         }
 
-        // If this task has start dialogue configured, wait for the
-        // bubble-chat director to finish before showing the gate.
-        bool hasStartDialogue = startDialogue != null && startDialogue.Length > 0;
+        // Wait for any active NPC bubble dialogue to finish, then
+        // show the gate button. If no dialogue is playing, show it
+        // immediately.
+        if (gateRoutine != null)
+            StopCoroutine(gateRoutine);
 
-        if (DuringMissionStoryDirector.Instance != null && hasStartDialogue)
-        {
-            DuringMissionStoryDirector.Instance.OnDialogueFinished.AddListener(OnStartDialogueFinishedForRouteChoice);
-        }
-        else
-        {
-            // No dialogue to wait for – allow player to choose immediately.
-            ShowChooseNowButton();
-        }
+        gateRoutine = StartCoroutine(WaitForDialogueThenShowGate());
     }
 
     protected override void OnTaskHide()
@@ -234,21 +247,35 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
             playerController.SetMovementEnabled(previousMovementEnabled);
         }
 
-        if (DuringMissionStoryDirector.Instance != null)
+        if (gateRoutine != null)
         {
-            DuringMissionStoryDirector.Instance.OnDialogueFinished.RemoveListener(OnStartDialogueFinishedForRouteChoice);
+            StopCoroutine(gateRoutine);
+            gateRoutine = null;
         }
     }
 
     private void OnStartDialogueFinishedForRouteChoice()
     {
+        // This method is no longer needed as we handle showing the button in the coroutine
+    }
+
+    private System.Collections.IEnumerator WaitForDialogueThenShowGate()
+    {
+        var director = DuringMissionStoryDirector.Instance;
+
+        if (director != null)
+        {
+            // If dialogue is currently playing, wait for it to stop.
+            while (director.IsPlaying)
+            {
+                yield return null;
+            }
+        }
+
         startDialogueCompleted = true;
         ShowChooseNowButton();
 
-        if (DuringMissionStoryDirector.Instance != null)
-        {
-            DuringMissionStoryDirector.Instance.OnDialogueFinished.RemoveListener(OnStartDialogueFinishedForRouteChoice);
-        }
+        gateRoutine = null;
     }
 
     private void ShowChooseNowButton()

@@ -49,6 +49,9 @@ public class MissionData : ScriptableObject
 
     [Header("Start Quiz (Optional)")]
     public MissionQuizData startQuiz;
+    
+    [Tooltip("If non-empty, defines an ordered sequence of start quizzes for this mission. If empty, the single startQuiz field is used instead.")]
+    public List<MissionQuizData> startQuizSequence = new List<MissionQuizData>();
 
     [Header("Timer (Optional)")]
     [Tooltip("Enable a mission-wide countdown. If enabled, scene managers like DuringMissionManager can enforce this time limit.")]
