@@ -8,6 +8,8 @@ TagManager:
   - Breaker
   - Flood
   - NPC
+  - Pole
+  - Water
   layers:
   - Default
   - TransparentFX
