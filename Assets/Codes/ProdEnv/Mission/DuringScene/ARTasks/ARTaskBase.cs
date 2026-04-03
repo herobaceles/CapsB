@@ -107,18 +107,32 @@ public abstract class ARTaskBase : MonoBehaviour
 
         Debug.Log($"ARTask [{taskId}]: Completed successfully!");
 
-        // Play success dialogue
+        // After success, we want the NPC's explanation dialogue to
+        // play first, then only after that should the game UI return
+        // and the mini-scene close. Use the dialogue director's
+        // completion callback to sequence this.
+
+        Action afterDialogue = () =>
+        {
+            OnTaskCompleted?.Invoke();
+
+            // Notify mission manager and close the mini-scene
+            NotifyMissionManager(true);
+
+            // Hide this task's UI and restore any gameplay HUD
+            StartCoroutine(HideTaskRoutine());
+        };
+
+        // Play success dialogue, then run afterDialogue.
         if (DuringMissionStoryDirector.Instance != null && successDialogue != null && successDialogue.Length > 0)
         {
-            DuringMissionStoryDirector.Instance.QueueLines(successDialogue);
+            DuringMissionStoryDirector.Instance.QueueLines(successDialogue, -1f, afterDialogue);
         }
-
-        OnTaskCompleted?.Invoke();
-
-        // Notify mission manager
-        NotifyMissionManager(true);
-
-        StartCoroutine(HideTaskRoutine());
+        else
+        {
+            // No dialogue configured; proceed immediately.
+            afterDialogue();
+        }
     }
 
     /// <summary>

@@ -128,12 +128,33 @@ MonoBehaviour:
     showDialogueOnStart: 1
     startDialogue: []
     startDialogueRich: []
-    showDialogueOnComplete: 0
+    showDialogueOnComplete: 1
     completeDialogue: []
-    completeDialogueRich: []
+    completeDialogueRich:
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 1
+      expressionId: happy
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Great job. Your evacuation registration form is complete.
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: Because you registered, responders know you and your family are here and safe.
     arScanForPlaneDialogueRich: []
     arTapToPlaceDialogueRich: []
-    arGuidanceDialogueRich: []
+    arGuidanceDialogueRich:
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 1
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      message: When you arrive at the evacuation center, fill in the form so responders can account for you and your family.
     taskStartQuiz:
       question: 
       options:
@@ -171,6 +192,7 @@ MonoBehaviour:
     questionPortraitOverride: {fileID: 0}
     correctAnswerDialogue: []
     correctAnswerDialogueRich: []
+  startQuizSequence: []
   useMissionTimer: 1
   missionTimeLimitSeconds: 600
   completionMessage: Mission Complete! Great job!

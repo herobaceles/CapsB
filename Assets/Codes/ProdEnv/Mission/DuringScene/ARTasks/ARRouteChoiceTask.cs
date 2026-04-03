@@ -369,6 +369,11 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
 
         Debug.Log("ARRouteChoiceTask: Safe route selected (correct)");
 
+        // Hide route choices and cameras so the NPC's
+        // explanation dialogue is unobstructed.
+        HideRouteChoices();
+        DisableRouteCameras();
+
         // Complete after showing feedback
         Invoke(nameof(DelayedComplete), 2f);
     }

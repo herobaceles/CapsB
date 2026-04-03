@@ -134,9 +134,9 @@ MonoBehaviour:
     - Hide themd
     correctOptionIndex: 1
     optionSprites:
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
+    - {fileID: 21300000, guid: 915242ea84990a64b858609cae115da1, type: 3}
+    - {fileID: 21300000, guid: b62a9c05c50ff20489556ed9a3a4196b, type: 3}
+    - {fileID: 21300000, guid: dc4162027b127244ab5047f57366344f, type: 3}
     placeholderSprite: {fileID: 0}
     questionCharacterId: professor_lingap
     questionExpressionId: explaining
@@ -144,6 +144,7 @@ MonoBehaviour:
     correctAnswerDialogue:
     - Approah the microwave in the floor
     correctAnswerDialogueRich: []
+  startQuizSequence: []
   useMissionTimer: 0
   missionTimeLimitSeconds: 0
   completionMessage: Mission Complete! Great job!
