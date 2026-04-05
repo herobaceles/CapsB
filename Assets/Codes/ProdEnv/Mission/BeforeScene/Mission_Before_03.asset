@@ -40,6 +40,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Water can rise fast. Lift heavy appliances above the flood line to
         prevent damage.
     - characterId: professor_lingap
@@ -48,6 +49,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Approach the microwave on the floor.
     showDialogueOnComplete: 0
     completeDialogue:
@@ -59,6 +61,7 @@ MonoBehaviour:
       expressionId: approved
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Great! You kept the appliances above the flood line.
     arScanForPlaneDialogueRich:
     - characterId: professor_lingap
@@ -67,6 +70,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Move your device slowly and point it at the floor.
     - characterId: professor_lingap
       characterName: Prof. Lingap
@@ -74,6 +78,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: We need to detect a flat surface where we can place the house.
     arTapToPlaceDialogueRich:
     - characterId: professor_lingap
@@ -82,6 +87,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Great, I can see a surface now.
     - characterId: professor_lingap
       characterName: Prof. Lingap
@@ -89,6 +95,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Tap on the detected area to place the house interior.
     arGuidanceDialogueRich:
     - characterId: professor_lingap
@@ -97,6 +104,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Tap an appliance, then tap a higher surface above the blue flood line.
     - characterId: professor_lingap
       characterName: Prof. Lingap
@@ -104,6 +112,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Make sure every important appliance is raised before the water rises.
     taskStartQuiz:
       question: 
@@ -125,7 +134,16 @@ MonoBehaviour:
     objectives: []
   introDialogue:
   - hello
-  introDialogueRich: []
+  introDialogueRich:
+  - characterId: professor_lingap
+    characterName: 
+    side: 3
+    expressionId: center
+    portraitOverride: {fileID: 0}
+    backgroundSprite: {fileID: 21300000, guid: 60c41380052c50141aefbf4e5b49bbd5, type: 3}
+    clearBackground: 0
+    message: Now, our focus shifts to safety; for only by protecting the equipment
+      can we ensure that wear and tear remain at zero to minimal levels.
   startQuiz:
     question: When leaving the house or evacuating what is the best way to do?
     options:

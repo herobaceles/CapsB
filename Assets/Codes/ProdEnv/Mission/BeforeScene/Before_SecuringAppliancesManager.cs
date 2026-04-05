@@ -44,6 +44,11 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
     [SerializeField] private GameObject statusPanel;
     [SerializeField] private TMP_Text statusText;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip selectApplianceSfx;
+    [SerializeField] private AudioClip placeApplianceSfx;
+    [SerializeField] private AudioClip illegalMoveSfx;
+
     [Header("AR Return Sync")]
     [SerializeField] private bool syncPlacementsBackToScene = true;
     [SerializeField] private bool despawnSpawnedHouseOnReturn = true;
@@ -259,6 +264,9 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
         selectedAppliance = appliance;
         selectedAppliance.SetSelected(true);
 
+        if (AudioManager.Instance != null && selectApplianceSfx != null)
+            AudioManager.Instance.PlaySFX(selectApplianceSfx);
+
         ShowWarning($"Selected {selectedAppliance.ApplianceName}. Tap an elevated area.");
         UpdateStatusText();
     UpdateAreaMarkers();
@@ -282,16 +290,23 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
         if (area.IsOccupiedByOther(applianceToPlace))
         {
             ShowWarning($"{areaName} is occupied.");
+            if (AudioManager.Instance != null && illegalMoveSfx != null)
+                AudioManager.Instance.PlaySFX(illegalMoveSfx);
             return;
         }
 
         if (!applianceToPlace.PlaceOnArea(area))
         {
             ShowWarning("Cannot place on that area.");
+            if (AudioManager.Instance != null && illegalMoveSfx != null)
+                AudioManager.Instance.PlaySFX(illegalMoveSfx);
             return;
         }
 
         ShowWarning($"Placed {applianceName} on {areaName}.");
+
+        if (AudioManager.Instance != null && placeApplianceSfx != null)
+            AudioManager.Instance.PlaySFX(placeApplianceSfx);
 
         if (!missionActive)
             return;
@@ -445,6 +460,8 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
     private void OnIllegalMove()
     {
         illegalMoves++;
+        if (AudioManager.Instance != null && illegalMoveSfx != null)
+            AudioManager.Instance.PlaySFX(illegalMoveSfx);
         UpdateStatusText();
     }
 

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -27,8 +28,18 @@ public class QuizDialogueUIManager : MonoBehaviour
     [Header("Messages")]
     [SerializeField] private string wrongAnswerMessage = "Incorrect answer. Try again.";
 
+    [Header("Typing Settings")]
+    [SerializeField] private float questionTypingSpeed = 0.03f;
+
     private int correctOptionIndex;
     private UnityAction onCorrectAnswer;
+
+    private Coroutine typingCoroutine;
+    private Coroutine feedbackCoroutine;
+    private string currentQuestionText;
+    private string[] currentWrongOptionFeedback;
+    private bool isShowingFeedback;
+    private PortraitFaceAnimator currentFaceAnimator;
 
     private void Awake()
     {
@@ -71,7 +82,13 @@ public class QuizDialogueUIManager : MonoBehaviour
         correctOptionIndex = quizData.correctOptionIndex;
         onCorrectAnswer = onCorrect;
 
-        questionText.text = quizData.question;
+        currentQuestionText = quizData.question;
+        currentWrongOptionFeedback = quizData.wrongOptionFeedback;
+        isShowingFeedback = false;
+
+        // Stop any previous typing/talking state before configuring new quiz.
+        StopTypingAndTalking();
+
         SetOption(optionButton1, optionButton1Text, optionButton1Image, quizData.options[0], GetOptionSprite(quizData, 0), 0, quizData.placeholderSprite);
         SetOption(optionButton2, optionButton2Text, optionButton2Image, quizData.options[1], GetOptionSprite(quizData, 1), 1, quizData.placeholderSprite);
         SetOption(optionButton3, optionButton3Text, optionButton3Image, quizData.options[2], GetOptionSprite(quizData, 2), 2, quizData.placeholderSprite);
@@ -82,12 +99,29 @@ public class QuizDialogueUIManager : MonoBehaviour
 
         ConfigureQuestionPortrait(quizData);
 
+        // Start typing the question text; talking animation is driven
+        // by the typing coroutine instead of being permanently on.
+        if (questionText != null)
+        {
+            PlayLine(currentQuestionText);
+        }
+
         if (feedbackText != null)
             feedbackText.text = string.Empty;
     }
 
     public void HideQuiz()
     {
+        StopTypingAndTalking();
+
+        if (feedbackCoroutine != null)
+        {
+            StopCoroutine(feedbackCoroutine);
+            feedbackCoroutine = null;
+        }
+
+        isShowingFeedback = false;
+
         if (quizPanel != null)
             quizPanel.SetActive(false);
 
@@ -130,13 +164,30 @@ public class QuizDialogueUIManager : MonoBehaviour
     {
         if (selectedIndex == correctOptionIndex)
         {
+            StopTypingAndTalking();
             HideQuiz();
             onCorrectAnswer?.Invoke();
             return;
         }
 
+        if (isShowingFeedback)
+            return;
+
+        isShowingFeedback = true;
+
         if (feedbackText != null)
-            feedbackText.text = wrongAnswerMessage;
+            feedbackText.text = string.Empty;
+
+        SetOptionsInteractable(false);
+
+        if (feedbackCoroutine != null)
+        {
+            StopCoroutine(feedbackCoroutine);
+            feedbackCoroutine = null;
+        }
+
+        string feedbackMessage = GetFeedbackForOption(selectedIndex);
+        feedbackCoroutine = StartCoroutine(HandleWrongAnswerFeedback(feedbackMessage));
     }
 
     private void ConfigureQuestionPortrait(MissionQuizData quizData)
@@ -174,6 +225,8 @@ public class QuizDialogueUIManager : MonoBehaviour
             var existingAnimator = questionPortraitImage.GetComponent<PortraitFaceAnimator>();
             if (existingAnimator != null)
                 existingAnimator.SetTalking(false);
+
+            currentFaceAnimator = existingAnimator;
         }
     }
 
@@ -222,15 +275,115 @@ public class QuizDialogueUIManager : MonoBehaviour
 
         faceAnimator.SetExpressionSprites(idle, blink, talkingFrames);
 
-        // Treat the question as the character "talking" while the quiz is visible
-        // when we have talking frames available.
-        if (talkingFrames != null && talkingFrames.Length > 0)
+        // Remember the animator so the typing coroutine can control when
+        // the character is talking.
+        currentFaceAnimator = faceAnimator;
+    }
+
+    private void PlayLine(string text)
+    {
+        StopTypingAndTalking();
+
+        if (questionText == null)
+            return;
+
+        typingCoroutine = StartCoroutine(TypeQuestionText(text));
+    }
+
+    private IEnumerator TypeQuestionText(string fullText)
+    {
+        if (questionText == null)
+            yield break;
+
+        if (string.IsNullOrEmpty(fullText))
         {
-            faceAnimator.SetTalking(true);
+            questionText.text = string.Empty;
+            if (currentFaceAnimator != null)
+                currentFaceAnimator.SetTalking(false);
+            yield break;
         }
-        else
+
+        questionText.text = string.Empty;
+
+        if (currentFaceAnimator != null)
+            currentFaceAnimator.SetTalking(true);
+
+        foreach (char c in fullText)
         {
-            faceAnimator.SetTalking(false);
+            questionText.text += c;
+            yield return new WaitForSeconds(questionTypingSpeed);
         }
+
+        if (currentFaceAnimator != null)
+            currentFaceAnimator.SetTalking(false);
+
+        typingCoroutine = null;
+    }
+
+    private void StopTypingAndTalking()
+    {
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+            typingCoroutine = null;
+        }
+
+        if (currentFaceAnimator != null)
+        {
+            currentFaceAnimator.SetTalking(false);
+        }
+    }
+
+    private void SetOptionsInteractable(bool interactable)
+    {
+        if (optionButton1 != null)
+            optionButton1.interactable = interactable;
+        if (optionButton2 != null)
+            optionButton2.interactable = interactable;
+        if (optionButton3 != null)
+            optionButton3.interactable = interactable;
+    }
+
+    private string GetFeedbackForOption(int selectedIndex)
+    {
+        if (currentWrongOptionFeedback != null &&
+            selectedIndex >= 0 &&
+            selectedIndex < currentWrongOptionFeedback.Length)
+        {
+            string specific = currentWrongOptionFeedback[selectedIndex];
+            if (!string.IsNullOrEmpty(specific))
+                return specific;
+        }
+
+        return wrongAnswerMessage;
+    }
+
+    private IEnumerator HandleWrongAnswerFeedback(string feedbackMessage)
+    {
+        // Show feedback line in place of the question
+        PlayLine(feedbackMessage);
+
+        // Wait for feedback typing to finish
+        while (typingCoroutine != null)
+        {
+            yield return null;
+        }
+
+        // Small pause before re-asking the question
+        yield return new WaitForSeconds(0.3f);
+
+        // Re-show the original question
+        PlayLine(currentQuestionText);
+
+        // Wait for question typing to finish
+        while (typingCoroutine != null)
+        {
+            yield return null;
+        }
+
+        SetOptionsInteractable(true);
+
+        isShowingFeedback = false;
+        feedbackCoroutine = null;
     }
 }

@@ -26,8 +26,6 @@ public class ProdDialogueManager : MonoBehaviour
 
     [Header("Portrait Visual Settings")]
     [SerializeField] private float activePortraitScale = 1.0f;
-    [SerializeField] private float inactivePortraitScale = 0.9f;
-    [SerializeField] [Range(0f, 1f)] private float inactivePortraitAlpha = 0.5f;
     [SerializeField] private float talkingScaleAmplitude = 0.05f;
     [SerializeField] private float talkingScaleSpeed = 6f;
 

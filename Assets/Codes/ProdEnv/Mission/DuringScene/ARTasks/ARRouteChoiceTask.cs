@@ -55,7 +55,6 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
     private Vector2 dragOffset;
     private bool[] previousUIStates;
     private bool previousMovementEnabled;
-    private bool startDialogueCompleted;
     private bool hasShownChoicePrompt;
     private Coroutine gateRoutine;
 
@@ -145,7 +144,6 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
     {
         choiceMade = false;
         correctChoice = false;
-        startDialogueCompleted = false;
         hasShownChoicePrompt = false;
 
         // Hide gameplay HUD while this choice is active
@@ -271,8 +269,6 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
                 yield return null;
             }
         }
-
-        startDialogueCompleted = true;
         ShowChooseNowButton();
 
         gateRoutine = null;

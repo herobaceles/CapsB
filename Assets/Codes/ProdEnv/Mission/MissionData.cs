@@ -78,6 +78,10 @@ public class MissionQuizData
     [Tooltip("Multiple choice options shown to the player")]
     public string[] options = new string[3];
 
+    [Tooltip("Optional per-option feedback for incorrect answers. Index should match the option index; leave empty to use the default wrong-answer message.")]
+    [TextArea(2, 4)]
+    public string[] wrongOptionFeedback = new string[3];
+
     [Tooltip("Zero-based index of the correct option")]
     public int correctOptionIndex = 0;
 

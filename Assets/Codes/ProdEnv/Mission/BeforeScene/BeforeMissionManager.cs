@@ -26,6 +26,9 @@ public class BeforeMissionManager : MissionSceneManager
     [SerializeField] private GameObject preparationUI;
     [SerializeField] private GameObject inventoryPanel;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip beforeSceneBgmClip;
+
     [Header("Camera")]
     [SerializeField] private Camera gameplayCamera;
     [SerializeField] private bool disableGameplayCameraInAR = false;
@@ -65,6 +68,12 @@ public class BeforeMissionManager : MissionSceneManager
         // Show preparation UI by default
         if (preparationUI != null)
             preparationUI.SetActive(true);
+
+        // Start background music specific to the Before scene, if configured.
+        if (AudioManager.Instance != null && beforeSceneBgmClip != null)
+        {
+            AudioManager.Instance.PlayBgm(beforeSceneBgmClip);
+        }
     }
 
     private void ResolveGameplayCamera()

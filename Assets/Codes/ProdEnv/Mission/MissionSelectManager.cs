@@ -45,6 +45,9 @@ public class MissionSelectManager : MonoBehaviour
     [SerializeField] private Color activeTabColor = Color.white;
     [SerializeField] private Color inactiveTabColor = Color.gray;
 
+    [Header("Navigation")]
+    [SerializeField] private Button backButton;
+
     [Header("Mission List")]
     [SerializeField] private Transform missionListContainer;
     [SerializeField] private GameObject missionButtonPrefab;
@@ -104,6 +107,10 @@ public class MissionSelectManager : MonoBehaviour
         // Setup start button
         if (startMissionButton != null)
             startMissionButton.onClick.AddListener(StartSelectedMission);
+
+        // Setup back button
+        if (backButton != null)
+            backButton.onClick.AddListener(BackToMainMenu);
     }
 
     private void OrganizeMissionsByPhase()

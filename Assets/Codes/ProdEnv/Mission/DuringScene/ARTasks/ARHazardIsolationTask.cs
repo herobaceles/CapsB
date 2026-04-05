@@ -35,10 +35,6 @@ public class ARHazardIsolationTask : ARTaskBase
     [SerializeField] private TMP_Text progressText;
     [SerializeField] private Image dangerIndicator;
 
-    [Header("Learning Content")]
-    [TextArea(2, 4)]
-    [SerializeField] private string learningMessage = "Always assume downed wires are live. Secure the area and keep others away!";
-
     private int correctPlacements;
     private Dictionary<BarrierItem, bool> placedItems = new Dictionary<BarrierItem, bool>();
 
@@ -231,7 +227,6 @@ public class ARHazardIsolationTask : ARTaskBase
 
     private RectTransform FindNearestSlot(Vector2 position)
     {
-        float minDist = 100f; // Snap distance threshold
         RectTransform nearest = null;
 
         foreach (var slot in placementSlots)

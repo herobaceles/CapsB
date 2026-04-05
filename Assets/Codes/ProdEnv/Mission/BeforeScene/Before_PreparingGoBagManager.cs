@@ -37,6 +37,7 @@ public class PreparingGoBagManager : MonoBehaviour
     [Header("Dialogue (asset-driven)")]
     [SerializeField] private List<DialogueLineData> goBagFoundDialogueRich;
     [SerializeField] private List<DialogueLineData> goBagCompleteDialogueRich;
+    [SerializeField] private List<DialogueLineData> goBagWrongItemDialogueRich;
 
     private bool cutsceneSkipped = false;
     private IsometricPlayerController playerController;
@@ -382,6 +383,33 @@ public class PreparingGoBagManager : MonoBehaviour
             }
 
             onNext?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// Shows a short feedback dialogue when the player drops a wrong item into the Go Bag.
+    /// Does nothing if the mission is not active or no dialogue is configured.
+    /// </summary>
+    public void ShowWrongItemDialogue()
+    {
+        if (!IsPreparingGoBagMissionActive())
+            return;
+
+        var dialogueManager = ProdDialogueManager.Instance;
+        if (dialogueManager != null && goBagWrongItemDialogueRich != null && goBagWrongItemDialogueRich.Count > 0)
+        {
+            dialogueManager.ShowDialogueSequence(goBagWrongItemDialogueRich, null);
+        }
+        else
+        {
+            if (dialogueManager == null)
+            {
+                Debug.LogWarning("PreparingGoBagManager: ProdDialogueManager not found; skipping wrong-item dialogue.");
+            }
+            else
+            {
+                Debug.LogWarning("PreparingGoBagManager: goBagWrongItemDialogueRich is empty; skipping wrong-item dialogue.");
+            }
         }
     }
 
