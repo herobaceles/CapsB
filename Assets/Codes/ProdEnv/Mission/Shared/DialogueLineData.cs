@@ -1,5 +1,12 @@
 using UnityEngine;
 
+public enum DialogueSpeakerSide
+{
+    Auto,
+    Left,
+    Right
+}
+
 /// <summary>
 /// Data for a single dialogue line that can be authored in assets
 /// (missions, onboarding sequences, etc.). This is converted at

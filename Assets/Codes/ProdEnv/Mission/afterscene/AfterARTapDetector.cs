@@ -68,6 +68,7 @@ public class AfterARTapDetector : MonoBehaviour
     private Vector3 currentDragOffset;
     private float currentDragDepth;
     private Vector3 originalItemPosition;
+    private AudioSource currentDragLoopSource;
 
     private void Update()
     {
@@ -269,6 +270,18 @@ public class AfterARTapDetector : MonoBehaviour
 
         if (droppedInBucket)
         {
+            // Stop any active drag loop SFX before playing capture.
+            if (currentDragLoopSource != null && currentDragLoopSource.isPlaying)
+            {
+                currentDragLoopSource.Stop();
+            }
+
+            // Play the capture one-shot on this hazard, if configured.
+            if (currentDraggedItem != null && currentDraggedItem.hazardCaptureSource != null)
+            {
+                currentDraggedItem.hazardCaptureSource.Play();
+            }
+
             // Optional: trigger feedback via the central AR controller.
             if (AfterRecoveryARController.Instance != null)
             {
@@ -277,7 +290,17 @@ public class AfterARTapDetector : MonoBehaviour
 
             currentDraggedItem.Recover();
         }
+        else
+        {
+            // If not dropped in the bucket, just stop any active loop.
+            if (currentDragLoopSource != null && currentDragLoopSource.isPlaying)
+            {
+                currentDragLoopSource.Stop();
+            }
+        }
+
         currentDraggedItem = null;
+        currentDragLoopSource = null;
     }
 
     private void StartDrag(Camera cam, HiddenDangerItem item, Vector3 hitPoint)
@@ -286,6 +309,20 @@ public class AfterARTapDetector : MonoBehaviour
             return;
 
         currentDraggedItem = item;
+
+        // Stop any previous drag loop SFX.
+        if (currentDragLoopSource != null && currentDragLoopSource.isPlaying)
+        {
+            currentDragLoopSource.Stop();
+        }
+        currentDragLoopSource = null;
+
+        // Start this hazard's loop SFX, if assigned.
+        if (item.hazardLoopSource != null)
+        {
+            currentDragLoopSource = item.hazardLoopSource;
+            currentDragLoopSource.Play();
+        }
 
         // Start from the item's current position, then gently pull it a bit
         // toward the AR camera so it doesn't jump away from the player when

@@ -15176,7 +15176,6 @@ GameObject:
   - component: {fileID: 620957517243162655}
   - component: {fileID: 9009751894846940084}
   - component: {fileID: 3353931010132320365}
-  - component: {fileID: 7614126282487991681}
   - component: {fileID: 4945838020855327816}
   m_Layer: 0
   m_Name: Plane
@@ -15272,22 +15271,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &7614126282487991681
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3396959297153767972}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3d44ae61470a0644ac54587e14fe0bf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  riseSpeed: 0
-  maxHeight: 2.5
-  waveAmplitude: 0.1
-  waveFrequency: 0.5
 --- !u!65 &4945838020855327816
 BoxCollider:
   m_ObjectHideFlags: 0

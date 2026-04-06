@@ -11,6 +11,9 @@ public class DisinfectButton : MonoBehaviour
     [Tooltip("Add an AudioSource with a spray sound if you want!")]
     public AudioSource spraySound;
 
+    [Tooltip("Add an AudioSource with a cloth wiping sound if you want!")]
+    public AudioSource clothSound;
+
     [Header("Towel Animation")]
     [Tooltip("Animator for the cleaning towel/cloth. Should have a 'Wipe' trigger.")]
     public Animator towelAnimator;
@@ -71,6 +74,12 @@ public class DisinfectButton : MonoBehaviour
         if (towelAnimator != null)
         {
             towelAnimator.SetTrigger("Wipe");
+        }
+
+        // Optional: play cloth wipe sound in sync with the towel animation
+        if (clothSound != null)
+        {
+            clothSound.Play();
         }
 
         // 3. Wait for the wipe animation duration before actually cleaning

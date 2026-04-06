@@ -63,6 +63,13 @@ public class AfterRecoveryARController : MonoBehaviour
     [SerializeField] private Camera gameplayCamera;
     [SerializeField] private bool disableGameplayCameraInAR = true;
 
+    [Header("Audio Feedback (Optional)")]
+    [Tooltip("AudioSource for the correct-answer SFX (ding). Leave null to disable.")]
+    [SerializeField] private AudioSource correctAnswerSfx;
+
+    [Tooltip("AudioSource for the wrong-answer SFX (buzzer). Leave null to disable.")]
+    [SerializeField] private AudioSource wrongAnswerSfx;
+
     /// <summary>
     /// True while an AR recovery session is active.
     /// Used by detectors/items to gate behaviour.
@@ -115,6 +122,14 @@ public class AfterRecoveryARController : MonoBehaviour
     /// </summary>
     public void EnableARRecovery_Internal(MissionMode mode)
     {
+        // If an AR session is already active for a different mode,
+        // clean it up first so we never have multiple AR houses or
+        // planes active at the same time.
+        if (IsARActive && CurrentMissionMode != mode)
+        {
+            DisableAR();
+        }
+
         CurrentMissionMode = mode;
         IsARActive = true;
 
@@ -347,6 +362,18 @@ public class AfterRecoveryARController : MonoBehaviour
         if (feedbackLifetime > 0f)
         {
             Destroy(iconInstance, feedbackLifetime);
+        }
+
+        // Play audio feedback once per interaction if configured
+        if (isCorrect)
+        {
+            if (correctAnswerSfx != null)
+                correctAnswerSfx.Play();
+        }
+        else
+        {
+            if (wrongAnswerSfx != null)
+                wrongAnswerSfx.Play();
         }
     }
 

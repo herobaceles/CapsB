@@ -18,6 +18,13 @@ public class HiddenDangerItem : MonoBehaviour
     [Header("Scene Controller (optional)")]
     [SerializeField] private AfterSceneController afterSceneController;
 
+    [Header("Hidden Danger Audio (optional)")]
+    [Tooltip("Looping hiss/squeak AudioSource for this hazard while being dragged (Hidden Danger mode only).")]
+    public AudioSource hazardLoopSource;
+
+    [Tooltip("One-shot AudioSource played when this hazard is successfully dropped into the bucket.")]
+    public AudioSource hazardCaptureSource;
+
     private MissionMode GetCurrentMissionMode()
     {
         // When an AR session is running, prefer the shared AfterRecoveryARController
