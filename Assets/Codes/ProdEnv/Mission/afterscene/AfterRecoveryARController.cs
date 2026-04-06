@@ -138,18 +138,40 @@ public class AfterRecoveryARController : MonoBehaviour
             ARRuntimeContext.Instance.SetARActive(true);
         }
 
+        GameObject activeHouseRoot = null;
+
         // Toggle AR house roots based on the active mission mode.
         if (cleanupGearHouseRoot != null)
-            cleanupGearHouseRoot.SetActive(mode == MissionMode.CleanupGear);
+        {
+            bool active = mode == MissionMode.CleanupGear;
+            cleanupGearHouseRoot.SetActive(active);
+            if (active) activeHouseRoot = cleanupGearHouseRoot;
+        }
 
         if (hiddenDangerHouseRoot != null)
-            hiddenDangerHouseRoot.SetActive(mode == MissionMode.HiddenDanger);
+        {
+            bool active = mode == MissionMode.HiddenDanger;
+            hiddenDangerHouseRoot.SetActive(active);
+            if (active) activeHouseRoot = hiddenDangerHouseRoot;
+        }
 
         if (kitchenSafetyHouseRoot != null)
-            kitchenSafetyHouseRoot.SetActive(mode == MissionMode.KitchenSafety);
+        {
+            bool active = mode == MissionMode.KitchenSafety;
+            kitchenSafetyHouseRoot.SetActive(active);
+            if (active) activeHouseRoot = kitchenSafetyHouseRoot;
+        }
 
         if (disinfectHouseRoot != null)
-            disinfectHouseRoot.SetActive(mode == MissionMode.DisinfectHouse);
+        {
+            bool active = mode == MissionMode.DisinfectHouse;
+            disinfectHouseRoot.SetActive(active);
+            if (active) activeHouseRoot = disinfectHouseRoot;
+        }
+
+        // Ensure the active AR house lives under the ARRoot so it
+        // stays in AR space and does not drift relative to tracking.
+        AttachHouseToARRoot(activeHouseRoot);
 
         // Only HiddenDanger mode actually relies on the spawner.
         if (hiddenDangerSpawner != null && mode == MissionMode.HiddenDanger)
@@ -209,6 +231,25 @@ public class AfterRecoveryARController : MonoBehaviour
         }
 
         Debug.Log("AfterRecoveryARController: AR session disabled.");
+    }
+
+    private void AttachHouseToARRoot(GameObject houseRoot)
+    {
+        if (houseRoot == null)
+            return;
+
+        if (ARRuntimeContext.Instance == null || ARRuntimeContext.Instance.ARRoot == null)
+            return;
+
+        Transform houseTransform = houseRoot.transform;
+        Transform arRootTransform = ARRuntimeContext.Instance.ARRoot.transform;
+
+        if (houseTransform.parent == arRootTransform)
+            return;
+
+        // Keep the current world pose while reparenting so the house
+        // does not visually jump, but now moves consistently with AR.
+        houseTransform.SetParent(arRootTransform, true);
     }
 
     /// <summary>

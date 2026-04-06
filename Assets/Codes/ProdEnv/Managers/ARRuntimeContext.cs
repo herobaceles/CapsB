@@ -210,7 +210,10 @@ public class ARRuntimeContext : MonoBehaviour
                 CameraManager.enabled = true;
 
             if (PlaneManager != null)
+            {
                 PlaneManager.enabled = true;
+                SetPlaneCollidersEnabled(true);
+            }
 
 #if UNITY_EDITOR
             StartCoroutine(ProtectSimulationInternalObjectsDeferred());
@@ -233,12 +236,12 @@ public class ARRuntimeContext : MonoBehaviour
                 if (ARCamera != null)
                     ARCamera.enabled = false;
 
-                if (PlaneManager != null)
-                    PlaneManager.enabled = false;
-
                 if (CameraManager != null)
                     CameraManager.enabled = false;
-                    
+
+                // Ensure AR plane colliders are disabled while not in AR
+                SetPlaneCollidersEnabled(false);
+
                 return;
             }
 #endif
@@ -248,6 +251,39 @@ public class ARRuntimeContext : MonoBehaviour
 
             if (ARCamera != null)
                 ARCamera.enabled = false;
+
+            if (PlaneManager != null)
+            {
+                PlaneManager.enabled = false;
+                SetPlaneCollidersEnabled(false);
+            }
+            
+            if (CameraManager != null)
+                CameraManager.enabled = false;
+        }
+    }
+
+    /// <summary>
+    /// Enable or disable all Collider components on AR plane trackables.
+    /// This prevents AR planes from acting as invisible walls when AR
+    /// is not active, while still allowing plane detection when AR runs.
+    /// </summary>
+    private void SetPlaneCollidersEnabled(bool enabled)
+    {
+        if (PlaneManager == null)
+            return;
+
+        foreach (var plane in PlaneManager.trackables)
+        {
+            if (plane == null)
+                continue;
+
+            var colliders = plane.GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                if (colliders[i] != null)
+                    colliders[i].enabled = enabled;
+            }
         }
     }
     

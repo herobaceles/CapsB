@@ -12,7 +12,7 @@ public class PlayerData : MonoBehaviour
     public string PlayerName { get; private set; } = "";
     public Gender PlayerGender { get; private set; } = Gender.NotSpecified;
     public bool IsOnboardingComplete { get; private set; } = false;
-    public int LastMissionId { get; private set; } = 0;
+    public string LastMissionId { get; private set; } = "";
 
     public enum Gender { NotSpecified = 0, Male = 1, Female = 2 }
 
@@ -22,15 +22,6 @@ public class PlayerData : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         LoadPlayerData();
-
-#if !UNITY_EDITOR
-        // TEMP: Force-unlock After missions on device builds for testing
-        PlayerPrefs.SetInt("Mission_after_01_Unlocked", 1);
-        PlayerPrefs.SetInt("Mission_after_02_Unlocked", 1);
-        PlayerPrefs.SetInt("Mission_after_03_Unlocked", 1);
-        PlayerPrefs.Save();
-        Debug.Log("PlayerData: TEMP unlock for After missions applied on device.");
-#endif
     }
 
     public bool IsFirstTimePlaying() => !IsOnboardingComplete;
@@ -47,10 +38,10 @@ public class PlayerData : MonoBehaviour
         Debug.Log($"PlayerData: Saved - Name: {PlayerName}, Gender: {PlayerGender}");
     }
 
-    public void SaveLastMission(int missionId)
+    public void SaveLastMission(string missionId)
     {
         LastMissionId = missionId;
-        PlayerPrefs.SetInt(KEY_LAST_MISSION_ID, LastMissionId);
+        PlayerPrefs.SetString(KEY_LAST_MISSION_ID, LastMissionId);
         PlayerPrefs.Save();
         Debug.Log($"PlayerData: Saved last mission id: {LastMissionId}");
     }
@@ -60,7 +51,7 @@ public class PlayerData : MonoBehaviour
         PlayerName = PlayerPrefs.GetString(KEY_PLAYER_NAME, "");
         PlayerGender = (Gender)PlayerPrefs.GetInt(KEY_PLAYER_GENDER, 0);
         IsOnboardingComplete = PlayerPrefs.GetInt(KEY_ONBOARDING_COMPLETE, 0) == 1;
-        LastMissionId = PlayerPrefs.GetInt(KEY_LAST_MISSION_ID, 0);
+        LastMissionId = PlayerPrefs.GetString(KEY_LAST_MISSION_ID, "");
         Debug.Log($"PlayerData: Loaded - OnboardingComplete: {IsOnboardingComplete}");
     }
 
@@ -74,7 +65,7 @@ public class PlayerData : MonoBehaviour
         PlayerName = "";
         PlayerGender = Gender.NotSpecified;
         IsOnboardingComplete = false;
-        LastMissionId = 0;
+        LastMissionId = "";
         Debug.Log("PlayerData: All data reset");
     }
 

@@ -19,7 +19,7 @@ MonoBehaviour:
   missionIcon: {fileID: 0}
   phase: 2
   missionSceneName: AfterMission
-  isLocked: 0
+  isLocked: 1
   requiredMissionId: after_01
   sortOrder: 2
   tasks:

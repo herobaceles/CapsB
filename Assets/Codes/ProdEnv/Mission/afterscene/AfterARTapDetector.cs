@@ -54,6 +54,10 @@ public class AfterARTapDetector : MonoBehaviour
     [Tooltip("How far to pull hazards toward the AR camera when drag starts.")]
     [SerializeField] private float dragPullTowardsCamera = 0.25f;
 
+    [Header("Drag Bounds")]
+    [Tooltip("Optional volume that constrains dragged hazards (e.g. interior of AR_HiddenDangerHouse).")]
+    [SerializeField] private Collider dragBounds;
+
     [Header("Tap Task Counters")] 
     [Tooltip("Optional per-mode tap tasks (e.g. CleanupGear: 6 CleanupItem taps for after01_cleanup_gear).")]
     [SerializeField] private TapTaskConfig[] tapTasks;
@@ -202,6 +206,13 @@ public class AfterARTapDetector : MonoBehaviour
 
         Vector3 screenPoint = new Vector3(screenPosition.x, screenPosition.y, currentDragDepth);
         Vector3 worldPos = cam.ScreenToWorldPoint(screenPoint) + currentDragOffset;
+
+        // Clamp inside the configured drag bounds volume (e.g. interior of the AR house)
+        if (dragBounds != null)
+        {
+            worldPos = dragBounds.ClosestPoint(worldPos);
+        }
+
         currentDraggedItem.transform.position = worldPos;
     }
 

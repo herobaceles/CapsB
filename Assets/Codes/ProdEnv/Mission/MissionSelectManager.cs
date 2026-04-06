@@ -161,8 +161,32 @@ public class MissionSelectManager : MonoBehaviour
         if (missionSelectPanel != null)
             missionSelectPanel.SetActive(true);
 
-        // Default to Before phase
-        SwitchToPhase(MissionPhase.Before);
+        // Try to restore last played mission
+        MissionPhase phaseToShow = MissionPhase.Before;
+        MissionData missionToSelect = null;
+
+        if (PlayerData.Instance != null && !string.IsNullOrEmpty(PlayerData.Instance.LastMissionId) && allMissions != null)
+        {
+            missionToSelect = allMissions.FirstOrDefault(m => m != null && m.missionId == PlayerData.Instance.LastMissionId);
+
+            if (missionToSelect != null && !IsMissionLocked(missionToSelect))
+            {
+                phaseToShow = missionToSelect.phase;
+            }
+            else
+            {
+                missionToSelect = null; // fallback to default behavior
+            }
+        }
+
+        // Switch to the chosen phase
+        SwitchToPhase(phaseToShow);
+
+        // If we have a valid last mission, select it explicitly
+        if (missionToSelect != null)
+        {
+            SelectMission(missionToSelect);
+        }
     }
 
     #region Phase Switching
@@ -375,6 +399,13 @@ public class MissionSelectManager : MonoBehaviour
         }
 
         SelectedMission = mission;
+        
+        // Remember last played mission for resume behavior
+        if (PlayerData.Instance != null)
+        {
+            PlayerData.Instance.SaveLastMission(mission.missionId);
+        }
+
         Debug.Log($"MissionSelectManager: Starting mission - {mission.missionName}");
 
         // Skip dialogue for now - load directly
