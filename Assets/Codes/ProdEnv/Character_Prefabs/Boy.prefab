@@ -6867,8 +6867,6 @@ GameObject:
   - component: {fileID: 1027745972222573469}
   - component: {fileID: 5763504727240264905}
   - component: {fileID: 2602924635928703019}
-  - component: {fileID: 1246762487575136481}
-  - component: {fileID: -5634919048199783924}
   m_Layer: 0
   m_Name: Boy
   m_TagString: Player
@@ -7006,6 +7004,8 @@ MonoBehaviour:
   acceleration: 10
   deceleration: 10
   joystick: {fileID: 0}
+  invertHorizontalInput: 0
+  invertVerticalInput: 0
   gravity: -9.81
   groundCheckDistance: 0.1
   groundLayer:
@@ -7014,35 +7014,6 @@ MonoBehaviour:
   animator: {fileID: 0}
   speedParameter: Speed
   isMovingParameter: IsMoving
---- !u!114 &1246762487575136481
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8128015579787818320}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 960a8ac7ca15da846a962d9ec7586120, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isInWater: 0
---- !u!114 &-5634919048199783924
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8128015579787818320}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a2192e5132d17544abaf51bf436111d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  detector: {fileID: 0}
-  splash: {fileID: 0}
-  footPoint: {fileID: 0}
-  moveThreshold: 0.05
 --- !u!1 &8227264888996492783
 GameObject:
   m_ObjectHideFlags: 0

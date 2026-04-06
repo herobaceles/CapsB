@@ -26,8 +26,6 @@ public class ProdDialogueManager : MonoBehaviour
 
     [Header("Portrait Visual Settings")]
     [SerializeField] private float activePortraitScale = 1.0f;
-    [SerializeField] private float inactivePortraitScale = 0.9f;
-    [SerializeField] [Range(0f, 1f)] private float inactivePortraitAlpha = 0.5f;
     [SerializeField] private float talkingScaleAmplitude = 0.05f;
     [SerializeField] private float talkingScaleSpeed = 6f;
 
@@ -364,7 +362,8 @@ public class ProdDialogueManager : MonoBehaviour
                 expressionId = data.expressionId,
                 side = data.side,
                 portrait = data.portraitOverride,
-                backgroundSprite = data.backgroundSprite
+                backgroundSprite = data.backgroundSprite,
+                clearBackground = data.clearBackground
             };
 
             built.Add(line);
@@ -400,6 +399,14 @@ public class ProdDialogueManager : MonoBehaviour
 
         if (dialoguePanel != null)
             dialoguePanel.SetActive(false);
+
+        // When a dialogue sequence finishes, clear any leftover background
+        // so the next dialogue starts from a clean state.
+        if (dialogueBackgroundImage != null)
+        {
+            dialogueBackgroundImage.sprite = null;
+            dialogueBackgroundImage.gameObject.SetActive(false);
+        }
     }
 
     public bool IsDialogueActive => dialoguePanel != null && dialoguePanel.activeSelf;
@@ -623,6 +630,13 @@ public class ProdDialogueManager : MonoBehaviour
     {
         if (dialogueBackgroundImage == null || line == null)
             return;
+
+        // Optionally clear any existing background before applying a new one.
+        if (line.clearBackground)
+        {
+            dialogueBackgroundImage.sprite = null;
+            dialogueBackgroundImage.gameObject.SetActive(false);
+        }
 
         Sprite newSprite = null;
 
@@ -1036,6 +1050,7 @@ public class ProdDialogueLine
     public DialogueSpeakerSide side = DialogueSpeakerSide.Auto;
     public Sprite backgroundSprite;
     public string backgroundId;
+    public bool clearBackground;
 
     public ProdDialogueLine() { }
 
@@ -1067,14 +1082,15 @@ public class ProdDialogueSequenceBuilder
         return this;
     }
 
-    public ProdDialogueSequenceBuilder AddProfessorLine(string message, string expressionId = null, Sprite backgroundSprite = null, DialogueSpeakerSide side = DialogueSpeakerSide.Auto)
+    public ProdDialogueSequenceBuilder AddProfessorLine(string message, string expressionId = null, Sprite backgroundSprite = null, DialogueSpeakerSide side = DialogueSpeakerSide.Auto, bool clearBackground = false)
     {
         var line = new ProdDialogueLine("Professor Lingap", message)
         {
             characterId = ProfessorCharacterId,
             expressionId = expressionId,
             side = side,
-            backgroundSprite = backgroundSprite
+            backgroundSprite = backgroundSprite,
+            clearBackground = clearBackground
         };
 
         lines.Add(line);

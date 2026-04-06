@@ -26,10 +26,6 @@ public class ARSupplyAllocationTask : ARTaskBase
     [Header("Feedback")]
     [SerializeField] private TMP_Text statusText;
 
-    [Header("Learning")]
-    [TextArea(2, 4)]
-    [SerializeField] private string learningMessage = "Conserve supplies during emergencies. Only use what you need immediately!";
-
     private float currentResources;
     private int correctAllocations;
     private Dictionary<SupplyItem, bool> allocatedItems = new Dictionary<SupplyItem, bool>();

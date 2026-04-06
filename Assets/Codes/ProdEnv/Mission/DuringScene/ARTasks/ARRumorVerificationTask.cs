@@ -22,10 +22,6 @@ public class ARRumorVerificationTask : ARTaskBase
     [SerializeField] private float maxPanic = 100f;
     [SerializeField] private float panicPerWrongSort = 15f;
 
-    [Header("Learning")]
-    [TextArea(2, 4)]
-    [SerializeField] private string learningMessage = "Always verify information from official sources (MDRRMO, LGU). Don't spread unverified rumors!";
-
     private float currentPanic;
     private int correctSorts;
 

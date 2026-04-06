@@ -20,7 +20,6 @@ public class PortraitFaceAnimator : MonoBehaviour
     [SerializeField] private float blinkDuration = 0.12f;
 
     [Header("Talking Settings")]
-    [SerializeField] private bool enableTalkingMouth = true;
     [SerializeField] private float talkingFrameInterval = 0.08f;
 
     private Sprite idleSprite;

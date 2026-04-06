@@ -8,11 +8,16 @@ TagManager:
   - Breaker
   - Flood
   - NPC
+<<<<<<< HEAD
+  - Pole
+  - Water
+=======
   - UnsafeItem
   - SafeItem
   - CleanupItem
   - Bucket
   - HiddenDanger
+>>>>>>> 96711cb4ae6fb3b7fc78bbaac36e8ef7a0066631
   layers:
   - Default
   - TransparentFX

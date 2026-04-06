@@ -272,9 +272,29 @@ public class DuringMissionManager : MissionSceneManager
 
         if (isCurrentTask && activeARTask != null)
         {
-            Debug.Log($"DuringMissionManager: Trigger entered for AR task {taskId}, starting mini-scene.");
-            EnterFloodZone(taskId);
-            StartActiveARTask();
+            Debug.Log($"DuringMissionManager: Trigger entered for AR task {taskId}.");
+
+            System.Action startMiniScene = () =>
+            {
+                EnterFloodZone(taskId);
+                StartActiveARTask();
+            };
+
+            // If this task has AR guidance dialogue defined in the mission asset,
+            // play it before entering the mini-scene.
+            if (CurrentTask != null &&
+                CurrentTask.arGuidanceDialogueRich != null &&
+                CurrentTask.arGuidanceDialogueRich.Count > 0 &&
+                ProdDialogueManager.Instance != null)
+            {
+                Debug.Log("DuringMissionManager: Showing AR guidance dialogue before starting AR task.");
+                ShowTaskDialogue(CurrentTask.arGuidanceDialogueRich, startMiniScene);
+            }
+            else
+            {
+                startMiniScene();
+            }
+
             return;
         }
 

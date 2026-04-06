@@ -38,6 +38,7 @@ MonoBehaviour:
       expressionId: center
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Now go find the table that has the go bag it is located in the living
         room
     showDialogueOnComplete: 0
@@ -51,6 +52,7 @@ MonoBehaviour:
       expressionId: approved
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Nice one
     - characterId: 
       characterName: 
@@ -58,6 +60,7 @@ MonoBehaviour:
       expressionId: 
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: 
     arScanForPlaneDialogueRich:
     - characterId: professor_lingap
@@ -66,6 +69,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Move your device slowly and point it at the floor.
     - characterId: professor_lingap
       characterName: Prof. Lingap
@@ -73,6 +77,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: "We\u2019re looking for a flat surface. Keep scanning until dots or
         a grid appear."
     arTapToPlaceDialogueRich:
@@ -82,6 +87,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Great, I can see a surface now!
     - characterId: professor_lingap
       characterName: 
@@ -89,6 +95,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Tap on the detected area to place our table.
     arGuidanceDialogueRich:
     - characterId: professor_lingap
@@ -97,6 +104,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Nice work. You should now see a table and a go bag
     - characterId: professor_lingap
       characterName: 
@@ -104,6 +112,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: "Avoid toys and unrelated objects\u2014they don\u2019t belong in your
         go bag."
     - characterId: professor_lingap
@@ -112,10 +121,15 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Drag the important emergency items from the table into the bag.
     taskStartQuiz:
       question: 
       options:
+      - 
+      - 
+      - 
+      wrongOptionFeedback:
       - 
       - 
       - 
@@ -140,16 +154,22 @@ MonoBehaviour:
     side: 1
     expressionId: shocked
     portraitOverride: {fileID: 0}
-    backgroundSprite: {fileID: 0}
+    backgroundSprite: {fileID: 21300000, guid: 787a7f6d8a56e3a4daedfd3fd8bdad95, type: 3}
+    clearBackground: 0
     message: "\_Oh dear! That's a Signal Red warning, Edward. This is serious. The
       water could rise fast. We need to act now, but we must act smartly. Your family's
       safety depends on what you do before the flood hits. This is your first test."
   startQuiz:
     question: What bag do you need to prepare for the flood?
     options:
-    - Emergency Go Bag
-    - Garbage Bag
-    - Eco Bag
+    - 
+    - 
+    - 
+    wrongOptionFeedback:
+    - 
+    - "That won\u2019t help! A garbage bag can tear easily and can\u2019t protect
+      your important items."
+    - Not quite! An eco bag is too weak and not waterproof for emergency situations
     correctOptionIndex: 0
     optionSprites:
     - {fileID: 21300000, guid: f9cf4aaab50ea3340ac903c681cb719c, type: 3}
@@ -161,6 +181,7 @@ MonoBehaviour:
     questionPortraitOverride: {fileID: 0}
     correctAnswerDialogue: []
     correctAnswerDialogueRich: []
+  startQuizSequence: []
   useMissionTimer: 0
   missionTimeLimitSeconds: 0
   completionMessage: Mission Complete! Great job!

@@ -1,7 +1,9 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
@@ -28,6 +30,9 @@ public class ARHazardElectricalTask : ARTaskBase
     [Header("Player Control")]
     [SerializeField] private IsometricPlayerController playerController;
 
+    [Header("Gating UI")]
+    [SerializeField] private Button chooseNowButton;
+
     [Header("Cone Placement Settings")]
     [Tooltip("Inner radius around the hazard where cones are NOT allowed (keeps players back from the live wires).")]
     [SerializeField] private float innerSafeRadius = 1.0f;
@@ -47,6 +52,9 @@ public class ARHazardElectricalTask : ARTaskBase
     private bool hazardPlaced;
     private bool[] previousUIStates;
     private bool previousMovementEnabled;
+    private bool interactionEnabled;
+    private bool hasShownGate;
+    private Coroutine gateRoutine;
 
     private void OnValidate()
     {
@@ -77,6 +85,14 @@ public class ARHazardElectricalTask : ARTaskBase
         hazardPlaced = false;
         activeCone = null;
         cones = null;
+        interactionEnabled = false;
+        hasShownGate = false;
+
+        if (chooseNowButton != null)
+        {
+            chooseNowButton.gameObject.SetActive(false);
+            chooseNowButton.onClick.AddListener(OnChooseNowClicked);
+        }
 
         // Hide gameplay HUD
         if (gameplayUIRoots != null && gameplayUIRoots.Length > 0)
@@ -112,11 +128,34 @@ public class ARHazardElectricalTask : ARTaskBase
         {
             Debug.LogError("ARHazardElectricalTask: AR components are not ready (raycastManager or arCamera is null). Failing task.");
             FailTask("AR not available");
+            return;
         }
+
+        if (gateRoutine != null)
+        {
+            StopCoroutine(gateRoutine);
+        }
+
+        gateRoutine = StartCoroutine(WaitForDialogueThenShowGate());
     }
 
     protected override void OnTaskHide()
     {
+        if (gateRoutine != null)
+        {
+            StopCoroutine(gateRoutine);
+            gateRoutine = null;
+        }
+
+        interactionEnabled = false;
+        hasShownGate = false;
+
+        if (chooseNowButton != null)
+        {
+            chooseNowButton.onClick.RemoveListener(OnChooseNowClicked);
+            chooseNowButton.gameObject.SetActive(false);
+        }
+
         // Disable AR session
         if (ARRuntimeContext.Instance != null)
         {
@@ -167,7 +206,7 @@ public class ARHazardElectricalTask : ARTaskBase
     private void Update()
     {
         // Only handle input while this AR task is active
-        if (!isActive)
+        if (!isActive || !interactionEnabled)
             return;
 
         HandleInput();
@@ -460,6 +499,49 @@ public class ARHazardElectricalTask : ARTaskBase
 
         int required = requiredCones > 0 ? Mathf.Min(requiredCones, cones.Length) : cones.Length;
         return placed >= required;
+    }
+
+    private IEnumerator WaitForDialogueThenShowGate()
+    {
+        var storyDirector = DuringMissionStoryDirector.Instance;
+        if (storyDirector != null)
+        {
+            while (storyDirector.IsPlaying)
+            {
+                yield return null;
+            }
+        }
+
+        ShowChooseNowButton();
+        gateRoutine = null;
+    }
+
+    private void ShowChooseNowButton()
+    {
+        if (hasShownGate)
+            return;
+
+        hasShownGate = true;
+
+        if (chooseNowButton != null)
+        {
+            chooseNowButton.gameObject.SetActive(true);
+        }
+        else
+        {
+            // If no button is wired, enable interaction immediately
+            interactionEnabled = true;
+        }
+    }
+
+    private void OnChooseNowClicked()
+    {
+        if (chooseNowButton != null)
+        {
+            chooseNowButton.gameObject.SetActive(false);
+        }
+
+        interactionEnabled = true;
     }
 }
 

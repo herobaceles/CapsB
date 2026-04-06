@@ -56,6 +56,8 @@ public class ARMissionManager : MonoBehaviour
         else if (notRequiredItemNames.Contains(itemName))
         {
             ShowFeedbackPanel(wrongFeedbackText);
+            if (PreparingGoBagManager.Instance != null)
+                PreparingGoBagManager.Instance.ShowWrongItemDialogue();
             Destroy(item);
         }
         else
@@ -91,6 +93,10 @@ public class ARMissionManager : MonoBehaviour
     public GameObject tablePrefab;
     public GameObject bagPrefab;
     public GameObject[] itemPrefabs;
+
+    [Header("Go Bag Spawn Settings")]
+    [Tooltip("Minimum clear radius around the go bag where items will never spawn. If zero or negative, a radius is computed from the bag collider/renderer.")]
+    public float bagClearRadiusOverride = 0.5f;
 
     [Header("UI")]
     public GameObject missionCompleteUI;
@@ -371,8 +377,12 @@ public class ARMissionManager : MonoBehaviour
             Vector3 bagPosition = tableCenter + Vector3.up * (tableHeight + 0.05f);
             spawnedBag = Instantiate(bagPrefab, bagPosition, Quaternion.identity);
 
-            // Spawn items scattered on the table, avoiding the center
-            SpawnItemsOnTable(tableCenter, tableSize, tableHeight, bagPosition);
+            // Compute a safe clear radius around the bag based on either an
+            // explicit override, its collider, or its renderer bounds.
+            float bagClearRadius = ComputeBagClearRadius(spawnedBag, tableSize);
+
+            // Spawn items scattered on the table, avoiding the bag area.
+            SpawnItemsOnTable(tableCenter, tableSize, tableHeight, bagPosition, bagClearRadius);
 
             // Show item list panel
             if (itemListPanel != null)
@@ -600,7 +610,7 @@ public class ARMissionManager : MonoBehaviour
     // avoid overlap between items. If a good random position
     // cannot be found, a safe fallback ring position is used so
     // that all items still appear.
-    void SpawnItemsOnTable(Vector3 tableCenter, Vector3 tableSize, float tableHeight, Vector3 bagPosition)
+    void SpawnItemsOnTable(Vector3 tableCenter, Vector3 tableSize, float tableHeight, Vector3 bagPosition, float bagClearRadius)
     {
         totalItems = requiredItemNames.Count;
 
@@ -635,11 +645,17 @@ public class ARMissionManager : MonoBehaviour
                 maxItemRadius = r;
         }
 
-        // Approximate bag radius from its prefab size so we keep
-        // a generous clear circle around it.
-        float bagFallbackRadius = tableMinSide * 0.2f;
-        float bagRadius = GetApproxPrefabRadius(bagPrefab, bagFallbackRadius) * 1.7f;
-        const float spacingMargin = 0.02f; // extra space between shapes
+        // Use the provided clear radius when spacing items away from the bag.
+        float bagRadius = bagClearRadius;
+        if (bagRadius <= 0f)
+        {
+            // Fallback: approximate from prefab size so we keep
+            // a generous clear circle around it.
+            float bagFallbackRadius = tableMinSide * 0.2f;
+            bagRadius = GetApproxPrefabRadius(bagPrefab, bagFallbackRadius) * 1.7f;
+        }
+
+        const float spacingMargin = 0.04f; // extra space between shapes
 
         Vector2 bagXZ = new Vector2(bagPosition.x, bagPosition.z);
 
@@ -727,6 +743,39 @@ public class ARMissionManager : MonoBehaviour
             placedCenters.Add(finalXZ);
             placedRadii.Add(itemRadius);
         }
+    }
+
+    // Compute a conservative clear radius around the bag so that
+    // spawned items never start inside its drop-zone area.
+    private float ComputeBagClearRadius(GameObject bagInstance, Vector3 tableSize)
+    {
+        float tableMinSide = Mathf.Min(tableSize.x, tableSize.z);
+
+        // 1) Explicit override wins when provided.
+        if (bagClearRadiusOverride > 0f)
+            return bagClearRadiusOverride;
+
+        float radiusFromCollider = 0f;
+        if (bagInstance != null)
+        {
+            var colliders = bagInstance.GetComponentsInChildren<Collider>();
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                var c = colliders[i];
+                if (c == null) continue;
+                var extents = c.bounds.extents;
+                float r = Mathf.Max(extents.x, extents.z);
+                if (r > radiusFromCollider)
+                    radiusFromCollider = r;
+            }
+        }
+
+        if (radiusFromCollider > 0f)
+            return radiusFromCollider * 1.3f; // small safety multiplier
+
+        // 3) Final fallback based on prefab renderer size.
+        float fallbackRadius = tableMinSide * 0.25f;
+        return GetApproxPrefabRadius(bagPrefab, fallbackRadius) * 1.7f;
     }
 
     // Approximate a 2D radius for a prefab using its renderer bounds.

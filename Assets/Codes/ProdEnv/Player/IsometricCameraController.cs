@@ -1,5 +1,5 @@
 using UnityEngine;
-#if ENABLE_INPUT_SYSTEM && !ENABLE_LEGACY_INPUT_MANAGER
+#if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
@@ -19,18 +19,12 @@ public class IsometricCameraController : MonoBehaviour
     [SerializeField] private float angle = 45f; // Rotation around Y axis
     [SerializeField] private float forwardOffset = 6f; // Moves camera forward to center player vertically
 
-    [Header("Following")]
-    [SerializeField] private float followSpeed = 5f;
-    [SerializeField] private float lookAheadDistance = 2f;
-    [SerializeField] private float lookAheadSpeed = 3f;
-
     [Header("Bounds (Optional)")]
     [SerializeField] private bool useBounds = false;
     [SerializeField] private Vector2 minBounds = new Vector2(-50, -50);
     [SerializeField] private Vector2 maxBounds = new Vector2(50, 50);
 
     [Header("Zoom")]
-    [SerializeField] private bool allowZoom = false;
     [SerializeField] private float minDistance = 5f;
     [SerializeField] private float maxDistance = 20f;
     [SerializeField] private float zoomSpeed = 2f;

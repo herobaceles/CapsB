@@ -28,6 +28,9 @@ public class DialogueLineData
     [Tooltip("Optional background image for this line. If null, the previous background is kept.")]
     public Sprite backgroundSprite;
 
+    [Tooltip("If true, clears the dialogue background before displaying this line (use to hide a banner set by a previous line).")]
+    public bool clearBackground;
+
     [Header("Text")]
     [TextArea(2, 5)]
     public string message;

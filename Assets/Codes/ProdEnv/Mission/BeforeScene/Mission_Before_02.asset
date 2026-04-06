@@ -44,6 +44,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Move your device slowly and point it at the wall.
     - characterId: professor_lingap
       characterName: Prof. Lingap
@@ -51,6 +52,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: "We\u2019re looking for a flat surface. Keep scanning until dots or
         a grid appear."
     arTapToPlaceDialogueRich:
@@ -60,6 +62,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Great, I can see the wall now!
     - characterId: professor_lingap
       characterName: 
@@ -67,6 +70,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Tap on the detected wall  to place the breaker.
     arGuidanceDialogueRich:
     - characterId: professor_lingap
@@ -75,6 +79,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Nice work. You should now see cuircuit breaker.
     - characterId: professor_lingap
       characterName: 
@@ -82,6 +87,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Tap the switch now to turn off.
     taskStartQuiz:
       question: 
@@ -109,14 +115,15 @@ MonoBehaviour:
     side: 3
     expressionId: center
     portraitOverride: {fileID: 0}
-    backgroundSprite: {fileID: 0}
+    backgroundSprite: {fileID: 21300000, guid: c6f051ab7cbd11f4393005c934277eab, type: 3}
+    clearBackground: 0
     message: "Good job. Now let\u2019s proceed to your next task."
   startQuiz:
     question: What needs to be turned off before evacuation?
     options:
-    - Lights
-    - PS5
-    - Cuircuit Breaker
+    - 
+    - 
+    - 
     correctOptionIndex: 2
     optionSprites:
     - {fileID: 21300000, guid: 0751000945301554f93c3b999a27b06a, type: 3}
@@ -135,7 +142,9 @@ MonoBehaviour:
       expressionId: center
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: "Now, find the circuit breaker\u2014it\u2019s in the kitchen."
+  startQuizSequence: []
   useMissionTimer: 0
   missionTimeLimitSeconds: 0
   completionMessage: Mission Complete! Great job!

@@ -19,6 +19,10 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
     [SerializeField] private Image safeRouteHighlight;
     [SerializeField] private Image riskyRouteHighlight;
 
+    [Header("Route Gating")]
+    [SerializeField] private Button chooseNowButton;
+    [SerializeField] private GameObject routeButtonsRoot;
+
     [Header("Feedback")]
     [SerializeField] private TMP_Text feedbackText;
     [SerializeField] private Color correctColor = Color.green;
@@ -51,6 +55,8 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
     private Vector2 dragOffset;
     private bool[] previousUIStates;
     private bool previousMovementEnabled;
+    private bool hasShownChoicePrompt;
+    private Coroutine gateRoutine;
 
     private void OnValidate()
     {
@@ -98,6 +104,24 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
         if (playerController == null)
             playerController = FindObjectOfType<IsometricPlayerController>();
 
+        // Ensure route choices and the gate button start hidden so they
+        // don't briefly appear when the task canvas is first shown.
+        if (routeButtonsRoot != null)
+        {
+            routeButtonsRoot.SetActive(false);
+        }
+        else
+        {
+            if (safeRouteButton != null)
+                safeRouteButton.gameObject.SetActive(false);
+
+            if (riskyRouteButton != null)
+                riskyRouteButton.gameObject.SetActive(false);
+        }
+
+        if (chooseNowButton != null)
+            chooseNowButton.gameObject.SetActive(false);
+
         base.Awake();
     }
 
@@ -120,22 +144,7 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
     {
         choiceMade = false;
         correctChoice = false;
-
-        // Enable secondary route cameras if configured
-        if (safeRouteCamera != null)
-        {
-            safeRouteCamera.gameObject.SetActive(true);
-            safeRouteCamera.enabled = true;
-        }
-
-        if (unsafeRouteCamera != null)
-        {
-            unsafeRouteCamera.gameObject.SetActive(true);
-            unsafeRouteCamera.enabled = true;
-        }
-
-        if (secondaryCameraOverlay != null)
-            secondaryCameraOverlay.SetActive(true);
+        hasShownChoicePrompt = false;
 
         // Hide gameplay HUD while this choice is active
         if (gameplayUIRoots != null && gameplayUIRoots.Length > 0)
@@ -168,25 +177,45 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
 
         if (feedbackText != null)
             feedbackText.text = instructions;
+
+        // Initially hide route choices and the "Choose Now" gate
+        if (routeButtonsRoot != null)
+        {
+            routeButtonsRoot.SetActive(false);
+        }
+        else
+        {
+            if (safeRouteButton != null)
+                safeRouteButton.gameObject.SetActive(false);
+
+            if (riskyRouteButton != null)
+                riskyRouteButton.gameObject.SetActive(false);
+        }
+
+        if (chooseNowButton != null)
+        {
+            chooseNowButton.gameObject.SetActive(false);
+            chooseNowButton.onClick.AddListener(OnChooseNowClicked);
+        }
+
+        // Wait for any active NPC bubble dialogue to finish, then
+        // show the gate button. If no dialogue is playing, show it
+        // immediately.
+        if (gateRoutine != null)
+            StopCoroutine(gateRoutine);
+
+        gateRoutine = StartCoroutine(WaitForDialogueThenShowGate());
     }
 
     protected override void OnTaskHide()
     {
-        // Disable secondary route cameras if configured
-        if (safeRouteCamera != null)
-        {
-            safeRouteCamera.enabled = false;
-            safeRouteCamera.gameObject.SetActive(false);
-        }
+        DisableRouteCameras();
 
-        if (unsafeRouteCamera != null)
+        if (chooseNowButton != null)
         {
-            unsafeRouteCamera.enabled = false;
-            unsafeRouteCamera.gameObject.SetActive(false);
+            chooseNowButton.onClick.RemoveListener(OnChooseNowClicked);
+            chooseNowButton.gameObject.SetActive(false);
         }
-
-        if (secondaryCameraOverlay != null)
-            secondaryCameraOverlay.SetActive(false);
 
         if (safeRouteButton != null)
             safeRouteButton.onClick.RemoveListener(OnSafeRouteSelected);
@@ -215,6 +244,98 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
         {
             playerController.SetMovementEnabled(previousMovementEnabled);
         }
+
+        if (gateRoutine != null)
+        {
+            StopCoroutine(gateRoutine);
+            gateRoutine = null;
+        }
+    }
+
+    private void OnStartDialogueFinishedForRouteChoice()
+    {
+        // This method is no longer needed as we handle showing the button in the coroutine
+    }
+
+    private System.Collections.IEnumerator WaitForDialogueThenShowGate()
+    {
+        var director = DuringMissionStoryDirector.Instance;
+
+        if (director != null)
+        {
+            // If dialogue is currently playing, wait for it to stop.
+            while (director.IsPlaying)
+            {
+                yield return null;
+            }
+        }
+        ShowChooseNowButton();
+
+        gateRoutine = null;
+    }
+
+    private void ShowChooseNowButton()
+    {
+        if (hasShownChoicePrompt)
+            return;
+
+        hasShownChoicePrompt = true;
+
+        if (chooseNowButton != null)
+        {
+            chooseNowButton.gameObject.SetActive(true);
+        }
+        else
+        {
+            // Fallback: if no gate button is wired, just
+            // reveal the route choices immediately.
+            ShowRouteChoices();
+        }
+    }
+
+    private void ShowRouteChoices()
+    {
+        EnableRouteCameras();
+
+        if (routeButtonsRoot != null)
+        {
+            routeButtonsRoot.SetActive(true);
+        }
+        else
+        {
+            if (safeRouteButton != null)
+                safeRouteButton.gameObject.SetActive(true);
+
+            if (riskyRouteButton != null)
+                riskyRouteButton.gameObject.SetActive(true);
+        }
+    }
+
+    private void EnableRouteCameras()
+    {
+        // Enable secondary route cameras if configured
+        if (safeRouteCamera != null)
+        {
+            safeRouteCamera.gameObject.SetActive(true);
+            safeRouteCamera.enabled = true;
+        }
+
+        if (unsafeRouteCamera != null)
+        {
+            unsafeRouteCamera.gameObject.SetActive(true);
+            unsafeRouteCamera.enabled = true;
+        }
+
+        if (secondaryCameraOverlay != null)
+            secondaryCameraOverlay.SetActive(true);
+    }
+
+    private void OnChooseNowClicked()
+    {
+        if (chooseNowButton != null)
+            chooseNowButton.gameObject.SetActive(false);
+
+        ShowRouteChoices();
     }
 
     protected override bool ValidateCompletion()
@@ -243,6 +364,11 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
         }
 
         Debug.Log("ARRouteChoiceTask: Safe route selected (correct)");
+
+        // Hide route choices and cameras so the NPC's
+        // explanation dialogue is unobstructed.
+        HideRouteChoices();
+        DisableRouteCameras();
 
         // Complete after showing feedback
         Invoke(nameof(DelayedComplete), 2f);
@@ -279,9 +405,13 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
                 : wrongChoiceVoiceLine;
 
             var duration = wrongChoiceVoiceDuration > 0f ? wrongChoiceVoiceDuration : 3f;
-
             DuringMissionStoryDirector.Instance.SpeakLine(line, duration);
         }
+
+        // Temporarily hide route choices and cameras so the
+        // dialogue bubble explaining the mistake is unobstructed.
+        HideRouteChoices();
+        DisableRouteCameras();
 
         // Reset after delay
         Invoke(nameof(ResetChoice), 2f);
@@ -297,6 +427,45 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
             feedbackText.text = instructions;
             feedbackText.color = Color.white;
         }
+
+        // Restore route choices and cameras so the player can
+        // make another selection after seeing the dialogue.
+        ShowRouteChoices();
+    }
+
+    private void HideRouteChoices()
+    {
+        if (routeButtonsRoot != null)
+        {
+            routeButtonsRoot.SetActive(false);
+        }
+        else
+        {
+            if (safeRouteButton != null)
+                safeRouteButton.gameObject.SetActive(false);
+
+            if (riskyRouteButton != null)
+                riskyRouteButton.gameObject.SetActive(false);
+        }
+    }
+
+    private void DisableRouteCameras()
+    {
+        // Disable secondary route cameras if configured
+        if (safeRouteCamera != null)
+        {
+            safeRouteCamera.enabled = false;
+            safeRouteCamera.gameObject.SetActive(false);
+        }
+
+        if (unsafeRouteCamera != null)
+        {
+            unsafeRouteCamera.enabled = false;
+            unsafeRouteCamera.gameObject.SetActive(false);
+        }
+
+        if (secondaryCameraOverlay != null)
+            secondaryCameraOverlay.SetActive(false);
     }
 
     private void DelayedComplete()

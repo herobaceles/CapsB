@@ -138,4 +138,47 @@ public class AudioManager : MonoBehaviour
             sfxSource.volume = masterSfx;
         }
     }
+
+    /// <summary>
+    /// Set the background music clip at runtime and optionally start playing it.
+    /// </summary>
+    /// <param name="clip">Audio clip to use for BGM.</param>
+    /// <param name="playImmediately">If true, starts playback when a non-null clip is assigned.</param>
+    /// <param name="loop">If true, the BGM source will loop.</param>
+    public void SetBgmClip(AudioClip clip, bool playImmediately = true, bool loop = true)
+    {
+        if (bgmSource == null)
+            return;
+
+        bgmSource.loop = loop;
+        bgmSource.clip = clip;
+
+        // Ensure volume is up-to-date for the new clip.
+        ApplyVolumeSettings();
+
+        if (playImmediately && clip != null)
+        {
+            bgmSource.Play();
+        }
+    }
+
+    /// <summary>
+    /// Convenience helper to play a given BGM clip with looping enabled.
+    /// </summary>
+    public void PlayBgm(AudioClip clip)
+    {
+        SetBgmClip(clip, true, true);
+    }
+
+    /// <summary>
+    /// Restart playback of the currently assigned BGM clip, if any.
+    /// </summary>
+    public void RestartCurrentBgm()
+    {
+        if (bgmSource == null || bgmSource.clip == null)
+            return;
+
+        ApplyVolumeSettings();
+        bgmSource.Play();
+    }
 }
