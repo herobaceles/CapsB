@@ -105,6 +105,10 @@ public class ARMissionManager : MonoBehaviour
 
     private GameObject spawnedTable;
     private GameObject spawnedBag;
+    
+    // Last spawned breaker instance for the circuit breaker AR task so
+    // we can reliably destroy it on reset without relying on tags/names.
+    private GameObject spawnedBreaker;
 
     private int collectedItems = 0;
     private int totalItems;
@@ -300,6 +304,43 @@ public class ARMissionManager : MonoBehaviour
         breakerArGuidanceShown = false;
     }
 
+    /// <summary>
+    /// Reset the circuit breaker AR placement by removing any spawned
+    /// breaker instance and clearing breaker-specific hint state. This
+    /// is called from BreakerTaskManager when the player presses the
+    /// Restart button for the breaker task.
+    /// </summary>
+    public void ResetBreakerPlacement()
+    {
+        // Destroy the last spawned breaker (if any) so it disappears
+        // from the AR plane.
+        if (spawnedBreaker != null)
+        {
+            Destroy(spawnedBreaker);
+            spawnedBreaker = null;
+        }
+
+        // As an extra safety net, also destroy any remaining objects
+        // tagged as "Breaker" in case a prefab was not tracked.
+        var breakers = GameObject.FindGameObjectsWithTag("Breaker");
+        for (int i = 0; i < breakers.Length; i++)
+        {
+            var obj = breakers[i];
+            if (obj != null)
+                Destroy(obj);
+        }
+
+        // Clear breaker AR hint flags so guidance can show again on
+        // the next placement cycle.
+        breakerArScanHintShown = false;
+        breakerArTapHintShown = false;
+        breakerArGuidanceShown = false;
+
+        // Disable placement until BreakerTaskManager calls
+        // EnableBreakerPlacement again as part of StartBreakerTask.
+        allowBreakerPlacement = false;
+    }
+
     void TryPlaceBreaker(Vector2 screenPosition)
     {
         var activeRaycastManager = ResolveRaycastManager();
@@ -325,7 +366,16 @@ public class ARMissionManager : MonoBehaviour
             Pose hitPose = hits[0].pose;
             // Set rotation to x=0, y=90, z=0
             Quaternion spawnRotation = Quaternion.Euler(0, 90, 0);
-            Instantiate(breakerPrefabToPlace, hitPose.position, spawnRotation);
+
+            // Destroy any previously spawned breaker instance before
+            // creating a new one, to avoid duplicates after resets.
+            if (spawnedBreaker != null)
+            {
+                Destroy(spawnedBreaker);
+                spawnedBreaker = null;
+            }
+
+            spawnedBreaker = Instantiate(breakerPrefabToPlace, hitPose.position, spawnRotation);
             allowBreakerPlacement = false;
             Debug.Log("Breaker prefab placed in AR.");
 
@@ -920,6 +970,28 @@ public class ARMissionManager : MonoBehaviour
             Destroy(spawnedBag);
         foreach (var obj in GameObject.FindGameObjectsWithTag("EmergencyItem"))
             Destroy(obj);
+
+        // Reset AR flow state so that hints and placement work like
+        // a fresh run each time the mission is replayed.
+        movementLocked = false;
+
+        var selectedMission = MissionSelectManager.SelectedMission;
+        var selectedMissionId = selectedMission != null ? selectedMission.missionId : null;
+
+        if (string.Equals(selectedMissionId, "before_01", System.StringComparison.OrdinalIgnoreCase))
+        {
+            // Go Bag AR mission
+            arGuidanceShown = false;
+            arScanHintShown = false;
+            arTapHintShown = false;
+        }
+        else if (string.Equals(selectedMissionId, "before_02", System.StringComparison.OrdinalIgnoreCase))
+        {
+            // Breaker AR mission
+            breakerArScanHintShown = false;
+            breakerArTapHintShown = false;
+            breakerArGuidanceShown = false;
+        }
 
         // Reset mission state
         collectedItems = 0;

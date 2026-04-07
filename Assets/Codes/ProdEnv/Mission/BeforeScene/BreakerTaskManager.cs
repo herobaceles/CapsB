@@ -9,29 +9,13 @@ public class BreakerTaskManager : MonoBehaviour
     public void RestartBreakerTask()
     {
         Debug.Log("[BreakerTaskManager] RestartBreakerTask called");
-        // Try to destroy by tag first
-        var breakers = GameObject.FindGameObjectsWithTag("Breaker");
-        if (breakers.Length == 0)
+        // Ask the shared AR mission manager to clear any spawned
+        // breaker instance and reset breaker-specific AR hints.
+        if (ARMissionManager.Instance != null)
         {
-            // Fallback: try to find by name (in case tag is missing)
-            var allObjects = GameObject.FindObjectsOfType<GameObject>();
-            foreach (var obj in allObjects)
-            {
-                if (obj.name.Contains("Breaker"))
-                {
-                    Debug.Log("[BreakerTaskManager] Destroying object: " + obj.name);
-                    Destroy(obj);
-                }
-            }
+            ARMissionManager.Instance.ResetBreakerPlacement();
         }
-        else
-        {
-            foreach (var obj in breakers)
-            {
-                Debug.Log("[BreakerTaskManager] Destroying tagged breaker: " + obj.name);
-                Destroy(obj);
-            }
-        }
+
         taskStarted = false;
         taskComplete = false;
         if (achievementPanel != null)
