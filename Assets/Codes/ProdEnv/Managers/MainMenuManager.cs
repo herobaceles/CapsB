@@ -25,6 +25,10 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private Slider masterVolumeSlider;
     [SerializeField] private Button closeSettingsButton;
 
+    [Header("About")] 
+    [SerializeField] private GameObject aboutPanel;
+    [SerializeField] private Button closeAboutButton;
+
     private void Start()
     {
         AppSceneLoader.EnsureExists();
@@ -73,6 +77,15 @@ public class MainMenuManager : MonoBehaviour
         if (closeSettingsButton != null)
         {
             closeSettingsButton.onClick.AddListener(CloseSettings);
+        }
+
+        // About panel starts hidden
+        if (aboutPanel != null)
+            aboutPanel.SetActive(false);
+
+        if (closeAboutButton != null)
+        {
+            closeAboutButton.onClick.AddListener(CloseAbout);
         }
     }
 
@@ -204,5 +217,32 @@ public class MainMenuManager : MonoBehaviour
         {
             AudioManager.Instance.SetMasterVolume(value);
         }
+    }
+
+    // Called when "About" button is clicked
+    public void OpenAbout()
+    {
+        Debug.Log("MainMenuManager: About button clicked");
+
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(false);
+
+        if (settingsPanel != null)
+            settingsPanel.SetActive(false);
+
+        if (resetConfirmPanel != null)
+            resetConfirmPanel.SetActive(false);
+
+        if (aboutPanel != null)
+            aboutPanel.SetActive(true);
+    }
+
+    private void CloseAbout()
+    {
+        if (aboutPanel != null)
+            aboutPanel.SetActive(false);
+
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(true);
     }
 }

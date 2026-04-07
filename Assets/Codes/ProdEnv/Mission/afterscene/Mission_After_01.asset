@@ -39,6 +39,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: The storm has passesd
     - characterId: professor_lingap
       characterName: Professor Lingap
@@ -46,6 +47,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: It's time to go home.
     - characterId: professor_lingap
       characterName: Professor Lingap
@@ -53,6 +55,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: But be careful. The flood leaves behind many hidden dangers.
     - characterId: professor_lingap
       characterName: Professor Lingap
@@ -60,6 +63,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 21300000, guid: 12c35c77409217241a4bea176274794e, type: 3}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: 'This is your final level: The Recovery.'
     showDialogueOnComplete: 1
     completeDialogue:
@@ -71,13 +75,69 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
-      message: Good work!
-    arScanForPlaneDialogueRich: []
-    arTapToPlaceDialogueRich: []
-    arGuidanceDialogueRich: []
+      clearBackground: 0
+      message: Now select all the clean up items.
+    arScanForPlaneDialogueRich:
+    - characterId: Professor_lingap
+      characterName: Prof. Lingap
+      side: 1
+      expressionId: Explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 0
+      message: 'Move your device slowly and point it at the floor.
+
+'
+    - characterId: Professor_lingap
+      characterName: Prof. Lingap
+      side: 1
+      expressionId: Explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 0
+      message: "We\u2019re looking for a flat surface. Keep scanning until dots or
+        a grid appear."
+    arTapToPlaceDialogueRich:
+    - characterId: Professor_lingap
+      characterName: Prof. Lingap
+      side: 1
+      expressionId: Explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 0
+      message: Great, I can see the surface now!
+    - characterId: Professor_lingap
+      characterName: Prof. Lingap
+      side: 1
+      expressionId: Explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 0
+      message: Tap on the detected area to place the house.
+    arGuidanceDialogueRich:
+    - characterId: Professor_lingap
+      characterName: Prof. Lingap
+      side: 1
+      expressionId: Explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 0
+      message: 'Nice work. You should now see the house '
+    - characterId: Professor_lingap
+      characterName: Prof. Lingap
+      side: 1
+      expressionId: Explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 0
+      message: Now tap the clean up items
     taskStartQuiz:
       question: 
       options: []
+      wrongOptionFeedback:
+      - 
+      - 
+      - 
       correctOptionIndex: 0
       optionSprites: []
       placeholderSprite: {fileID: 0}
@@ -103,6 +163,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Now put on and collect the proper cleanup gear.
     showDialogueOnComplete: 0
     completeDialogue: []
@@ -114,6 +175,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Move device slowly, scan floor, find flat/open space.
     - characterId: professor_lingap
       characterName: Professor Lingap
@@ -121,6 +183,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: we are looking for flat and open space  keep scanning until dots or
         a grid appear.
     arTapToPlaceDialogueRich:
@@ -130,6 +193,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: 'Great, I can see the surface now!
 
 '
@@ -140,11 +204,16 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
-      message: Nice work.  now that you see the house  and cleanup items  now select
-        all the items needed for teh clean up
+      clearBackground: 0
+      message: Nice work.  Now that you see the house interior  and cleanup items,
+        select all the items needed for the clean up.
     taskStartQuiz:
       question: 
       options:
+      - 
+      - 
+      - 
+      wrongOptionFeedback:
       - 
       - 
       - 
@@ -181,6 +250,7 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Now search the house for hidden dangers.
     - characterId: professor_lingap
       characterName: Professor Lingap
@@ -188,6 +258,7 @@ MonoBehaviour:
       expressionId: shocked
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: If you see snakes or rats, drag them into the safety bucket.
     showDialogueOnComplete: 0
     completeDialogue: []
@@ -199,6 +270,7 @@ MonoBehaviour:
       expressionId: 
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Look around; some animals may be hiding.
     - characterId: 
       characterName: 
@@ -206,12 +278,17 @@ MonoBehaviour:
       expressionId: 
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Drag each dangerous animal into the bucket to remove the threat.
     arTapToPlaceDialogueRich: []
     arGuidanceDialogueRich: []
     taskStartQuiz:
       question: 
       options:
+      - 
+      - 
+      - 
+      wrongOptionFeedback:
       - 
       - 
       - 
@@ -244,6 +321,10 @@ MonoBehaviour:
     - Look for cracks in the walls or foundation.
     - Turn on all electricity
     - Ignore standing water
+    wrongOptionFeedback:
+    - 
+    - 
+    - 
     correctOptionIndex: 0
     optionSprites:
     - {fileID: 21300000, guid: c62ec29a00cd81747a2496b4367dbf85, type: 3}
@@ -260,14 +341,18 @@ MonoBehaviour:
   - question: Hold on! Before we rush inside, we must check the house for structural
       damage. What's the first thing you should check?
     options:
-    - A. Look for cracks in the walls or foundation.
-    - B. See if the front door is stuck.
-    - C. Turn on all electricity
+    - 
+    - 
+    - 
+    wrongOptionFeedback:
+    - 
+    - 
+    - 
     correctOptionIndex: 0
     optionSprites:
-    - {fileID: 21300000, guid: c62ec29a00cd81747a2496b4367dbf85, type: 3}
-    - {fileID: 21300000, guid: 34d374d94a08b4147951e55c6e71d898, type: 3}
-    - {fileID: 21300000, guid: 551fb8b0c4a301f41beb3778b6b8bd2f, type: 3}
+    - {fileID: 21300000, guid: 1089ba6f057c19a4eb287d5c1df90014, type: 3}
+    - {fileID: 21300000, guid: b758b96d287330648a46398c7d52f9e1, type: 3}
+    - {fileID: 21300000, guid: d357e4fcca7d92f45be15b01097be7c5, type: 3}
     placeholderSprite: {fileID: 0}
     questionCharacterId: professor_lingap
     questionExpressionId: asking
@@ -280,19 +365,24 @@ MonoBehaviour:
       expressionId: ThumbsUp
       portraitOverride: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Exactly. We must check for deep cracks or a shifting foundation. The
         house seems stable for now. Okay, let's go in, but carefully.
   - question: We're inside. It's a mess. The mud isn't the only problem. What other
       hidden dangers might the flood have brought inside?
     options:
-    - 'A.  Wild animals (like snakes or rats) seeking shelter. '
-    - B. Valuable items washed in from outside.
-    - C. Leftover puddles of clean water.
+    - 
+    - 
+    - 
+    wrongOptionFeedback:
+    - 
+    - 
+    - 
     correctOptionIndex: 0
     optionSprites:
-    - {fileID: 21300000, guid: 6b19364ec0554294bb4fb8f278fcd760, type: 3}
-    - {fileID: 21300000, guid: 8656fdfce6000b44ebdb52e852810026, type: 3}
-    - {fileID: 21300000, guid: c4756e93cd5303041aef9c1486c4e6c4, type: 3}
+    - {fileID: 21300000, guid: 476e212a943fab947800c1d9954f6cbf, type: 3}
+    - {fileID: 21300000, guid: 38953332af455114485d64e7a15b714d, type: 3}
+    - {fileID: 21300000, guid: 8bf46eb9913472a42b6c1ebc25cbc001, type: 3}
     placeholderSprite: {fileID: 0}
     questionCharacterId: professor_lingap
     questionExpressionId: explaining
@@ -305,18 +395,23 @@ MonoBehaviour:
       expressionId: ThumbsUp
       portraitOverride: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: That's right! Snakes and rats can be hiding in the debris. Never touch
         anything with your bare hands. We must wear protective gear.
   - question: What gear should you wear to clean up?
     options:
-    - 'A. Sandals and shorts. '
-    - B. Rain boots, heavy-duty gloves, and a face mask.
-    - C. A plastic bag over your shoes.
+    - 
+    - 
+    - 
+    wrongOptionFeedback:
+    - 
+    - 
+    - 
     correctOptionIndex: 1
     optionSprites:
-    - {fileID: 21300000, guid: cbbeb1483e8f77a4691be83cbce7cb89, type: 3}
-    - {fileID: 21300000, guid: fa0a7f7331499e64ebd3626a604f8f38, type: 3}
-    - {fileID: 21300000, guid: 65a3b7c53f3d6ec44acc98189b124392, type: 3}
+    - {fileID: 21300000, guid: e2b8b02932e148c45ad0b309732c72d9, type: 3}
+    - {fileID: 21300000, guid: eee73f2d6bfb0d548b2564e75d00c012, type: 3}
+    - {fileID: 21300000, guid: e5108219dd599c947b041a9f73bc03c4, type: 3}
     placeholderSprite: {fileID: 0}
     questionCharacterId: professor_lingap
     questionExpressionId: explaining
@@ -329,6 +424,7 @@ MonoBehaviour:
       expressionId: ThumbsUp
       portraitOverride: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Perfect! Boots to protect from sharp objects, gloves to protect from
         bacteria, and a mask to protect from mold. Now we're ready.
   useMissionTimer: 1

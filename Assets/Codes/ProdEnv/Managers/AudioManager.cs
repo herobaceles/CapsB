@@ -1,4 +1,6 @@
 using UnityEngine;
+
+#if UNITY_EDITOR
 using UnityEditor;
 
 public static class MissingScriptFinder
@@ -27,6 +29,7 @@ public static class MissingScriptFinder
         }
     }
 }
+#endif
 
 public class AudioManager : MonoBehaviour
 {

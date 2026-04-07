@@ -22,6 +22,7 @@ public class ARRuntimeContext : MonoBehaviour
     public ARPlaneManager PlaneManager { get; private set; }
     public ARCameraManager CameraManager { get; private set; }
     public MonoBehaviour XRInteractionManager { get; private set; }
+    public ARAnchorManager AnchorManager { get; private set; }
 
     public bool IsReady => ARRoot != null && ARCamera != null;
     
@@ -31,6 +32,8 @@ public class ARRuntimeContext : MonoBehaviour
     public bool SimulationPreInitialized { get; private set; }
     
     private bool isARCurrentlyActive;
+    private bool xrOriginInitialized;
+    private readonly System.Collections.Generic.List<ARRaycastHit> anchorRaycastHits = new System.Collections.Generic.List<ARRaycastHit>();
 
     /// <summary>
     /// Returns true when a UnityEngine.Object reference has been destroyed
@@ -166,6 +169,9 @@ public class ARRuntimeContext : MonoBehaviour
         if (CameraManager == null && ARCamera != null)
             CameraManager = ARCamera.GetComponent<ARCameraManager>();
 
+        if (AnchorManager == null && ARRoot != null)
+            AnchorManager = ARRoot.GetComponentInChildren<ARAnchorManager>(true);
+
         if (XRInteractionManager == null && ARRoot != null)
             XRInteractionManager = FindComponentByTypeName(ARRoot, "XRInteractionManager");
     }
@@ -177,11 +183,15 @@ public class ARRuntimeContext : MonoBehaviour
 
         if (active)
         {
-            // Snap XR Origin to simulation origin so camera starts inside the environment
-            if (XROriginRoot != null)
+            // Snap XR Origin to simulation origin only once so the
+            // camera starts inside the environment, but avoid
+            // re-zeroing between multiple AR sessions which can
+            // make content appear to "drift" on subsequent runs.
+            if (XROriginRoot != null && !xrOriginInitialized)
             {
                 XROriginRoot.transform.position = Vector3.zero;
                 XROriginRoot.transform.rotation = Quaternion.identity;
+                xrOriginInitialized = true;
             }
 
             // Enable AR fully
@@ -261,6 +271,45 @@ public class ARRuntimeContext : MonoBehaviour
             if (CameraManager != null)
                 CameraManager.enabled = false;
         }
+    }
+
+    /// <summary>
+    /// Attempts to create an ARAnchor at the center of the screen on a
+    /// detected plane and parent the provided house root under it. This
+    /// is used by After-scene AR to stabilise the AR house without
+    /// changing mission logic.
+    /// </summary>
+    public bool TryAnchorHouseAtScreenCenter(GameObject houseRoot)
+    {
+        if (houseRoot == null)
+            return false;
+
+        RebindIfMissing();
+
+        var raycastManager = ResolveRaycastManager(RaycastManager);
+        if (raycastManager == null || AnchorManager == null)
+            return false;
+
+        // Raycast from the centre of the screen onto a detected plane.
+        Vector2 screenPos = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+        anchorRaycastHits.Clear();
+
+        if (!raycastManager.Raycast(screenPos, anchorRaycastHits, TrackableType.PlaneWithinPolygon))
+            return false;
+
+        Pose pose = anchorRaycastHits[0].pose;
+
+        var anchor = AnchorManager.AddAnchor(pose);
+        if (anchor == null)
+            return false;
+
+        // Move the house to the anchor pose and parent it under the
+        // anchor so that ARCore/ARKit keeps it stable in the real world.
+        Transform houseTransform = houseRoot.transform;
+        houseTransform.SetPositionAndRotation(pose.position, pose.rotation);
+        houseTransform.SetParent(anchor.transform, true);
+
+        return true;
     }
 
     /// <summary>

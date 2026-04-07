@@ -44,6 +44,9 @@ public class AfterMissionManager : MissionSceneManager
     [Header("After Achievements UI")]
     [SerializeField] private GameObject achievementsPanel;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip afterSceneBgmClip;
+
     [Header("Camera")]
     [SerializeField] private Camera gameplayCamera;
 
@@ -76,6 +79,17 @@ public class AfterMissionManager : MissionSceneManager
             arController = FindObjectOfType<AfterRecoveryARController>();
         
         sceneController = FindObjectOfType<AfterSceneController>();
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+
+        // Start background music specific to the After scene, if configured.
+        if (AudioManager.Instance != null && afterSceneBgmClip != null)
+        {
+            AudioManager.Instance.PlayBgm(afterSceneBgmClip);
+        }
     }
 
     protected override void LoadMission()

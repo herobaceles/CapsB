@@ -3796,6 +3796,7 @@ GameObject:
   - component: {fileID: 252030861}
   - component: {fileID: 252030860}
   - component: {fileID: 252030862}
+  - component: {fileID: 252030863}
   m_Layer: 0
   m_Name: ' AfterRecoveryARController'
   m_TagString: Untagged
@@ -3820,6 +3821,7 @@ MonoBehaviour:
   hiddenDangerHouseRoot: {fileID: 1975208353}
   kitchenSafetyHouseRoot: {fileID: 1170816247}
   disinfectHouseRoot: {fileID: 1111897821}
+  placementManager: {fileID: 252030863}
   arUIRoot: {fileID: 1787668592}
   greenCheckPrefab: {fileID: 1201655851}
   redCrossPrefab: {fileID: 1776064059}
@@ -3878,6 +3880,21 @@ MonoBehaviour:
     requiredTag: SafeItem
     requiredCount: 4
     taskId: after_02_Safe_items
+--- !u!114 &252030863
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 252030859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ff6abeb3193bc4458474ca5610ab6bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  raycastManager: {fileID: 0}
+  planeManager: {fileID: 0}
+  placementHintUI: {fileID: 0}
 --- !u!1 &254297754
 GameObject:
   m_ObjectHideFlags: 0
@@ -5931,7 +5948,7 @@ ParticleSystemRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: e823cd5b5d27c0f4b8256e7c12ee3e6d, type: 2}
+  - {fileID: 2100000, guid: ad5cf099c8095d54794f2bbd638dc52c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -6619,7 +6636,7 @@ ParticleSystem:
     angle: 1
     length: 5
     boxThickness: {x: 0, y: 0, z: 0}
-    radiusThickness: 1
+    radiusThickness: 0.5
     donutRadius: 0.2
     m_Position: {x: 0.08, y: 0, z: 0.41}
     m_Rotation: {x: 0, y: 90.42, z: 0}
@@ -6927,7 +6944,7 @@ ParticleSystem:
     m_BurstCount: 0
     m_Bursts: []
   SizeModule:
-    enabled: 0
+    enabled: 1
     curve:
       serializedVersion: 2
       minMaxState: 1
@@ -7251,7 +7268,7 @@ ParticleSystem:
         m_RotationOrder: 4
     separateAxes: 0
   ColorModule:
-    enabled: 0
+    enabled: 1
     gradient:
       serializedVersion: 2
       minMaxState: 1
@@ -7259,7 +7276,7 @@ ParticleSystem:
       maxColor: {r: 1, g: 1, b: 1, a: 1}
       maxGradient:
         serializedVersion: 2
-        key0: {r: 1, g: 1, b: 1, a: 1}
+        key0: {r: 0.51886785, g: 0.8660377, b: 1, a: 1}
         key1: {r: 1, g: 1, b: 1, a: 1}
         key2: {r: 0, g: 0, b: 0, a: 0}
         key3: {r: 0, g: 0, b: 0, a: 0}
@@ -7284,7 +7301,7 @@ ParticleSystem:
         atime6: 0
         atime7: 0
         m_Mode: 0
-        m_ColorSpace: -1
+        m_ColorSpace: 0
         m_NumColorKeys: 2
         m_NumAlphaKeys: 2
       minGradient:
@@ -19021,7 +19038,7 @@ Transform:
   m_GameObject: {fileID: 1201655851}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -1.559, z: 0}
+  m_LocalPosition: {x: 0, y: -16, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -19975,6 +19992,7 @@ MonoBehaviour:
       m_Calls: []
   preparationUI: {fileID: 0}
   achievementsPanel: {fileID: 1416663582}
+  afterSceneBgmClip: {fileID: 8300000, guid: 2b8208b4a26d4bc409bc73388090367c, type: 3}
   gameplayCamera: {fileID: 211612320}
   arController: {fileID: 252030860}
   arModeBindings:
@@ -26728,7 +26746,7 @@ Transform:
   m_GameObject: {fileID: 1776064059}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -1.654, z: 0}
+  m_LocalPosition: {x: 0, y: -15.1, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []

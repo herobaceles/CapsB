@@ -33,6 +33,7 @@ public class AfterRecoveryARController : MonoBehaviour
 
     [Tooltip("Root GameObject for the Disinfect House AR house. Should be present in the scene and initially inactive.")]
     [SerializeField] private GameObject disinfectHouseRoot;
+    [SerializeField] private After_ARPlacementManager placementManager;
 
     [Header("AR UI")]
     [Tooltip("Root GameObject containing all After-phase AR UI. Shown while AR is active.")]
@@ -130,6 +131,10 @@ public class AfterRecoveryARController : MonoBehaviour
             DisableAR();
         }
 
+        // Ensure any leftover feedback icons from a previous AR
+        // task are cleared before starting a new one.
+        ClearFeedbackIcons();
+
         CurrentMissionMode = mode;
         IsARActive = true;
 
@@ -154,47 +159,90 @@ public class AfterRecoveryARController : MonoBehaviour
         }
 
         GameObject activeHouseRoot = null;
+        TaskData taskForAR = null;
 
-        // Toggle AR house roots based on the active mission mode.
+        // Use the current mission task as AR guidance source when
+        // available so AR placement manager can show AR dialogues.
+        if (AfterMissionManager.Instance != null)
+        {
+            taskForAR = AfterMissionManager.Instance.CurrentTask;
+        }
+
+        // Select AR house root based on the active mission mode.
+        // Do NOT activate any house yet; visibility will be
+        // controlled by the placement manager after a successful
+        // tap-to-place.
         if (cleanupGearHouseRoot != null)
         {
-            bool active = mode == MissionMode.CleanupGear;
-            cleanupGearHouseRoot.SetActive(active);
-            if (active) activeHouseRoot = cleanupGearHouseRoot;
+            cleanupGearHouseRoot.SetActive(false);
+            if (mode == MissionMode.CleanupGear)
+                activeHouseRoot = cleanupGearHouseRoot;
         }
 
         if (hiddenDangerHouseRoot != null)
         {
-            bool active = mode == MissionMode.HiddenDanger;
-            hiddenDangerHouseRoot.SetActive(active);
-            if (active) activeHouseRoot = hiddenDangerHouseRoot;
+            hiddenDangerHouseRoot.SetActive(false);
+            if (mode == MissionMode.HiddenDanger)
+                activeHouseRoot = hiddenDangerHouseRoot;
         }
 
         if (kitchenSafetyHouseRoot != null)
         {
-            bool active = mode == MissionMode.KitchenSafety;
-            kitchenSafetyHouseRoot.SetActive(active);
-            if (active) activeHouseRoot = kitchenSafetyHouseRoot;
+            kitchenSafetyHouseRoot.SetActive(false);
+            if (mode == MissionMode.KitchenSafety)
+                activeHouseRoot = kitchenSafetyHouseRoot;
         }
 
         if (disinfectHouseRoot != null)
         {
-            bool active = mode == MissionMode.DisinfectHouse;
-            disinfectHouseRoot.SetActive(active);
-            if (active) activeHouseRoot = disinfectHouseRoot;
+            disinfectHouseRoot.SetActive(false);
+            if (mode == MissionMode.DisinfectHouse)
+                activeHouseRoot = disinfectHouseRoot;
         }
 
-        // Ensure the active AR house lives under the ARRoot so it
-        // stays in AR space and does not drift relative to tracking.
-        AttachHouseToARRoot(activeHouseRoot);
-
-        // Only HiddenDanger mode actually relies on the spawner.
-        if (hiddenDangerSpawner != null && mode == MissionMode.HiddenDanger)
+        if (placementManager != null && activeHouseRoot != null)
         {
-            hiddenDangerSpawner.StartSpawning();
+            // For HiddenDanger, delay spawning hazards until after
+            // the house has been placed so spawn points stay aligned
+            // with the moved house.
+            if (mode == MissionMode.HiddenDanger && hiddenDangerSpawner != null)
+            {
+                placementManager.OnHousePlaced -= HandleHiddenDangerHousePlaced;
+                placementManager.OnHousePlaced += HandleHiddenDangerHousePlaced;
+            }
+
+            placementManager.BeginPlacement(activeHouseRoot, taskForAR);
+        }
+        else
+        {
+            // Fallback: immediate parenting without tap-to-place.
+            AttachHouseToARRoot(activeHouseRoot);
+
+            // In the fallback path, start HiddenDanger spawning
+            // immediately so behaviour matches the legacy setup.
+            if (hiddenDangerSpawner != null && mode == MissionMode.HiddenDanger)
+            {
+                hiddenDangerSpawner.StartSpawning();
+            }
         }
 
         Debug.Log($"AfterRecoveryARController: AR session started for mode {mode}.");
+    }
+
+    /// <summary>
+    /// Called when the Hidden Danger house has been placed in AR
+    /// space. Starts the hazard spawner so snakes/rats appear at
+    /// the correct spawn points relative to the placed house.
+    /// </summary>
+    private void HandleHiddenDangerHousePlaced(GameObject houseRoot)
+    {
+        if (placementManager != null)
+            placementManager.OnHousePlaced -= HandleHiddenDangerHousePlaced;
+
+        if (hiddenDangerSpawner != null && CurrentMissionMode == MissionMode.HiddenDanger)
+        {
+            hiddenDangerSpawner.StartSpawning();
+        }
     }
 
     /// <summary>
@@ -245,7 +293,25 @@ public class AfterRecoveryARController : MonoBehaviour
             ARRuntimeContext.Instance.SetARActive(false);
         }
 
+        // Clean up any lingering feedback icons when AR ends.
+        ClearFeedbackIcons();
+
         Debug.Log("AfterRecoveryARController: AR session disabled.");
+    }
+
+    private void ClearFeedbackIcons()
+    {
+        if (feedbackRoot == null)
+            return;
+
+        for (int i = feedbackRoot.childCount - 1; i >= 0; i--)
+        {
+            var child = feedbackRoot.GetChild(i);
+            if (child != null)
+            {
+                Destroy(child.gameObject);
+            }
+        }
     }
 
     private void AttachHouseToARRoot(GameObject houseRoot)
@@ -253,17 +319,25 @@ public class AfterRecoveryARController : MonoBehaviour
         if (houseRoot == null)
             return;
 
-        if (ARRuntimeContext.Instance == null || ARRuntimeContext.Instance.ARRoot == null)
+        var ctx = ARRuntimeContext.Instance;
+        if (ctx == null || ctx.ARRoot == null)
             return;
 
+        // First, try to anchor the house on a detected plane at the
+        // centre of the screen. If this succeeds, the house will be
+        // parented under the ARAnchor and kept stable by ARCore/ARKit.
+        if (ctx.TryAnchorHouseAtScreenCenter(houseRoot))
+            return;
+
+        // Fallback: if anchoring is not available (e.g., no planes
+        // detected yet or no ARAnchorManager present), keep the old
+        // behaviour of parenting directly under ARRoot.
         Transform houseTransform = houseRoot.transform;
-        Transform arRootTransform = ARRuntimeContext.Instance.ARRoot.transform;
+        Transform arRootTransform = ctx.ARRoot.transform;
 
         if (houseTransform.parent == arRootTransform)
             return;
 
-        // Keep the current world pose while reparenting so the house
-        // does not visually jump, but now moves consistently with AR.
         houseTransform.SetParent(arRootTransform, true);
     }
 
@@ -354,17 +428,13 @@ public class AfterRecoveryARController : MonoBehaviour
             cam = Camera.main;
         }
 
-        if (cam != null)
-        {
-            iconInstance.transform.LookAt(cam.transform);
-        }
+        // Optionally rotate icon toward camera here if needed.
 
         if (feedbackLifetime > 0f)
         {
             Destroy(iconInstance, feedbackLifetime);
         }
 
-        // Play audio feedback once per interaction if configured
         if (isCorrect)
         {
             if (correctAnswerSfx != null)
