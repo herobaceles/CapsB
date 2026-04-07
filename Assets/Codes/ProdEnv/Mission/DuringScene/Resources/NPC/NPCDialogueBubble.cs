@@ -22,6 +22,10 @@ public class NPCDialogueBubble : MonoBehaviour
     [SerializeField] private float defaultDuration = 3f;
     [SerializeField] private float fadeDuration = 0.2f;
 
+    [Header("Typing Effect")]
+    [SerializeField] private bool useTypingEffect = true;
+    [SerializeField] private float charactersPerSecond = 30f;
+
     private readonly Queue<DialogueEntry> queue = new Queue<DialogueEntry>();
     private Coroutine playbackRoutine;
     private Camera cachedCamera;
@@ -114,10 +118,58 @@ public class NPCDialogueBubble : MonoBehaviour
         {
             DialogueEntry entry = queue.Dequeue();
             if (textLabel != null)
+            {
                 textLabel.text = entry.Text;
+                textLabel.maxVisibleCharacters = 0;
+            }
 
+            // Fade in bubble first
             yield return FadeTo(1f);
-            yield return new WaitForSeconds(entry.Duration);
+
+            float duration = entry.Duration > 0f ? entry.Duration : defaultDuration;
+
+            if (useTypingEffect && textLabel != null && charactersPerSecond > 0f)
+            {
+                int totalChars = textLabel.text != null ? textLabel.text.Length : 0;
+
+                if (totalChars > 0)
+                {
+                    float typeTime = totalChars / charactersPerSecond;
+                    if (typeTime > duration)
+                        typeTime = duration;
+
+                    float elapsed = 0f;
+                    while (elapsed < typeTime)
+                    {
+                        elapsed += Time.deltaTime;
+                        float t = Mathf.Clamp01(typeTime > 0f ? elapsed / typeTime : 1f);
+                        int visible = Mathf.Clamp(Mathf.FloorToInt(t * totalChars), 0, totalChars);
+                        textLabel.maxVisibleCharacters = visible;
+                        yield return null;
+                    }
+
+                    textLabel.maxVisibleCharacters = totalChars;
+
+                    float remaining = Mathf.Max(0f, duration - typeTime);
+                    if (remaining > 0f)
+                        yield return new WaitForSeconds(remaining);
+                }
+                else
+                {
+                    // No characters to type, just wait full duration
+                    yield return new WaitForSeconds(duration);
+                }
+            }
+            else
+            {
+                if (textLabel != null)
+                {
+                    // Show full text immediately
+                    textLabel.maxVisibleCharacters = int.MaxValue;
+                }
+                yield return new WaitForSeconds(duration);
+            }
+
             yield return FadeTo(0f);
         }
 

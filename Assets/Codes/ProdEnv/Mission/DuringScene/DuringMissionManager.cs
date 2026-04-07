@@ -270,34 +270,50 @@ public class DuringMissionManager : MissionSceneManager
         bool isCurrentTask = currentTask != null &&
             string.Equals(currentTask.taskId, taskId, System.StringComparison.OrdinalIgnoreCase);
 
-        if (isCurrentTask && activeARTask != null)
+        if (isCurrentTask)
         {
-            Debug.Log($"DuringMissionManager: Trigger entered for AR task {taskId}.");
-
-            System.Action startMiniScene = () =>
+            if (activeARTask != null)
             {
-                EnterFloodZone(taskId);
-                StartActiveARTask();
-            };
+                Debug.Log($"DuringMissionManager: Trigger entered for AR task {taskId}.");
 
-            // If this task has AR guidance dialogue defined in the mission asset,
-            // play it before entering the mini-scene.
-            if (CurrentTask != null &&
-                CurrentTask.arGuidanceDialogueRich != null &&
-                CurrentTask.arGuidanceDialogueRich.Count > 0 &&
-                ProdDialogueManager.Instance != null)
-            {
-                Debug.Log("DuringMissionManager: Showing AR guidance dialogue before starting AR task.");
-                ShowTaskDialogue(CurrentTask.arGuidanceDialogueRich, startMiniScene);
+                System.Action startMiniScene = () =>
+                {
+                    EnterFloodZone(taskId);
+                    StartActiveARTask();
+                };
+
+                // If this task has AR guidance dialogue defined in the mission asset,
+                // play it before entering the mini-scene.
+                if (CurrentTask != null &&
+                    CurrentTask.arGuidanceDialogueRich != null &&
+                    CurrentTask.arGuidanceDialogueRich.Count > 0 &&
+                    ProdDialogueManager.Instance != null)
+                {
+                    Debug.Log("DuringMissionManager: Showing AR guidance dialogue before starting AR task.");
+                    ShowTaskDialogue(CurrentTask.arGuidanceDialogueRich, startMiniScene);
+                }
+                else
+                {
+                    startMiniScene();
+                }
             }
             else
             {
-                startMiniScene();
+                // This means the mission data expects the player to step into a
+                // flood-zone trigger for the current task, but no ARTaskBinding
+                // was resolved for this taskId in the inspector. In this case we
+                // fall back to the base behaviour (auto-complete), but we log a
+                // clear warning so designers can wire the binding.
+                Debug.LogWarning($"DuringMissionManager: Trigger entered for current task '{taskId}', but no AR task is bound. Check arTaskBindings on DuringMissionManager for this taskId.");
+                base.OnTriggerActivated(taskId);
             }
 
             return;
         }
 
+        // Not the current task; defer to base behaviour so any non-During-specific
+        // logic (e.g., sequential triggers) continues to work, but log for clarity.
+        Debug.LogWarning($"DuringMissionManager: Trigger activated for taskId '{taskId}' while current task is '{currentTask?.taskId}'. Falling back to base OnTriggerActivated.");
         base.OnTriggerActivated(taskId);
     }
 

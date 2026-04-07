@@ -63,6 +63,11 @@ public class DuringMissionStoryDirector : MonoBehaviour
         if (speakingNPC == null)
             speakingNPC = FindObjectOfType<NPCFollower>();
 
+        if (speakingNPC == null)
+        {
+            Debug.LogWarning("DuringMissionStoryDirector: No NPCFollower assigned or found in scene. Bubble dialogue will not be visible until one is added and wired as 'speakingNPC'.");
+        }
+
         SubscribeToMissionEvents();
     }
 
