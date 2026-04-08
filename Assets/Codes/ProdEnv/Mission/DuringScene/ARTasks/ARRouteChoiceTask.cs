@@ -57,6 +57,7 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
     private bool previousMovementEnabled;
     private bool hasShownChoicePrompt;
     private Coroutine gateRoutine;
+    private Coroutine wrongChoiceRoutine;
 
     private void OnValidate()
     {
@@ -250,6 +251,12 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
             StopCoroutine(gateRoutine);
             gateRoutine = null;
         }
+
+        if (wrongChoiceRoutine != null)
+        {
+            StopCoroutine(wrongChoiceRoutine);
+            wrongChoiceRoutine = null;
+        }
     }
 
     private void OnStartDialogueFinishedForRouteChoice()
@@ -413,8 +420,39 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
         HideRouteChoices();
         DisableRouteCameras();
 
-        // Reset after delay
-        Invoke(nameof(ResetChoice), 2f);
+        // Reset only after all wrong-choice dialogue has finished playing
+        if (wrongChoiceRoutine != null)
+        {
+            StopCoroutine(wrongChoiceRoutine);
+            wrongChoiceRoutine = null;
+        }
+
+        wrongChoiceRoutine = StartCoroutine(WaitForWrongDialogueThenReset());
+    }
+
+    private System.Collections.IEnumerator WaitForWrongDialogueThenReset()
+    {
+        var director = DuringMissionStoryDirector.Instance;
+
+        if (director != null)
+        {
+            // Wait until all queued NPC dialogue (including our wrong-choice line)
+            // has finished playing.
+            while (director.IsPlaying)
+            {
+                yield return null;
+            }
+        }
+        else
+        {
+            // Fallback: if no story director is present, wait roughly for the
+            // configured wrong-choice voice duration so the text has time to read.
+            var duration = wrongChoiceVoiceDuration > 0f ? wrongChoiceVoiceDuration : 2f;
+            yield return new WaitForSeconds(duration);
+        }
+
+        ResetChoice();
+        wrongChoiceRoutine = null;
     }
 
     private void ResetChoice()

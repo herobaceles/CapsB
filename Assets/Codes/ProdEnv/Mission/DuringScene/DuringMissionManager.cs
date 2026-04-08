@@ -484,6 +484,7 @@ public class DuringMissionManager : MissionSceneManager
             if (introNPC != null)
             {
                 introNPC.SpeakLine("Great! Keep that map handy during our evacuation.", 3f);
+                introNPC.SpeakLine("Now that the door is open, go outside but be careful.", 4f);
             }
 
             // Complete the task after a short delay

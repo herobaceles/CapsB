@@ -44,6 +44,10 @@ MonoBehaviour:
       - 
       - 
       - 
+      wrongOptionFeedback:
+      - 
+      - 
+      - 
       correctOptionIndex: 0
       optionSprites:
       - {fileID: 0}
@@ -77,6 +81,10 @@ MonoBehaviour:
       - Opalo st.
       - Esmeralda st.
       - Stay here
+      wrongOptionFeedback:
+      - 
+      - 
+      - 
       correctOptionIndex: 0
       optionSprites:
       - {fileID: 0}
@@ -107,6 +115,10 @@ MonoBehaviour:
     taskStartQuiz:
       question: 
       options: []
+      wrongOptionFeedback:
+      - 
+      - 
+      - 
       correctOptionIndex: 0
       optionSprites:
       - {fileID: 0}
@@ -137,6 +149,7 @@ MonoBehaviour:
       expressionId: happy
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
+      clearBackground: 0
       message: Great job. Your evacuation registration form is complete.
     - characterId: professor_lingap
       characterName: Professor Lingap
@@ -144,7 +157,9 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
-      message: Because you registered, responders know you and your family are here and safe.
+      clearBackground: 0
+      message: Because you registered, responders know you and your family are here
+        and safe.
     arScanForPlaneDialogueRich: []
     arTapToPlaceDialogueRich: []
     arGuidanceDialogueRich:
@@ -154,10 +169,16 @@ MonoBehaviour:
       expressionId: explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
-      message: When you arrive at the evacuation center, fill in the form so responders can account for you and your family.
+      clearBackground: 0
+      message: When you arrive at the evacuation center, fill in the form so responders
+        can account for you and your family.
     taskStartQuiz:
       question: 
       options:
+      - 
+      - 
+      - 
+      wrongOptionFeedback:
       - 
       - 
       - 
@@ -178,6 +199,10 @@ MonoBehaviour:
   startQuiz:
     question: 
     options:
+    - 
+    - 
+    - 
+    wrongOptionFeedback:
     - 
     - 
     - 
