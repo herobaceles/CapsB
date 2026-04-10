@@ -3,21 +3,7 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags:
-  - EmergencyItem
-  - Breaker
-  - Flood
-  - NPC
-<<<<<<< HEAD
-  - Pole
-  - Water
-=======
-  - UnsafeItem
-  - SafeItem
-  - CleanupItem
-  - Bucket
-  - HiddenDanger
->>>>>>> 96711cb4ae6fb3b7fc78bbaac36e8ef7a0066631
+  tags: []
   layers:
   - Default
   - TransparentFX
@@ -54,7 +40,4 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
-    locked: 0
-  - name: NPCBubble
-    uniqueID: 5088289
     locked: 0
