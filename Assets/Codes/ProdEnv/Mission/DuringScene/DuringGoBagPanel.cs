@@ -104,17 +104,33 @@ public class DuringGoBagPanel : MonoBehaviour
         if (inventory != null)
             inventory.FillSnapshot(snapshotBuffer);
 
-        EnsurePoolSize(snapshotBuffer.Count);
+        // Only show items the player actually collected (required items).
+        int collectedCount = 0;
         for (int i = 0; i < snapshotBuffer.Count; i++)
         {
-            pooledViews[i].gameObject.SetActive(true);
-            pooledViews[i].Bind(snapshotBuffer[i]);
+            if (snapshotBuffer[i].IsCollected)
+                collectedCount++;
         }
 
-        for (int i = snapshotBuffer.Count; i < pooledViews.Count; i++)
+        EnsurePoolSize(collectedCount);
+
+        int displayIndex = 0;
+        for (int i = 0; i < snapshotBuffer.Count; i++)
+        {
+            var snapshot = snapshotBuffer[i];
+            if (!snapshot.IsCollected)
+                continue;
+
+            var view = pooledViews[displayIndex];
+            view.gameObject.SetActive(true);
+            view.Bind(snapshot);
+            displayIndex++;
+        }
+
+        for (int i = collectedCount; i < pooledViews.Count; i++)
             pooledViews[i].gameObject.SetActive(false);
 
-        bool hasItems = snapshotBuffer.Count > 0;
+        bool hasItems = collectedCount > 0;
         if (emptyStateLabel != null)
         {
             emptyStateLabel.gameObject.SetActive(!hasItems);
@@ -135,8 +151,28 @@ public class DuringGoBagPanel : MonoBehaviour
                 Debug.LogWarning("DuringGoBagPanel: Item prefab was missing DuringGoBagPanelItemView. Added one at runtime, but assign it in the inspector to avoid this log.");
             }
 
-            // Attach a debug listener so we know clicks are received
+            // Ensure there is a clickable Button somewhere on the row.
             var button = instance.GetComponent<UnityEngine.UI.Button>();
+            if (button == null)
+            {
+                // Try to find a Button on a child if the prefab moved it.
+                button = instance.GetComponentInChildren<UnityEngine.UI.Button>(true);
+            }
+
+            if (button == null)
+            {
+                // As a fallback, add a Button to the root at runtime so clicks still work.
+                button = instance.AddComponent<UnityEngine.UI.Button>();
+
+                // Try to hook up a graphic so the Button has proper visuals.
+                var graphic = instance.GetComponent<UnityEngine.UI.Graphic>();
+                if (graphic == null)
+                    graphic = instance.GetComponentInChildren<UnityEngine.UI.Graphic>(true);
+
+                if (graphic != null)
+                    button.targetGraphic = graphic;
+            }
+
             if (button != null)
             {
                 button.onClick.RemoveAllListeners();

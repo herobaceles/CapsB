@@ -40,6 +40,10 @@ public class DuringMissionManager : MissionSceneManager
     [SerializeField] private GameObject miniSceneUI;
     [SerializeField] private GameObject evacuationMarker;
 
+    [Header("Backpack UI")]
+    [Tooltip("Root GameObject for the backpack HUD button (DuringBackpackButton). Hidden until intro dialogue finishes.")]
+    [SerializeField] private GameObject backpackButtonRoot;
+
     [Header("Map Display")]
     [SerializeField] private DuringMissionMapDisplay mapDisplay;
 
@@ -73,6 +77,7 @@ public class DuringMissionManager : MissionSceneManager
     private ARTaskBase activeARTask;
     private bool isMiniSceneActive;
     private bool introDialoguePlayed;
+    private bool introDialogueFinished;
     private Coroutine introDialogueRoutine;
     private bool backpackOpenedThisTask;
     private bool mapViewedThisTask;
@@ -190,6 +195,10 @@ public class DuringMissionManager : MissionSceneManager
 
         if (missionTimeoutPanel != null)
             missionTimeoutPanel.SetActive(false);
+
+        // Ensure backpack HUD starts hidden; it will be unlocked after intro dialogue
+        if (backpackButtonRoot != null)
+            backpackButtonRoot.SetActive(false);
     }
 
     private void ShowMapUI()
@@ -203,6 +212,7 @@ public class DuringMissionManager : MissionSceneManager
     private void ResetPlayerState()
     {
         introDialoguePlayed = false;
+        introDialogueFinished = false;
         mapTutorialCompleted = false;
         backpackOpenedThisTask = false;
         mapViewedThisTask = false;
@@ -213,24 +223,41 @@ public class DuringMissionManager : MissionSceneManager
             StopCoroutine(introDialogueRoutine);
             introDialogueRoutine = null;
         }
+
+        // Hide backpack until we explicitly unlock it (intro finished or skipped)
+        if (backpackButtonRoot != null)
+            backpackButtonRoot.SetActive(false);
     }
 
     private void TryPlayIntroDialogue()
     {
-        if (!playIntroOnStart || introDialoguePlayed)
+        if (!gameObject.activeInHierarchy)
+            return;
+
+        // If intro is disabled, unlock backpack immediately so the player isn't blocked
+        if (!playIntroOnStart)
+        {
+            OnIntroDialogueFinishedInternal();
+            return;
+        }
+
+        if (introDialoguePlayed)
             return;
 
         if (introNPC == null)
         {
             Debug.LogWarning("DuringMissionManager: Intro NPC not assigned for intro dialogue.");
+            // No NPC available; treat intro as effectively finished so backpack is usable
+            OnIntroDialogueFinishedInternal();
             return;
         }
 
         if (introDialogueLines == null || introDialogueLines.Length == 0)
+        {
+            // No lines configured; nothing to play, so unlock backpack immediately
+            OnIntroDialogueFinishedInternal();
             return;
-
-        if (!gameObject.activeInHierarchy)
-            return;
+        }
 
         introDialoguePlayed = true;
 
@@ -246,16 +273,44 @@ public class DuringMissionManager : MissionSceneManager
         if (introDelay > 0f)
             yield return new WaitForSeconds(introDelay);
 
+        int spokenLineCount = 0;
+
         foreach (string line in introDialogueLines)
         {
             if (!string.IsNullOrWhiteSpace(line))
             {
                 Debug.Log($"DuringMissionManager: Intro line -> {line}");
                 introNPC.SpeakLine(line, introLineDuration);
+                spokenLineCount++;
             }
         }
 
+        // Roughly wait for all intro lines to finish displaying before unlocking backpack
+        if (spokenLineCount > 0 && introLineDuration > 0f)
+        {
+            yield return new WaitForSeconds(spokenLineCount * introLineDuration);
+        }
+
+        OnIntroDialogueFinishedInternal();
+
         introDialogueRoutine = null;
+    }
+
+    /// <summary>
+    /// Marks intro dialogue as finished (or skipped) and unlocks the backpack HUD.
+    /// Safe to call multiple times.
+    /// </summary>
+    private void OnIntroDialogueFinishedInternal()
+    {
+        if (introDialogueFinished)
+            return;
+
+        introDialogueFinished = true;
+
+        if (backpackButtonRoot != null)
+            backpackButtonRoot.SetActive(true);
+
+        Debug.Log("DuringMissionManager: Intro dialogue finished or skipped. Backpack unlocked.");
     }
 
     /// <summary>
@@ -270,34 +325,50 @@ public class DuringMissionManager : MissionSceneManager
         bool isCurrentTask = currentTask != null &&
             string.Equals(currentTask.taskId, taskId, System.StringComparison.OrdinalIgnoreCase);
 
-        if (isCurrentTask && activeARTask != null)
+        if (isCurrentTask)
         {
-            Debug.Log($"DuringMissionManager: Trigger entered for AR task {taskId}.");
-
-            System.Action startMiniScene = () =>
+            if (activeARTask != null)
             {
-                EnterFloodZone(taskId);
-                StartActiveARTask();
-            };
+                Debug.Log($"DuringMissionManager: Trigger entered for AR task {taskId}.");
 
-            // If this task has AR guidance dialogue defined in the mission asset,
-            // play it before entering the mini-scene.
-            if (CurrentTask != null &&
-                CurrentTask.arGuidanceDialogueRich != null &&
-                CurrentTask.arGuidanceDialogueRich.Count > 0 &&
-                ProdDialogueManager.Instance != null)
-            {
-                Debug.Log("DuringMissionManager: Showing AR guidance dialogue before starting AR task.");
-                ShowTaskDialogue(CurrentTask.arGuidanceDialogueRich, startMiniScene);
+                System.Action startMiniScene = () =>
+                {
+                    EnterFloodZone(taskId);
+                    StartActiveARTask();
+                };
+
+                // If this task has AR guidance dialogue defined in the mission asset,
+                // play it before entering the mini-scene.
+                if (CurrentTask != null &&
+                    CurrentTask.arGuidanceDialogueRich != null &&
+                    CurrentTask.arGuidanceDialogueRich.Count > 0 &&
+                    ProdDialogueManager.Instance != null)
+                {
+                    Debug.Log("DuringMissionManager: Showing AR guidance dialogue before starting AR task.");
+                    ShowTaskDialogue(CurrentTask.arGuidanceDialogueRich, startMiniScene);
+                }
+                else
+                {
+                    startMiniScene();
+                }
             }
             else
             {
-                startMiniScene();
+                // This means the mission data expects the player to step into a
+                // flood-zone trigger for the current task, but no ARTaskBinding
+                // was resolved for this taskId in the inspector. In this case we
+                // fall back to the base behaviour (auto-complete), but we log a
+                // clear warning so designers can wire the binding.
+                Debug.LogWarning($"DuringMissionManager: Trigger entered for current task '{taskId}', but no AR task is bound. Check arTaskBindings on DuringMissionManager for this taskId.");
+                base.OnTriggerActivated(taskId);
             }
 
             return;
         }
 
+        // Not the current task; defer to base behaviour so any non-During-specific
+        // logic (e.g., sequential triggers) continues to work, but log for clarity.
+        Debug.LogWarning($"DuringMissionManager: Trigger activated for taskId '{taskId}' while current task is '{currentTask?.taskId}'. Falling back to base OnTriggerActivated.");
         base.OnTriggerActivated(taskId);
     }
 
@@ -413,6 +484,7 @@ public class DuringMissionManager : MissionSceneManager
             if (introNPC != null)
             {
                 introNPC.SpeakLine("Great! Keep that map handy during our evacuation.", 3f);
+                introNPC.SpeakLine("Now that the door is open, go outside but be careful.", 4f);
             }
 
             // Complete the task after a short delay

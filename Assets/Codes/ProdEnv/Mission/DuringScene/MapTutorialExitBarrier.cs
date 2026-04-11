@@ -24,6 +24,9 @@ public class MapTutorialExitBarrier : MonoBehaviour
 
     private Quaternion closedRotation;
     private bool isOpen;
+    private bool isAnimating;
+
+    private Collider[] barrierColliders;
 
     private void Awake()
     {
@@ -37,6 +40,12 @@ public class MapTutorialExitBarrier : MonoBehaviour
 
         if (barrierRoot != null)
             barrierRoot.SetActive(true);
+
+        // Cache colliders once so we can disable/enable them on open/close.
+        if (barrierRoot != null)
+        {
+            barrierColliders = barrierRoot.GetComponentsInChildren<Collider>(true);
+        }
     }
 
     private void OnEnable()
@@ -70,7 +79,7 @@ public class MapTutorialExitBarrier : MonoBehaviour
         if (!string.Equals(currentTask.taskId, "tutorial_open_map", System.StringComparison.OrdinalIgnoreCase))
             return;
 
-        if (isOpen)
+        if (isOpen || isAnimating)
             return;
 
         if (barrierRoot != null && !barrierRoot.activeSelf)
@@ -81,6 +90,7 @@ public class MapTutorialExitBarrier : MonoBehaviour
 
     private IEnumerator OpenDoorRoutine()
     {
+        isAnimating = true;
         isOpen = true;
 
         Quaternion startRot = doorTransform.localRotation;
@@ -99,18 +109,91 @@ public class MapTutorialExitBarrier : MonoBehaviour
 
         // After opening, optionally disable colliders so the player can
         // pass through even if the door model still overlaps.
-        if (barrierRoot != null)
+        if (barrierColliders != null)
         {
-            var colliders = barrierRoot.GetComponentsInChildren<Collider>();
-            foreach (var c in colliders)
+            foreach (var c in barrierColliders)
             {
-                c.enabled = false;
+                if (c != null)
+                    c.enabled = false;
             }
         }
 
-        Debug.Log("MapTutorialExitBarrier: Door opened after viewing map in tutorial_open_map.");
+        isAnimating = false;
 
-        // No further reactions needed after first open
-        enabled = false;
+        Debug.Log("MapTutorialExitBarrier: Door opened after viewing map in tutorial_open_map.");
+    }
+
+    /// <summary>
+    /// Instantly snaps the door back to its closed rotation and re-enables
+    /// colliders, without playing the closing animation. This is a simpler
+    /// option that can be called from an existing trigger via the Inspector.
+    /// </summary>
+    public void ResetDoorInstant()
+    {
+        // Stop any in-progress animation.
+        StopAllCoroutines();
+
+        doorTransform.localRotation = closedRotation;
+
+        if (barrierColliders != null)
+        {
+            foreach (var c in barrierColliders)
+            {
+                if (c != null)
+                    c.enabled = true;
+            }
+        }
+
+        isOpen = false;
+        isAnimating = false;
+
+        Debug.Log("MapTutorialExitBarrier: Door reset instantly to closed state.");
+    }
+
+    /// <summary>
+    /// Closes the tutorial door again, re-enabling its colliders after the
+    /// closing animation finishes. Intended to be called by an external
+    /// trigger when the player exits through the doorway.
+    /// </summary>
+    public void CloseDoor()
+    {
+        if (!isOpen || isAnimating)
+            return;
+
+        StartCoroutine(CloseDoorRoutine());
+    }
+
+    private IEnumerator CloseDoorRoutine()
+    {
+        isAnimating = true;
+
+        Quaternion startRot = doorTransform.localRotation;
+        Quaternion targetRot = closedRotation;
+
+        float elapsed = 0f;
+        while (elapsed < openDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / openDuration);
+            doorTransform.localRotation = Quaternion.Slerp(startRot, targetRot, t);
+            yield return null;
+        }
+
+        doorTransform.localRotation = targetRot;
+
+        // Re-enable colliders so the doorway blocks the player again if desired.
+        if (barrierColliders != null)
+        {
+            foreach (var c in barrierColliders)
+            {
+                if (c != null)
+                    c.enabled = true;
+            }
+        }
+
+        isOpen = false;
+        isAnimating = false;
+
+        Debug.Log("MapTutorialExitBarrier: Door closed after player exited in tutorial_open_map.");
     }
 }

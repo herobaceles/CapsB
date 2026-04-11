@@ -146,6 +146,7 @@ GameObject:
   - component: {fileID: 1562212591117077297}
   - component: {fileID: 5042459282305040762}
   - component: {fileID: 3000002550782215402}
+  - component: {fileID: 5168741517364997013}
   m_Layer: 5
   m_Name: GoBagPanelItemRow
   m_TagString: Untagged
@@ -195,15 +196,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.034784317, g: 1, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 4efa19f6b1e8fa0448c4fa04dbb9de3e, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -256,6 +257,23 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5168741517364997013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7505554458128933533}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36b0829f76159bb42bc4d7b317635d6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nameLabel: {fileID: 8515132220793797382}
+  iconImage: {fileID: 1632068338581521102}
+  collectedMarker: {fileID: 0}
+  collectedColor: {r: 0, g: 1, b: 0, a: 1}
+  pendingColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &7644211369118931418
 GameObject:
   m_ObjectHideFlags: 0
@@ -291,7 +309,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: 4.7199707, y: 0}
-  m_SizeDelta: {x: 10, y: 10}
+  m_SizeDelta: {x: 50, y: 50}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &5567583335890313008
 CanvasRenderer:

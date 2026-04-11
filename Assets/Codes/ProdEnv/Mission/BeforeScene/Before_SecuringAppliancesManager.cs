@@ -52,6 +52,9 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
     [Header("AR Return Sync")]
     [SerializeField] private bool syncPlacementsBackToScene = true;
     [SerializeField] private bool despawnSpawnedHouseOnReturn = true;
+    
+    [Header("AR Placement")]
+    [SerializeField] private ApplianceARPlacementManager03 arPlacementManager;
     private bool missionActive;
     private int illegalMoves;
     private bool missionStarted;
@@ -60,6 +63,13 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
     private Transform spawnedHouseRoot;
     private ApplianceSecureItem selectedAppliance;
     private bool arGuidanceShown;
+
+    // Cache of initial local transforms so the AR placement can be
+    // restarted without reloading the entire scene/AR content.
+    private readonly Dictionary<ApplianceSecureItem, Vector3> initialLocalPositions =
+        new Dictionary<ApplianceSecureItem, Vector3>();
+    private readonly Dictionary<ApplianceSecureItem, Quaternion> initialLocalRotations =
+        new Dictionary<ApplianceSecureItem, Quaternion>();
 
     private void Awake()
     {
@@ -109,8 +119,29 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
         elevatedAreas = new List<ApplianceElevatedArea>(spawnedRoot.GetComponentsInChildren<ApplianceElevatedArea>(true));
         appliancesRegistered = appliances.Count > 0;
 
+        // Record starting local transforms so we can restore them on restart.
+        initialLocalPositions.Clear();
+        initialLocalRotations.Clear();
+        foreach (var app in appliances)
+        {
+            if (app == null) continue;
+            initialLocalPositions[app] = app.transform.localPosition;
+            initialLocalRotations[app] = app.transform.localRotation;
+        }
+
         SetupFloodLine();
         UpdateStatusText();
+    }
+
+    private void ResolveArPlacementManager()
+    {
+        if (arPlacementManager != null)
+            return;
+
+        // Fallback: try to find an ApplianceARPlacementManager03 in the
+        // scene so restart still works even if the reference was not
+        // wired in the inspector.
+        arPlacementManager = FindObjectOfType<ApplianceARPlacementManager03>(true);
     }
 
     private void OnDisable()
@@ -690,6 +721,88 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
             status += $"\nWarnings: {illegalMoves}";
 
         statusText.text = status;
+    }
+
+    /// <summary>
+    /// Restart the AR appliance placement, restoring all appliances to their
+    /// original positions/rotations and clearing warnings. Call this from a
+    /// UI button in the AR scene when the player wants to try again.
+    /// </summary>
+    public void RestartAppliancePlacement()
+    {
+        // If we have (or can find) an AR placement manager and a spawned house root,
+        // treat restart as a full AR reset so the player can choose a
+        // new plane and place the house again.
+        ResolveArPlacementManager();
+
+        if (arPlacementManager != null && spawnedHouseRoot != null)
+        {
+            // Stop current mission flow and unhook events for the
+            // existing appliance instances.
+            missionActive = false;
+            missionStarted = false;
+            illegalMoves = 0;
+            ClearSelection();
+            UnhookApplianceEvents();
+
+            // Clear cached appliance data tied to the current house.
+            appliancesRegistered = false;
+            appliances.Clear();
+            elevatedAreas.Clear();
+            initialLocalPositions.Clear();
+            initialLocalRotations.Clear();
+
+            // Optionally hide mission UI until the new house is placed.
+            if (statusPanel != null)
+                statusPanel.SetActive(false);
+            else if (statusText != null)
+                statusText.gameObject.SetActive(false);
+            if (floodWarningUI != null)
+                floodWarningUI.SetActive(false);
+            DisableFloodLineVisuals();
+
+            // Remove the current AR house so a new one can be spawned
+            // at a different location.
+            Destroy(spawnedHouseRoot.gameObject);
+            spawnedHouseRoot = null;
+
+            // Begin a fresh AR placement cycle; when the player taps a
+            // plane again, a new housePrefab will be spawned and this
+            // manager will be re-initialized via InitializeFromSpawnedRoot.
+            arPlacementManager.BeginPlacement(this);
+            return;
+        }
+
+        // Fallback: if we don't have an AR placement manager reference,
+        // just reset appliance transforms within the existing house.
+        if (appliances == null || appliances.Count == 0)
+            return;
+
+        illegalMoves = 0;
+        ClearSelection();
+
+        foreach (var app in appliances)
+        {
+            if (app == null)
+                continue;
+
+            // Clear area assignment so IsSecured is recalculated as false.
+            if (app.CurrentArea != null)
+            {
+                app.CurrentArea.Clear(app);
+            }
+
+            // Restore starting transform if we recorded it.
+            if (initialLocalPositions.TryGetValue(app, out var pos))
+                app.transform.localPosition = pos;
+            if (initialLocalRotations.TryGetValue(app, out var rot))
+                app.transform.localRotation = rot;
+
+            app.SetSelected(false);
+        }
+
+        UpdateStatusText();
+        UpdateAreaMarkers();
     }
 
     public void ShowWarning(string message)

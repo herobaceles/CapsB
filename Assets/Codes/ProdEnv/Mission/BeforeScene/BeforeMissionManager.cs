@@ -36,6 +36,9 @@ public class BeforeMissionManager : MissionSceneManager
     [Header("UI Panels")]
     [SerializeField] private GameObject gameUI;
 
+    [Header("AR UI Root")]
+    [SerializeField] private GameObject arMissionUIRoot;
+
     [Header("Mission Trigger Bindings")]
     [SerializeField] private List<MissionTriggerBinding> missionTriggerBindings = new List<MissionTriggerBinding>();
 
@@ -236,6 +239,9 @@ public class BeforeMissionManager : MissionSceneManager
         if (gameUI != null)
             gameUI.SetActive(false);
 
+        if (arMissionUIRoot != null)
+            arMissionUIRoot.SetActive(true);
+
         ARRuntimeContext.Instance.SetARActive(true);
 
         IsARMissionActive = true;
@@ -283,6 +289,64 @@ public class BeforeMissionManager : MissionSceneManager
 
         if (gameUI != null)
             gameUI.SetActive(true);
+
+        if (arMissionUIRoot != null)
+            arMissionUIRoot.SetActive(false);
+    }
+
+    /// <summary>
+    /// Restart the currently active AR task for the current Before mission.
+    /// Hook your AR "Restart" button to this method so it works across
+    /// all Before-phase AR tasks (e.g., Go Bag, Breaker, Appliances).
+    /// </summary>
+    public void RestartCurrentArTask()
+    {
+        if (!IsARMissionActive)
+        {
+            Debug.Log("BeforeMissionManager: RestartCurrentArTask called but AR mission is not active.");
+            return;
+        }
+
+        var mission = CurrentMission != null ? CurrentMission : MissionSelectManager.SelectedMission;
+        var task = CurrentTask;
+
+        string missionId = mission != null ? mission.missionId : null;
+        string taskId = task != null ? task.taskId : null;
+
+        // Go Bag AR task (Before_01 – Preparing Go Bag)
+        if (!string.IsNullOrEmpty(taskId) &&
+            string.Equals(taskId, "before_01_prepare_go_bag", System.StringComparison.OrdinalIgnoreCase))
+        {
+            if (ARMissionManager.Instance != null)
+            {
+                ARMissionManager.Instance.ReplayARMission();
+                return;
+            }
+        }
+
+        // Appliances AR task (Before_03 – Securing Appliances)
+        if (!string.IsNullOrEmpty(taskId) &&
+            string.Equals(taskId, "before_03_secure_appliances", System.StringComparison.OrdinalIgnoreCase))
+        {
+            if (Before_SecuringAppliancesManager.Instance != null)
+            {
+                Before_SecuringAppliancesManager.Instance.RestartAppliancePlacement();
+                return;
+            }
+        }
+
+        // Breaker AR task (Before_02 – Secure Circuit Breaker)
+        if (!string.IsNullOrEmpty(taskId) &&
+            string.Equals(taskId, "before_02_secure_circuit_breaker", System.StringComparison.OrdinalIgnoreCase))
+        {
+            if (BreakerTaskManager.Instance != null)
+            {
+                BreakerTaskManager.Instance.RestartBreakerTask();
+                return;
+            }
+        }
+
+        Debug.LogWarning($"BeforeMissionManager: RestartCurrentArTask has no handler for mission '{missionId}' task '{taskId}'.");
     }
 
     /// <summary>

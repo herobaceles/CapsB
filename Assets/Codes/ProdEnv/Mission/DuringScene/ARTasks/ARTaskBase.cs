@@ -193,10 +193,19 @@ public abstract class ARTaskBase : MonoBehaviour
             canvasGroup.alpha = 1f;
         }
 
-        // Play start dialogue
-        if (DuringMissionStoryDirector.Instance != null && startDialogue != null && startDialogue.Length > 0)
+        // Play start dialogue via the story director if available.
+        if (startDialogue != null && startDialogue.Length > 0)
         {
-            DuringMissionStoryDirector.Instance.QueueLines(startDialogue);
+            if (DuringMissionStoryDirector.Instance != null)
+            {
+                DuringMissionStoryDirector.Instance.QueueLines(startDialogue);
+            }
+            else
+            {
+                // Helpful diagnostic so designers know why expected
+                // NPC lines are missing for AR tasks (e.g., route choice).
+                Debug.LogWarning($"ARTaskBase: Start dialogue configured for task '{taskId}' but DuringMissionStoryDirector is missing in the scene. No NPC bubble will be shown.");
+            }
         }
 
         OnTaskStarted?.Invoke();

@@ -42,20 +42,32 @@ public class NPCFollower : MonoBehaviour
     {
         if (player == null) return;
 
-        float distance = Vector3.Distance(transform.position, player.position);
+        // Work in horizontal (XZ) space so the NPC stays upright
+        Vector3 npcPos = transform.position;
+        Vector3 targetPos = player.position;
+
+        // Keep Y the same for movement/rotation to avoid tilting/stretching on slopes
+        targetPos.y = npcPos.y;
+
+        Vector3 toTarget = targetPos - npcPos;
+        float distance = toTarget.magnitude;
         bool shouldMove = distance > followDistance;
         float normalizedSpeed = 0f;
 
         if (shouldMove)
         {
             // move toward the player until we reach the follow distance buffer
-            Vector3 direction = (player.position - transform.position).normalized;
+            Vector3 direction = toTarget.normalized;
             Vector3 moveVector = direction * moveSpeed * Time.deltaTime;
             transform.position += moveVector;
 
-            // rotate smoothly toward player
-            Quaternion lookRot = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, lookRot, rotationSpeed * Time.deltaTime);
+            // rotate smoothly toward player, but stay upright (no pitch/roll)
+            Vector3 flatLookDir = new Vector3(direction.x, 0f, direction.z);
+            if (flatLookDir.sqrMagnitude > 0.0001f)
+            {
+                Quaternion lookRot = Quaternion.LookRotation(flatLookDir);
+                transform.rotation = Quaternion.Slerp(transform.rotation, lookRot, rotationSpeed * Time.deltaTime);
+            }
 
             normalizedSpeed = Mathf.Clamp01(moveVector.magnitude / (moveSpeed * Time.deltaTime));
         }

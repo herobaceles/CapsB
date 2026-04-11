@@ -40,8 +40,16 @@ public class DuringGoBagPanelItemView : MonoBehaviour
 
         if (iconImage != null)
         {
-            iconImage.sprite = data.Icon;
-            iconImage.enabled = data.Icon != null;
+            // If the data provides an icon, override the prefab sprite.
+            // Otherwise keep whatever sprite the prefab already has so the
+            // image stays visible and styled.
+            if (data.Icon != null)
+            {
+                iconImage.sprite = data.Icon;
+            }
+
+            // Always leave the icon enabled so it doesn't disappear at runtime.
+            iconImage.enabled = true;
         }
 
         if (collectedMarker != null)
