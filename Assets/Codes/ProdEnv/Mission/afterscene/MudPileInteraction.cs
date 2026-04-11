@@ -57,6 +57,26 @@ public class MudPileInteraction : MonoBehaviour
         }
     }
 
+    // Editor/testing fallback: allow direct mouse clicks on the mud
+    // to trigger the same logic as an AR tap, using the current AR
+    // camera when available (or Camera.main as a backup).
+    private void OnMouseDown()
+    {
+        Camera cam = null;
+        if (ARRuntimeContext.Instance != null)
+        {
+            cam = ARRuntimeContext.Instance.ResolveARCamera(Camera.main);
+        }
+
+        if (cam == null)
+        {
+            cam = Camera.main;
+        }
+
+        Debug.Log($"MudPileInteraction: OnMouseDown on {gameObject.name}, forwarding to PickUpMud with camera '{cam?.name ?? "null"}'", this);
+        PickUpMud(cam);
+    }
+
     public void PickUpMud(Camera arCamera)
     {
         if (isCleaned || isHeld) return;
@@ -84,17 +104,22 @@ public class MudPileInteraction : MonoBehaviour
             return;
         }
 
-        // Prevent selecting multiple mud piles at the same time!
+        // Prevent selecting multiple mud piles at the same time. If the button
+        // is already active, simply retarget it to this mud pile so the player
+        // always sees a usable disinfect button instead of silently ignoring
+        // their tap.
         if (disinfectButton.gameObject.activeInHierarchy)
         {
-            Debug.Log("Player tried to select another mud pile, but one is already selected!");
-            return; 
+            Debug.Log("MudPileInteraction: Disinfect button already active; retargeting to new mud pile.");
+            disinfectButton.ShowButtonForMud(this);
         }
+        else
+        {
+            isHeld = true;
 
-        isHeld = true;
-
-        // Show the central Disinfect Button for this mud pile
-        disinfectButton.ShowButtonForMud(this);
+            // Show the central Disinfect Button for this mud pile
+            disinfectButton.ShowButtonForMud(this);
+        }
     }
 
     public void CleanPile()

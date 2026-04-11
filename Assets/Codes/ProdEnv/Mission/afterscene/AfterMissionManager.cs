@@ -185,6 +185,20 @@ public class AfterMissionManager : MissionSceneManager
 
                 sceneController.InitializeMission(currentMission, initialMode);
                 sceneController.StartQuizOnlyPhase();
+
+                // For Mission_After_01, show the cleanup gear props in the
+                // HouseInterior during the quiz-zone task so players can see
+                // them while moving around before AR starts.
+                if (string.Equals(currentMission.missionId, "after_01", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    sceneController.ShowCleanupGearInteriorGroup();
+                }
+                else if (string.Equals(currentMission.missionId, "after_03", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    // For Mission_After_03, show the DisinfectHouse props
+                    // during the quiz-zone phase.
+                    sceneController.ShowDisinfectHouseInteriorGroup();
+                }
             }
 
             // For after_03, start the quiz immediately after dialog (no trigger required)
@@ -208,6 +222,10 @@ public class AfterMissionManager : MissionSceneManager
             {
                 sceneController.InitializeMission(currentMission, MissionMode.KitchenSafety);
                 sceneController.StartExplorationPhaseInternal();
+
+                // For Mission_After_02, show the kitchen safety props in the
+                // HouseInterior during the Safe_items task.
+                sceneController.ShowKitchenSafetyInteriorGroup();
             }
 
             Debug.Log("AfterMissionManager: Starting After_02 mission in KitchenSafety exploration phase.");
@@ -557,6 +575,33 @@ public class AfterMissionManager : MissionSceneManager
         if (preparationUI != null)
             preparationUI.SetActive(true);
 
+        if (currentMission != null)
+        {
+            if (sceneController == null)
+                sceneController = FindObjectOfType<AfterSceneController>();
+
+            if (sceneController != null)
+            {
+                // For Mission_After_01, when the CleanupGear AR task
+                // finishes, switch to the hidden danger props so they are
+                // visible while the player walks to ARTrigger_HiddenDanger.
+                if (string.Equals(currentMission.missionId, "after_01", System.StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(taskId, "after01_cleanup_gear", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    sceneController.ShowHiddenDangerInteriorGroup();
+                }
+
+                // For Mission_After_03, when the disinfect-mud AR task
+                // finishes, hide all interior groups so DisinfectHouse props
+                // do not remain visible into other missions.
+                if (string.Equals(currentMission.missionId, "after_03", System.StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(taskId, "after_03_disinfect_mud", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    sceneController.HideAllInteriorGroups();
+                }
+            }
+        }
+
         CompleteCurrentTask();
 
         if (currentTask != null)
@@ -573,6 +618,16 @@ public class AfterMissionManager : MissionSceneManager
     {
         if (preparationUI != null)
             preparationUI.SetActive(false);
+
+        // Ensure no interior item groups remain active when the After
+        // mission completes so they do not leak into other missions.
+        if (sceneController == null)
+            sceneController = FindObjectOfType<AfterSceneController>();
+
+        if (sceneController != null)
+        {
+            sceneController.HideAllInteriorGroups();
+        }
 
         // For Mission_After_02, we only want to show the
         // MissionCompletePanel (no achievements panel).

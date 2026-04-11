@@ -52,6 +52,10 @@ public class AfterRecoveryARController : MonoBehaviour
     [Tooltip("How long feedback icons remain visible before being destroyed.")]
     [SerializeField] private float feedbackLifetime = 0.75f;
 
+    [Header("Disinfect Tools (Hand Items)")]
+    [Tooltip("Root GameObject that contains the Spray Bottle, cleaning rag and any other DisinfectHouse hand-held items.")]
+    [SerializeField] private GameObject disinfectToolsRoot;
+
     [Header("Gameplay Root (Non-AR)")]
     [Tooltip("Optional root object for normal gameplay (player, triggers, interior). Will be disabled while AR is active.")]
     [SerializeField] private GameObject gameplayRoot;
@@ -141,6 +145,11 @@ public class AfterRecoveryARController : MonoBehaviour
         if (arUIRoot != null)
             arUIRoot.SetActive(true);
 
+        // Default: hide disinfect hand tools; they are only used in
+        // DisinfectHouse mode and should not appear in other AR tasks.
+        if (disinfectToolsRoot != null)
+            disinfectToolsRoot.SetActive(false);
+
         // Hide the normal gameplay root (player, triggers, interior) while
         // AR is active so the player only sees the AR house and UI.
         if (gameplayRoot != null)
@@ -200,6 +209,13 @@ public class AfterRecoveryARController : MonoBehaviour
                 activeHouseRoot = disinfectHouseRoot;
         }
 
+        // If we are NOT in DisinfectHouse mode, make doubly sure
+        // that any stray hand-held disinfect items are disabled.
+        if (mode != MissionMode.DisinfectHouse)
+        {
+            HideAllHandItemsFollowingARCamera();
+        }
+
         if (placementManager != null && activeHouseRoot != null)
         {
             // For HiddenDanger, delay spawning hazards until after
@@ -209,6 +225,17 @@ public class AfterRecoveryARController : MonoBehaviour
             {
                 placementManager.OnHousePlaced -= HandleHiddenDangerHousePlaced;
                 placementManager.OnHousePlaced += HandleHiddenDangerHousePlaced;
+            }
+
+            // For DisinfectHouse, delay enabling the disinfect hand
+            // tools until after the AR house has been placed. This
+            // ensures the spray bottle and cleaning rag only appear
+            // once the virtual house is visible, not as soon as AR
+            // starts.
+            if (mode == MissionMode.DisinfectHouse && disinfectToolsRoot != null)
+            {
+                placementManager.OnHousePlaced -= HandleDisinfectHousePlaced;
+                placementManager.OnHousePlaced += HandleDisinfectHousePlaced;
             }
 
             placementManager.BeginPlacement(activeHouseRoot, taskForAR);
@@ -246,6 +273,22 @@ public class AfterRecoveryARController : MonoBehaviour
     }
 
     /// <summary>
+    /// Called when the DisinfectHouse AR house has been placed.
+    /// Enables the disinfect hand tools so the spray bottle and
+    /// cleaning rag appear only after the house is visible.
+    /// </summary>
+    private void HandleDisinfectHousePlaced(GameObject houseRoot)
+    {
+        if (placementManager != null)
+            placementManager.OnHousePlaced -= HandleDisinfectHousePlaced;
+
+        if (CurrentMissionMode == MissionMode.DisinfectHouse && disinfectToolsRoot != null)
+        {
+            disinfectToolsRoot.SetActive(true);
+        }
+    }
+
+    /// <summary>
     /// Disables the current AR session and restores gameplay camera.
     /// </summary>
     public void DisableAR()
@@ -274,6 +317,16 @@ public class AfterRecoveryARController : MonoBehaviour
         if (disinfectHouseRoot != null)
             disinfectHouseRoot.SetActive(false);
 
+        // Always hide disinfect hand tools when AR ends so they
+        // do not leak into other missions or scenes.
+        if (disinfectToolsRoot != null)
+            disinfectToolsRoot.SetActive(false);
+
+        // Extra safety: force-disable any hand-held items that
+        // still have HandItemsFollowARCamera attached, even if
+        // they were not wired under disinfectToolsRoot.
+        HideAllHandItemsFollowingARCamera();
+
         if (arUIRoot != null)
             arUIRoot.SetActive(false);
 
@@ -297,6 +350,25 @@ public class AfterRecoveryARController : MonoBehaviour
         ClearFeedbackIcons();
 
         Debug.Log("AfterRecoveryARController: AR session disabled.");
+    }
+
+    /// <summary>
+    /// Finds all HandItemsFollowARCamera helpers in the scene and
+    /// disables their GameObjects. This is used as a safety net
+    /// so that disinfect hand tools cannot remain visible when AR
+    /// ends or when switching to a non-DisinfectHouse AR mode.
+    /// </summary>
+    private void HideAllHandItemsFollowingARCamera()
+    {
+        var items = FindObjectsOfType<HandItemsFollowARCamera>(true);
+        for (int i = 0; i < items.Length; i++)
+        {
+            var item = items[i];
+            if (item != null && item.gameObject.activeSelf)
+            {
+                item.gameObject.SetActive(false);
+            }
+        }
     }
 
     private void ClearFeedbackIcons()

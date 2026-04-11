@@ -135,6 +135,12 @@ public class AfterARTapDetector : MonoBehaviour
 
     private void BeginPointerInteraction(Vector3 screenPosition)
     {
+        if (!IsValidScreenPosition(screenPosition))
+        {
+            Debug.LogWarning($"AfterARTapDetector: Ignoring invalid screen position {screenPosition}.");
+            return;
+        }
+
         Camera cam = ResolveARCamera();
         if (cam == null)
         {
@@ -201,6 +207,9 @@ public class AfterARTapDetector : MonoBehaviour
         if (currentDraggedItem == null)
             return;
 
+        if (!IsValidScreenPosition(screenPosition))
+            return;
+
         Camera cam = ResolveARCamera();
         if (cam == null)
             return;
@@ -221,6 +230,13 @@ public class AfterARTapDetector : MonoBehaviour
     {
         if (currentDraggedItem == null)
             return;
+
+        if (!IsValidScreenPosition(screenPosition))
+        {
+            currentDraggedItem = null;
+            currentDragLoopSource = null;
+            return;
+        }
 
         // On release, check if the dragged hazard is close enough to the
         // bucket. Prefer explicit bucket targets if configured; otherwise
@@ -343,6 +359,23 @@ public class AfterARTapDetector : MonoBehaviour
         Vector3 itemScreenPos = cam.WorldToScreenPoint(startWorldPos);
         currentDragDepth = Mathf.Max(0.1f, itemScreenPos.z);
         currentDragOffset = Vector3.zero;
+    }
+
+    private bool IsValidScreenPosition(Vector3 screenPosition)
+    {
+        if (float.IsNaN(screenPosition.x) || float.IsNaN(screenPosition.y))
+            return false;
+
+        if (float.IsInfinity(screenPosition.x) || float.IsInfinity(screenPosition.y))
+            return false;
+
+        if (screenPosition.x < 0f || screenPosition.x > Screen.width)
+            return false;
+
+        if (screenPosition.y < 0f || screenPosition.y > Screen.height)
+            return false;
+
+        return true;
     }
 
     private Camera ResolveARCamera()

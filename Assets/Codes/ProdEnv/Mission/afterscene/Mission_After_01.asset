@@ -40,7 +40,7 @@ MonoBehaviour:
       portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
       backgroundSprite: {fileID: 0}
       clearBackground: 0
-      message: The storm has passesd
+      message: The storm has passed
     - characterId: professor_lingap
       characterName: Professor Lingap
       side: 1
@@ -48,7 +48,7 @@ MonoBehaviour:
       portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
       backgroundSprite: {fileID: 0}
       clearBackground: 0
-      message: It's time to go home.
+      message: and you're now inside your home
     - characterId: professor_lingap
       characterName: Professor Lingap
       side: 1
@@ -338,8 +338,8 @@ MonoBehaviour:
     - 'good work! cheking the struckture of the house '
     correctAnswerDialogueRich: []
   startQuizSequence:
-  - question: Hold on! Before we rush inside, we must check the house for structural
-      damage. What's the first thing you should check?
+  - question: Now that you're inside the house, you need to check for possible damage
+      caused by the flood. What should you inspect first?
     options:
     - 
     - 
@@ -351,7 +351,7 @@ MonoBehaviour:
     correctOptionIndex: 0
     optionSprites:
     - {fileID: 21300000, guid: 1089ba6f057c19a4eb287d5c1df90014, type: 3}
-    - {fileID: 21300000, guid: b758b96d287330648a46398c7d52f9e1, type: 3}
+    - {fileID: 21300000, guid: 3c85be7647197444b8b221a019f49bd4, type: 3}
     - {fileID: 21300000, guid: d357e4fcca7d92f45be15b01097be7c5, type: 3}
     placeholderSprite: {fileID: 0}
     questionCharacterId: professor_lingap

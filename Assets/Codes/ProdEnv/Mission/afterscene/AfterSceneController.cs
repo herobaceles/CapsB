@@ -19,6 +19,12 @@ public class AfterSceneController : MonoBehaviour
     [SerializeField] private GameObject arTriggerDisinfectHouse;
     [SerializeField] private GameObject quizZoneTrigger;
 
+    [Header("House Interior Item Groups")]
+    [SerializeField] private GameObject cleanupGearInteriorGroup;
+    [SerializeField] private GameObject hiddenDangerInteriorGroup;
+    [SerializeField] private GameObject kitchenSafetyInteriorGroup;
+    [SerializeField] private GameObject disinfectHouseInteriorGroup;
+
     [SerializeField] private Vector3 spawnPosition = Vector3.zero;
 
     private MissionData currentMission;
@@ -86,6 +92,8 @@ public class AfterSceneController : MonoBehaviour
     /// </summary>
     public void StartQuizOnlyPhase()
     {
+        HideAllInteriorGroups();
+
         if (joystickUI != null) joystickUI.SetActive(true);
         if (playerController != null) playerController.SetActive(true);
         if (gameplayCamera != null) gameplayCamera.SetActive(true);
@@ -107,8 +115,57 @@ public class AfterSceneController : MonoBehaviour
         Debug.Log("AfterSceneController: Quiz-only phase started. QuizZoneTrigger is now active.");
     }
 
+    public void ShowCleanupGearInteriorGroup()
+    {
+        HideAllInteriorGroups();
+
+        if (cleanupGearInteriorGroup != null)
+            cleanupGearInteriorGroup.SetActive(true);
+    }
+
+    public void ShowHiddenDangerInteriorGroup()
+    {
+        HideAllInteriorGroups();
+
+        if (hiddenDangerInteriorGroup != null)
+            hiddenDangerInteriorGroup.SetActive(true);
+    }
+
+    public void ShowKitchenSafetyInteriorGroup()
+    {
+        HideAllInteriorGroups();
+
+        if (kitchenSafetyInteriorGroup != null)
+            kitchenSafetyInteriorGroup.SetActive(true);
+    }
+
+    public void ShowDisinfectHouseInteriorGroup()
+    {
+        HideAllInteriorGroups();
+
+        if (disinfectHouseInteriorGroup != null)
+            disinfectHouseInteriorGroup.SetActive(true);
+    }
+
+    public void HideAllInteriorGroups()
+    {
+        if (cleanupGearInteriorGroup != null)
+            cleanupGearInteriorGroup.SetActive(false);
+
+        if (hiddenDangerInteriorGroup != null)
+            hiddenDangerInteriorGroup.SetActive(false);
+
+        if (kitchenSafetyInteriorGroup != null)
+            kitchenSafetyInteriorGroup.SetActive(false);
+
+        if (disinfectHouseInteriorGroup != null)
+            disinfectHouseInteriorGroup.SetActive(false);
+    }
+
     public void StartExplorationPhaseInternal()
     {
+        HideAllInteriorGroups();
+
         if (joystickUI != null) joystickUI.SetActive(true);
         if (playerController != null) playerController.SetActive(true);
         if (gameplayCamera != null) gameplayCamera.SetActive(true);
