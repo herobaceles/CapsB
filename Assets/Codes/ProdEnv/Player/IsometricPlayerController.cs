@@ -1,3 +1,5 @@
+
+using UnityEngine;
 using UnityEngine;
 
 /// <summary>
@@ -16,10 +18,6 @@ public class IsometricPlayerController : MonoBehaviour
     [Header("Joystick (Assign from Asset Store joystick)")]
     [SerializeField] private FixedJoystick joystick; // Works with Joystick Pack
     // If using a different joystick, change this type or use the interface below
-
-    [Header("Input")]
-    [SerializeField] private bool invertHorizontalInput = false;
-    [SerializeField] private bool invertVerticalInput = false;
 
     [Header("Gravity")]
     [SerializeField] private float gravity = -9.81f;
@@ -41,13 +39,19 @@ public class IsometricPlayerController : MonoBehaviour
     private float verticalVelocity;
     private bool isGrounded;
 
+    // Movement gating
+    private bool movementEnabled = true;
+
     // Input
     private Vector2 inputDirection;
-    private bool movementEnabled = true;
 
     public bool IsMoving => inputDirection.sqrMagnitude > 0.01f;
     public Vector3 Velocity => currentVelocity;
     public float CurrentSpeed => currentVelocity.magnitude;
+
+    /// <summary>
+    /// Whether player movement input is currently allowed.
+    /// </summary>
     public bool IsMovementEnabled => movementEnabled;
 
     private void Awake()
@@ -67,7 +71,7 @@ public class IsometricPlayerController : MonoBehaviour
         if (!CompareTag("Player"))
         {
             gameObject.tag = "Player";
-            // Debug.Log("IsometricPlayerController: Set tag to 'Player'");
+            Debug.Log("IsometricPlayerController: Set tag to 'Player'");
         }
     }
 
@@ -81,6 +85,7 @@ public class IsometricPlayerController : MonoBehaviour
 
     private void GatherInput()
     {
+        // When movement is disabled, clear input so the character stays idle
         if (!movementEnabled)
         {
             inputDirection = Vector2.zero;
@@ -94,18 +99,12 @@ public class IsometricPlayerController : MonoBehaviour
         }
         else
         {
-            // Original fallback to keyboard for testing
+            // Fallback to keyboard for testing
             inputDirection = new Vector2(
                 Input.GetAxisRaw("Horizontal"),
                 Input.GetAxisRaw("Vertical")
             );
         }
-
-        // Optional axis inversion for player preference / camera setup
-        if (invertHorizontalInput)
-            inputDirection.x = -inputDirection.x;
-        if (invertVerticalInput)
-            inputDirection.y = -inputDirection.y;
 
         // Normalize if magnitude > 1
         if (inputDirection.sqrMagnitude > 1f)
@@ -134,11 +133,7 @@ public class IsometricPlayerController : MonoBehaviour
         // Convert input to isometric world direction
         moveDirection = ConvertToIsometric(inputDirection);
 
-        // Debug: Log input and movement
-        if (inputDirection.sqrMagnitude > 0.01f)
-        {
-            Debug.Log($"Input: {inputDirection}, MoveDir: {moveDirection}, CurrentVel: {currentVelocity.magnitude}");
-        }
+        // ...existing code...
 
         // Calculate target velocity
         Vector3 targetVelocity = moveDirection * moveSpeed;
@@ -167,22 +162,33 @@ public class IsometricPlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// Convert 2D joystick input to a fixed isometric 3D direction.
-    /// This ignores camera rotation so movement feels the same in
-    /// Before/After missions. Use invertHorizontalInput /
-    /// invertVerticalInput to flip axes per-scene if needed.
+    /// Convert 2D input to isometric 3D direction based on camera orientation
     /// </summary>
     private Vector3 ConvertToIsometric(Vector2 input)
     {
         if (input.sqrMagnitude < 0.01f)
             return Vector3.zero;
 
-        // 45-degree isometric mapping. Invert here so that pushing the
-        // joystick UP moves the boy visually "up" on screen and pushing
-        // LEFT moves him left.
-        Vector3 forward = new Vector3(1f, 0f, 1f).normalized;
-        Vector3 right = new Vector3(1f, 0f, -1f).normalized;
-        Vector3 worldDirection = forward * -input.y + right * -input.x;
+        if (cameraTransform == null)
+        {
+            // Default isometric direction (45 degrees rotated)
+            Vector3 forward = new Vector3(1, 0, 1).normalized;
+            Vector3 right = new Vector3(1, 0, -1).normalized;
+            return (forward * input.y + right * input.x).normalized;
+        }
+
+        // Use camera's forward/right projected on ground plane
+        Vector3 camForward = cameraTransform.forward;
+        Vector3 camRight = cameraTransform.right;
+
+        // Flatten to horizontal plane
+        camForward.y = 0;
+        camRight.y = 0;
+        camForward.Normalize();
+        camRight.Normalize();
+
+        // Calculate world direction
+        Vector3 worldDirection = camForward * input.y + camRight * input.x;
         return worldDirection.normalized;
     }
 
@@ -240,11 +246,18 @@ public class IsometricPlayerController : MonoBehaviour
         inputDirection = Vector2.zero;
     }
 
+    /// <summary>
+    /// Enable or disable player-controlled movement.
+    /// When disabled, input is ignored and the character remains idle.
+    /// </summary>
     public void SetMovementEnabled(bool enabled)
     {
         movementEnabled = enabled;
+
         if (!movementEnabled)
+        {
             StopMovement();
+        }
     }
 
     private void OnDrawGizmosSelected()

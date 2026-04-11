@@ -144,7 +144,7 @@ MonoBehaviour:
     completeDialogue: []
     completeDialogueRich:
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 1
       expressionId: happy
       portraitOverride: {fileID: 0}

@@ -120,6 +120,10 @@ MonoBehaviour:
       - 
       - 
       - 
+      wrongOptionFeedback:
+      - 
+      - 
+      - 
       correctOptionIndex: 0
       optionSprites:
       - {fileID: 0}
@@ -136,7 +140,7 @@ MonoBehaviour:
   - hello
   introDialogueRich:
   - characterId: professor_lingap
-    characterName: 
+    characterName: Prof. Lingap
     side: 3
     expressionId: center
     portraitOverride: {fileID: 0}
@@ -150,6 +154,10 @@ MonoBehaviour:
     - Just leave
     - 'Secure important appliences '
     - Hide themd
+    wrongOptionFeedback:
+    - 
+    - 
+    - 
     correctOptionIndex: 1
     optionSprites:
     - {fileID: 21300000, guid: 915242ea84990a64b858609cae115da1, type: 3}

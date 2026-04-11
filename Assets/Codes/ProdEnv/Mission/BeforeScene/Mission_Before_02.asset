@@ -95,6 +95,10 @@ MonoBehaviour:
       - 
       - 
       - 
+      wrongOptionFeedback:
+      - 
+      - 
+      - 
       correctOptionIndex: 0
       optionSprites:
       - {fileID: 0}
@@ -111,7 +115,7 @@ MonoBehaviour:
   - hi
   introDialogueRich:
   - characterId: professor_lingap
-    characterName: 
+    characterName: Prof. Lingap
     side: 3
     expressionId: center
     portraitOverride: {fileID: 0}
@@ -121,6 +125,10 @@ MonoBehaviour:
   startQuiz:
     question: What needs to be turned off before evacuation?
     options:
+    - 
+    - 
+    - 
+    wrongOptionFeedback:
     - 
     - 
     - 

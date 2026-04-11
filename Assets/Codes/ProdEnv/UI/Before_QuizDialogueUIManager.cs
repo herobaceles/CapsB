@@ -25,6 +25,10 @@ public class QuizDialogueUIManager : MonoBehaviour
     [SerializeField] private TMP_Text optionButton2Text;
     [SerializeField] private TMP_Text optionButton3Text;
 
+    [Header("Controls")]
+    [SerializeField] private Button continueButton;
+    [SerializeField] private TMP_Text continueButtonLabel;
+
     [Header("Messages")]
     [SerializeField] private string wrongAnswerMessage = "Incorrect answer. Try again.";
 
@@ -41,9 +45,25 @@ public class QuizDialogueUIManager : MonoBehaviour
     private bool isShowingFeedback;
     private PortraitFaceAnimator currentFaceAnimator;
 
+    // State for waiting on the Continue button after wrong answers
+    private bool isWaitingForContinue;
+
     private void Awake()
     {
         HideQuiz();
+
+        // Ensure continue button starts hidden and wired
+        if (continueButton != null)
+        {
+            continueButton.gameObject.SetActive(false);
+            continueButton.onClick.RemoveAllListeners();
+            continueButton.onClick.AddListener(OnContinueButtonClicked);
+        }
+
+        if (continueButtonLabel != null && string.IsNullOrEmpty(continueButtonLabel.text))
+        {
+            continueButtonLabel.text = "Continue";
+        }
     }
 
     public bool IsConfigured()
@@ -121,6 +141,12 @@ public class QuizDialogueUIManager : MonoBehaviour
         }
 
         isShowingFeedback = false;
+
+        // Hide and reset continue button state when quiz is hidden
+        if (continueButton != null)
+            continueButton.gameObject.SetActive(false);
+
+        isWaitingForContinue = false;
 
         if (quizPanel != null)
             quizPanel.SetActive(false);
@@ -369,10 +395,24 @@ public class QuizDialogueUIManager : MonoBehaviour
             yield return null;
         }
 
-        // Small pause before re-asking the question
-        yield return new WaitForSeconds(0.3f);
+        // After feedback is fully shown, wait for the player to
+        // explicitly press Continue before re-asking the question.
+        if (continueButton != null)
+        {
+            isWaitingForContinue = true;
+            continueButton.gameObject.SetActive(true);
 
-        // Re-show the original question
+            // Wait until the continue button is pressed
+            while (isWaitingForContinue)
+            {
+                yield return null;
+            }
+
+            // Hide the button again before re-asking
+            continueButton.gameObject.SetActive(false);
+        }
+
+        // Re-show the original question once the player is ready
         PlayLine(currentQuestionText);
 
         // Wait for question typing to finish
@@ -385,5 +425,10 @@ public class QuizDialogueUIManager : MonoBehaviour
 
         isShowingFeedback = false;
         feedbackCoroutine = null;
+    }
+
+    private void OnContinueButtonClicked()
+    {
+        isWaitingForContinue = false;
     }
 }

@@ -39,7 +39,7 @@ MonoBehaviour:
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
       clearBackground: 0
-      message: Now go find the table that has the go bag it is located in the living
+      message: Now go find the table that has the go bag it is located in the dining
         room
     showDialogueOnComplete: 0
     completeDialogue:
@@ -150,15 +150,30 @@ MonoBehaviour:
     so we need to act smartly before the flood hits.
   introDialogueRich:
   - characterId: professor_lingap
-    characterName: Professor Lingap
+    characterName: Prof. Lingap
     side: 1
     expressionId: shocked
     portraitOverride: {fileID: 0}
     backgroundSprite: {fileID: 21300000, guid: 787a7f6d8a56e3a4daedfd3fd8bdad95, type: 3}
     clearBackground: 0
-    message: "\_Oh dear! That's a Signal Red warning, Edward. This is serious. The
-      water could rise fast. We need to act now, but we must act smartly. Your family's
-      safety depends on what you do before the flood hits. This is your first test."
+    message: "\_Oh dear! That's a Signal Red warning, Edward. This is serious. "
+  - characterId: professor_lingap
+    characterName: Prof. Lingap
+    side: 1
+    expressionId: shocked
+    portraitOverride: {fileID: 0}
+    backgroundSprite: {fileID: 21300000, guid: 787a7f6d8a56e3a4daedfd3fd8bdad95, type: 3}
+    clearBackground: 0
+    message: 'The water could rise fast. We need to act now, but we must act smartly. '
+  - characterId: professor_lingap
+    characterName: Prof. Lingap
+    side: 1
+    expressionId: shocked
+    portraitOverride: {fileID: 0}
+    backgroundSprite: {fileID: 21300000, guid: 787a7f6d8a56e3a4daedfd3fd8bdad95, type: 3}
+    clearBackground: 0
+    message: Your safety depends on what you do before the flood hits. This is your
+      first test.
   startQuiz:
     question: What bag do you need to prepare for the flood?
     options:
