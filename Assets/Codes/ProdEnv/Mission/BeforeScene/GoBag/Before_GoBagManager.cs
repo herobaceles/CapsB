@@ -100,6 +100,10 @@ public class ARMissionManager : MonoBehaviour
     [Tooltip("Child transform name on the table prefab that contains item slot transforms.")]
     public string itemSlotsRootName = "ItemSlots";
 
+    [Header("Go Bag Bag Anchor")]
+    [Tooltip("Child transform name on the table prefab that marks where the bag/backpack should spawn.")]
+    public string bagAnchorName = "BagAnchor";
+
     [Header("UI")]
     public GameObject missionCompleteUI;
 
@@ -427,9 +431,33 @@ public class ARMissionManager : MonoBehaviour
                 tableSize = tableRenderer.bounds.size;
             }
 
-            // Spawn bag at the center of the table
-            Vector3 bagPosition = tableCenter + Vector3.up * (tableHeight + 0.05f);
-            spawnedBag = Instantiate(bagPrefab, bagPosition, Quaternion.identity);
+            // Try to spawn bag at a dedicated anchor on the table prefab.
+            // This lets designers control the exact position/rotation.
+            Transform bagAnchor = null;
+            if (!string.IsNullOrWhiteSpace(bagAnchorName))
+            {
+                var tableTransforms = spawnedTable.GetComponentsInChildren<Transform>(true);
+                for (int i = 0; i < tableTransforms.Length; i++)
+                {
+                    var t = tableTransforms[i];
+                    if (t != null && string.Equals(t.name, bagAnchorName, StringComparison.Ordinal))
+                    {
+                        bagAnchor = t;
+                        break;
+                    }
+                }
+            }
+
+            if (bagAnchor != null)
+            {
+                spawnedBag = Instantiate(bagPrefab, bagAnchor.position, bagAnchor.rotation);
+            }
+            else
+            {
+                // Fallback: spawn bag at the center of the table as before.
+                Vector3 bagPosition = tableCenter + Vector3.up * (tableHeight + 0.05f);
+                spawnedBag = Instantiate(bagPrefab, bagPosition, Quaternion.identity);
+            }
 
             // Spawn items on the table using slots.
             SpawnItemsOnTable(tableSize);

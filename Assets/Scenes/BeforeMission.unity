@@ -2250,6 +2250,9 @@ MonoBehaviour:
   - flashlight
   notRequiredItemNames:
   - Toy
+  - Toy 1
+  - Toy 2
+  - Toy 3
   feedbackUIPrefab: {fileID: 1383893363}
   wrongItemUIPrefab: {fileID: 1383893363}
   itemListPanel: {fileID: 886186202}
@@ -2281,8 +2284,12 @@ MonoBehaviour:
   - {fileID: 5414604251775978727, guid: bedf06869526f5b4ab74316c9ff2c670, type: 3}
   - {fileID: 1186267060272105007, guid: cad47a43f19c8b24da6ed07188a351ad, type: 3}
   - {fileID: 29578874750293333, guid: 23b26b5de703a84469a94fc4b88be4a9, type: 3}
+  - {fileID: 6197828876777929895, guid: 91604a97f59b98d47a03fc96a17652e8, type: 3}
+  - {fileID: 6197828876777929895, guid: 1d01dbb7548134f44a94a5e283683f56, type: 3}
+  - {fileID: 6197828876777929895, guid: 9f753727110b1c94babb648b16a870a8, type: 3}
   useTableItemSlots: 1
   itemSlotsRootName: ItemSlots
+  bagAnchorName: BagAnchor
   missionCompleteUI: {fileID: 0}
 --- !u!4 &218260068
 Transform:
@@ -5891,7 +5898,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: cd28602784ec60c469bad99e3e061ab8, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 40301187c03118b48b0641626c141800, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -7110,12 +7117,12 @@ MonoBehaviour:
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
-  m_ChildAlignment: 0
+  m_ChildAlignment: 3
   m_Spacing: 0
   m_ChildForceExpandWidth: 1
-  m_ChildForceExpandHeight: 1
+  m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0
-  m_ChildControlHeight: 0
+  m_ChildControlHeight: 1
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
@@ -10601,7 +10608,7 @@ VideoPlayer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1697596350}
   m_Enabled: 1
-  m_VideoClip: {fileID: 32900000, guid: 1912d07f851b2614ba859116eeb4d4c5, type: 3}
+  m_VideoClip: {fileID: 32900000, guid: 28f34938976272542942e71b628e4183, type: 3}
   m_TargetCameraAlpha: 1
   m_TargetCamera3DLayout: 0
   m_TargetCamera: {fileID: 0}
