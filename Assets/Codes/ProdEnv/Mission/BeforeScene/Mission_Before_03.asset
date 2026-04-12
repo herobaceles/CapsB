@@ -120,6 +120,10 @@ MonoBehaviour:
       - 
       - 
       - 
+      wrongOptionFeedback:
+      - 
+      - 
+      - 
       correctOptionIndex: 0
       optionSprites:
       - {fileID: 0}
@@ -136,7 +140,7 @@ MonoBehaviour:
   - hello
   introDialogueRich:
   - characterId: professor_lingap
-    characterName: 
+    characterName: Prof. Lingap
     side: 3
     expressionId: center
     portraitOverride: {fileID: 0}
@@ -147,9 +151,13 @@ MonoBehaviour:
   startQuiz:
     question: When leaving the house or evacuating what is the best way to do?
     options:
-    - Just leave
+    - Just leave the appliences
     - 'Secure important appliences '
-    - Hide themd
+    - Hide the appliences
+    wrongOptionFeedback:
+    - mali 0
+    - "mali 1\t"
+    - malo2
     correctOptionIndex: 1
     optionSprites:
     - {fileID: 21300000, guid: 915242ea84990a64b858609cae115da1, type: 3}

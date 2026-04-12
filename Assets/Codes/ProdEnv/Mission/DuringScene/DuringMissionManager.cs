@@ -327,6 +327,40 @@ public class DuringMissionManager : MissionSceneManager
 
         if (isCurrentTask)
         {
+            // Special-case: the evac_center_registration task has been refactored
+            // into a dialogue-only explanation. We skip the mini-scene entirely
+            // to avoid a brief black screen and just play its AR guidance /
+            // completion dialogue over the map, then complete the task.
+            if (string.Equals(taskId, "evac_center_registration", System.StringComparison.OrdinalIgnoreCase))
+            {
+                System.Action completeTask = () =>
+                {
+                    if (IsMissionActive && CurrentTask != null &&
+                        string.Equals(CurrentTask.taskId, taskId, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        CompleteCurrentTask();
+                    }
+
+                    // Ensure we remain in map view for this task.
+                    ToggleMiniScene(false);
+                };
+
+                if (CurrentTask != null &&
+                    CurrentTask.arGuidanceDialogueRich != null &&
+                    CurrentTask.arGuidanceDialogueRich.Count > 0 &&
+                    ProdDialogueManager.Instance != null)
+                {
+                    Debug.Log("DuringMissionManager: Playing evac_center_registration guidance as dialogue-only task.");
+                    ShowTaskDialogue(CurrentTask.arGuidanceDialogueRich, completeTask);
+                }
+                else
+                {
+                    completeTask();
+                }
+
+                return;
+            }
+
             if (activeARTask != null)
             {
                 Debug.Log($"DuringMissionManager: Trigger entered for AR task {taskId}.");

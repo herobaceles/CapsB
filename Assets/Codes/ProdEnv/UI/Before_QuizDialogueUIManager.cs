@@ -25,11 +25,18 @@ public class QuizDialogueUIManager : MonoBehaviour
     [SerializeField] private TMP_Text optionButton2Text;
     [SerializeField] private TMP_Text optionButton3Text;
 
+    [Header("Controls")]
+    [SerializeField] private Button continueButton;
+    [SerializeField] private TMP_Text continueButtonLabel;
+
     [Header("Messages")]
     [SerializeField] private string wrongAnswerMessage = "Incorrect answer. Try again.";
 
     [Header("Typing Settings")]
     [SerializeField] private float questionTypingSpeed = 0.03f;
+
+    [Header("Gameplay HUD")]
+    [SerializeField] private GameObject[] gameplayUIRootsToHide;
 
     private int correctOptionIndex;
     private UnityAction onCorrectAnswer;
@@ -41,9 +48,28 @@ public class QuizDialogueUIManager : MonoBehaviour
     private bool isShowingFeedback;
     private PortraitFaceAnimator currentFaceAnimator;
 
+    // Tracks which gameplay HUD roots were active before the quiz showed.
+    private bool[] previousUIStates;
+
+    // State for waiting on the Continue button after wrong answers
+    private bool isWaitingForContinue;
+
     private void Awake()
     {
         HideQuiz();
+
+        // Ensure continue button starts hidden and wired
+        if (continueButton != null)
+        {
+            continueButton.gameObject.SetActive(false);
+            continueButton.onClick.RemoveAllListeners();
+            continueButton.onClick.AddListener(OnContinueButtonClicked);
+        }
+
+        if (continueButtonLabel != null && string.IsNullOrEmpty(continueButtonLabel.text))
+        {
+            continueButtonLabel.text = "Continue";
+        }
     }
 
     public bool IsConfigured()
@@ -89,6 +115,9 @@ public class QuizDialogueUIManager : MonoBehaviour
         // Stop any previous typing/talking state before configuring new quiz.
         StopTypingAndTalking();
 
+    // Hide gameplay HUD (pause/menu, task panels, etc.) while the quiz is active.
+    HideGameplayHUD();
+
         SetOption(optionButton1, optionButton1Text, optionButton1Image, quizData.options[0], GetOptionSprite(quizData, 0), 0, quizData.placeholderSprite);
         SetOption(optionButton2, optionButton2Text, optionButton2Image, quizData.options[1], GetOptionSprite(quizData, 1), 1, quizData.placeholderSprite);
         SetOption(optionButton3, optionButton3Text, optionButton3Image, quizData.options[2], GetOptionSprite(quizData, 2), 2, quizData.placeholderSprite);
@@ -121,6 +150,15 @@ public class QuizDialogueUIManager : MonoBehaviour
         }
 
         isShowingFeedback = false;
+
+    // Restore gameplay HUD visibility when the quiz is dismissed.
+    RestoreGameplayHUD();
+
+        // Hide and reset continue button state when quiz is hidden
+        if (continueButton != null)
+            continueButton.gameObject.SetActive(false);
+
+        isWaitingForContinue = false;
 
         if (quizPanel != null)
             quizPanel.SetActive(false);
@@ -358,6 +396,51 @@ public class QuizDialogueUIManager : MonoBehaviour
         return wrongAnswerMessage;
     }
 
+    /// <summary>
+    /// Temporarily hides configured gameplay HUD roots (pause button, task panels, etc.)
+    /// while the quiz UI is active, remembering their previous active state.
+    /// </summary>
+    private void HideGameplayHUD()
+    {
+        if (gameplayUIRootsToHide == null || gameplayUIRootsToHide.Length == 0)
+            return;
+
+        if (previousUIStates == null || previousUIStates.Length != gameplayUIRootsToHide.Length)
+            previousUIStates = new bool[gameplayUIRootsToHide.Length];
+
+        for (int i = 0; i < gameplayUIRootsToHide.Length; i++)
+        {
+            GameObject root = gameplayUIRootsToHide[i];
+            if (root == null)
+                continue;
+
+            previousUIStates[i] = root.activeSelf;
+            root.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Restores gameplay HUD roots to the state they had before the quiz was shown.
+    /// </summary>
+    private void RestoreGameplayHUD()
+    {
+        if (gameplayUIRootsToHide == null || gameplayUIRootsToHide.Length == 0)
+            return;
+
+        for (int i = 0; i < gameplayUIRootsToHide.Length; i++)
+        {
+            GameObject root = gameplayUIRootsToHide[i];
+            if (root == null)
+                continue;
+
+            bool wasActive = true;
+            if (previousUIStates != null && i < previousUIStates.Length)
+                wasActive = previousUIStates[i];
+
+            root.SetActive(wasActive);
+        }
+    }
+
     private IEnumerator HandleWrongAnswerFeedback(string feedbackMessage)
     {
         // Show feedback line in place of the question
@@ -369,10 +452,24 @@ public class QuizDialogueUIManager : MonoBehaviour
             yield return null;
         }
 
-        // Small pause before re-asking the question
-        yield return new WaitForSeconds(0.3f);
+        // After feedback is fully shown, wait for the player to
+        // explicitly press Continue before re-asking the question.
+        if (continueButton != null)
+        {
+            isWaitingForContinue = true;
+            continueButton.gameObject.SetActive(true);
 
-        // Re-show the original question
+            // Wait until the continue button is pressed
+            while (isWaitingForContinue)
+            {
+                yield return null;
+            }
+
+            // Hide the button again before re-asking
+            continueButton.gameObject.SetActive(false);
+        }
+
+        // Re-show the original question once the player is ready
         PlayLine(currentQuestionText);
 
         // Wait for question typing to finish
@@ -385,5 +482,10 @@ public class QuizDialogueUIManager : MonoBehaviour
 
         isShowingFeedback = false;
         feedbackCoroutine = null;
+    }
+
+    private void OnContinueButtonClicked()
+    {
+        isWaitingForContinue = false;
     }
 }
