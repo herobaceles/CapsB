@@ -3,12 +3,7 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-<<<<<<< HEAD
-  tags:
-  - HiddenDanger
-=======
   tags: []
->>>>>>> origin/main
   layers:
   - Default
   - TransparentFX

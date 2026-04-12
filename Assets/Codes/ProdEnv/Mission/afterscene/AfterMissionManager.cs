@@ -44,6 +44,9 @@ public class AfterMissionManager : MissionSceneManager
     [Header("After Achievements UI")]
     [SerializeField] private GameObject achievementsPanel;
 
+    [Header("After Outro UI")]
+    [SerializeField] private OuntroPanelController outroPanelController;
+
     [Header("Audio")]
     [SerializeField] private AudioClip afterSceneBgmClip;
 
@@ -629,8 +632,35 @@ public class AfterMissionManager : MissionSceneManager
             sceneController.HideAllInteriorGroups();
         }
 
-        // For Mission_After_02, we only want to show the
-        // MissionCompletePanel (no achievements panel).
+        // For Mission_After_03, show the custom OuntroPanel (before/during/after
+        // recap) first, then show the standard MissionComplete banner when the
+        // player finishes the outro sequence. Other missions keep the existing
+        // behaviour of immediately showing the completion UI.
+        bool isAfter03 = currentMission != null &&
+            string.Equals(currentMission.missionId, "after_03", System.StringComparison.OrdinalIgnoreCase);
+
+        if (isAfter03 && outroPanelController != null)
+        {
+            outroPanelController.StartSequence(() =>
+            {
+                ShowMissionCompleteBanner();
+            });
+        }
+        else
+        {
+            ShowMissionCompleteBanner();
+        }
+    }
+
+    /// <summary>
+    /// Shows the standard MissionComplete banner and wires the continue button
+    /// to advance out of the After phase. Shared by all After missions so the
+    /// after_03 outro flow can invoke it after the OuntroPanel finishes.
+    /// </summary>
+    private void ShowMissionCompleteBanner()
+    {
+        // For Mission_After_02, we only want to show the MissionCompletePanel
+        // (no achievements panel).
         bool isAfter02 = currentMission != null &&
             string.Equals(currentMission.missionId, "after_02", System.StringComparison.OrdinalIgnoreCase);
 

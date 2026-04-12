@@ -2510,7 +2510,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &99199644
 RectTransform:
   m_ObjectHideFlags: 0
@@ -44205,6 +44205,8 @@ MonoBehaviour:
   settingsPanel: {fileID: 1774771967}
   masterVolumeSlider: {fileID: 1041030749}
   closeSettingsButton: {fileID: 955150059}
+  aboutPanel: {fileID: 0}
+  closeAboutButton: {fileID: 0}
 --- !u!43 &1337391534
 Mesh:
   m_ObjectHideFlags: 0
@@ -60000,6 +60002,7 @@ MonoBehaviour:
     expressionId: explaining
     portraitOverride: {fileID: 0}
     backgroundSprite: {fileID: 0}
+    clearBackground: 0
     message: Hello there! My name is Professor Lingap, and I'll be your guide on
       this journey. 'BaHanda' means 'Flood Ready,' and that's exactly what we're
       going to become! Before we start our training, tell me a little about yourself.
@@ -60011,6 +60014,7 @@ MonoBehaviour:
     expressionId: ThumbsUp
     portraitOverride: {fileID: 0}
     backgroundSprite: {fileID: 0}
+    clearBackground: 0
     message: Welcome to Bahanda! Start your journey
   minNameLength: 2
   maxNameLength: 20
@@ -62835,7 +62839,6 @@ MonoBehaviour:
   blinkIntervalMin: 3
   blinkIntervalMax: 6
   blinkDuration: 0.12
-  enableTalkingMouth: 1
   talkingFrameInterval: 0.2
 --- !u!43 &1810905745
 Mesh:
@@ -73318,8 +73321,6 @@ MonoBehaviour:
   centerPortrait: {fileID: 0}
   dialogueBackgroundImage: {fileID: 0}
   activePortraitScale: 1
-  inactivePortraitScale: 0.9
-  inactivePortraitAlpha: 0.5
   talkingScaleAmplitude: 0.05
   talkingScaleSpeed: 6
   typingSpeed: 0.03
