@@ -2250,10 +2250,6 @@ MonoBehaviour:
   - flashlight
   notRequiredItemNames:
   - Toy
-  - 
-  - Toy
-  - Toy
-  - Toy
   feedbackUIPrefab: {fileID: 1383893363}
   wrongItemUIPrefab: {fileID: 1383893363}
   itemListPanel: {fileID: 886186202}
@@ -2285,7 +2281,8 @@ MonoBehaviour:
   - {fileID: 5414604251775978727, guid: bedf06869526f5b4ab74316c9ff2c670, type: 3}
   - {fileID: 1186267060272105007, guid: cad47a43f19c8b24da6ed07188a351ad, type: 3}
   - {fileID: 29578874750293333, guid: 23b26b5de703a84469a94fc4b88be4a9, type: 3}
-  bagClearRadiusOverride: 0.5
+  useTableItemSlots: 1
+  itemSlotsRootName: ItemSlots
   missionCompleteUI: {fileID: 0}
 --- !u!4 &218260068
 Transform:

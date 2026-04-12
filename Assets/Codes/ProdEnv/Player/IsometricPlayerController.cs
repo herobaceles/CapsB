@@ -257,6 +257,14 @@ public class IsometricPlayerController : MonoBehaviour
         if (!movementEnabled)
         {
             StopMovement();
+
+            // Also reset the joystick so any ongoing drag is released.
+            // This prevents the player from "sliding" when UI overlays
+            // (quiz, AR tasks, menus) appear while the joystick is held.
+            if (joystick != null)
+            {
+                joystick.ResetJoystick();
+            }
         }
     }
 

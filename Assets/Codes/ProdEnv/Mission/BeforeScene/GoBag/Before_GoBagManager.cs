@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using System;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using Unity.XR.CoreUtils;
@@ -94,9 +95,10 @@ public class ARMissionManager : MonoBehaviour
     public GameObject bagPrefab;
     public GameObject[] itemPrefabs;
 
-    [Header("Go Bag Spawn Settings")]
-    [Tooltip("Minimum clear radius around the go bag where items will never spawn. If zero or negative, a radius is computed from the bag collider/renderer.")]
-    public float bagClearRadiusOverride = 0.5f;
+    [Header("Go Bag Slot Spawns")]
+    public bool useTableItemSlots = true;
+    [Tooltip("Child transform name on the table prefab that contains item slot transforms.")]
+    public string itemSlotsRootName = "ItemSlots";
 
     [Header("UI")]
     public GameObject missionCompleteUI;
@@ -105,6 +107,7 @@ public class ARMissionManager : MonoBehaviour
 
     private GameObject spawnedTable;
     private GameObject spawnedBag;
+    private readonly List<Transform> cachedItemSlots = new List<Transform>();
     
     // Last spawned breaker instance for the circuit breaker AR task so
     // we can reliably destroy it on reset without relying on tags/names.
@@ -411,6 +414,7 @@ public class ARMissionManager : MonoBehaviour
 
             // Spawn table
             spawnedTable = Instantiate(tablePrefab, hitPose.position, hitPose.rotation);
+            CacheTableItemSlots();
 
             // Determine table bounds and height
             float tableHeight = 0.5f;
@@ -427,12 +431,8 @@ public class ARMissionManager : MonoBehaviour
             Vector3 bagPosition = tableCenter + Vector3.up * (tableHeight + 0.05f);
             spawnedBag = Instantiate(bagPrefab, bagPosition, Quaternion.identity);
 
-            // Compute a safe clear radius around the bag based on either an
-            // explicit override, its collider, or its renderer bounds.
-            float bagClearRadius = ComputeBagClearRadius(spawnedBag, tableSize);
-
-            // Spawn items scattered on the table, avoiding the bag area.
-            SpawnItemsOnTable(tableCenter, tableSize, tableHeight, bagPosition, bagClearRadius);
+            // Spawn items on the table using slots.
+            SpawnItemsOnTable(tableSize);
 
             // Show item list panel
             if (itemListPanel != null)
@@ -660,191 +660,113 @@ public class ARMissionManager : MonoBehaviour
     // avoid overlap between items. If a good random position
     // cannot be found, a safe fallback ring position is used so
     // that all items still appear.
-    void SpawnItemsOnTable(Vector3 tableCenter, Vector3 tableSize, float tableHeight, Vector3 bagPosition, float bagClearRadius)
+    void SpawnItemsOnTable(Vector3 tableSize)
     {
         totalItems = requiredItemNames.Count;
 
-        float y = tableCenter.y + tableHeight + 0.05f;
+        if (!useTableItemSlots)
+        {
+            Debug.LogWarning("ARMissionManager: Table item slots are disabled. No items will be spawned.");
+            return;
+        }
 
-        // Define a spawn rectangle slightly inset from the table edges.
-        float halfX = tableSize.x * 0.5f;
-        float halfZ = tableSize.z * 0.5f;
-        const float insetFactor = 0.8f; // use 80% of the table area
-        float spawnHalfX = halfX * insetFactor;
-        float spawnHalfZ = halfZ * insetFactor;
+        if (cachedItemSlots.Count == 0)
+        {
+            Debug.LogWarning("ARMissionManager: Item slot spawning enabled, but no slots were found. Skipping item spawn.");
+            return;
+        }
 
-        float tableMinSide = Mathf.Min(tableSize.x, tableSize.z);
+        SpawnItemsAtSlots(tableSize);
+    }
 
-        // Precompute item radii so we can also compute a safe ring radius.
+    private void SpawnItemsAtSlots(Vector3 tableSize)
+    {
         int itemCount = itemPrefabs != null ? itemPrefabs.Length : 0;
-        float[] itemRadii = new float[itemCount];
-        float maxItemRadius = 0f;
-        for (int i = 0; i < itemCount; i++)
-        {
-            GameObject item = itemPrefabs[i];
-            if (item == null)
-            {
-                itemRadii[i] = 0f;
-                continue;
-            }
+        int slotCount = cachedItemSlots.Count;
+        int spawnCount = Mathf.Min(itemCount, slotCount);
 
-            float itemFallbackRadius = tableMinSide * 0.05f;
-            float r = GetApproxPrefabRadius(item, itemFallbackRadius) * 1.1f;
-            itemRadii[i] = r;
-            if (r > maxItemRadius)
-                maxItemRadius = r;
+        if (itemCount > slotCount)
+        {
+            Debug.LogWarning($"ARMissionManager: Only {slotCount} item slots found for {itemCount} items. Extra items will not be spawned.");
         }
 
-        // Use the provided clear radius when spacing items away from the bag.
-        float bagRadius = bagClearRadius;
-        if (bagRadius <= 0f)
-        {
-            // Fallback: approximate from prefab size so we keep
-            // a generous clear circle around it.
-            float bagFallbackRadius = tableMinSide * 0.2f;
-            bagRadius = GetApproxPrefabRadius(bagPrefab, bagFallbackRadius) * 1.7f;
-        }
-
-        const float spacingMargin = 0.04f; // extra space between shapes
-
-        Vector2 bagXZ = new Vector2(bagPosition.x, bagPosition.z);
-
-        // Track already placed items as circles on the table.
-        List<Vector2> placedCenters = new List<Vector2>(itemCount);
-        List<float> placedRadii = new List<float>(itemCount);
-
-        const int maxAttemptsPerItem = 80;
-
-        // Fallback ring around the bag, inside the table bounds.
-        float maxRingRadius = Mathf.Min(spawnHalfX, spawnHalfZ) * 0.95f;
-        float minRingRadius = bagRadius + maxItemRadius + spacingMargin;
-        float ringRadius = Mathf.Clamp(minRingRadius, minRingRadius, maxRingRadius);
-        int fallbackIndex = 0;
-
-        for (int i = 0; i < itemCount; i++)
+        for (int i = 0; i < spawnCount; i++)
         {
             GameObject item = itemPrefabs[i];
             if (item == null)
                 continue;
 
-            float itemRadius = itemRadii[i];
-            if (itemRadius <= 0f)
-                itemRadius = tableMinSide * 0.05f;
+            Transform slot = cachedItemSlots[i];
+            if (slot == null)
+                continue;
 
-            bool found = false;
-            Vector3 spawnPos = tableCenter;
-
-            for (int attempt = 0; attempt < maxAttemptsPerItem && !found; attempt++)
-            {
-                float x = Random.Range(-spawnHalfX, spawnHalfX);
-                float z = Random.Range(-spawnHalfZ, spawnHalfZ);
-                spawnPos = tableCenter + new Vector3(x, 0f, z);
-                spawnPos.y = y;
-
-                Vector2 candidateXZ = new Vector2(spawnPos.x, spawnPos.z);
-
-                // 1) Keep away from the bag.
-                float minBagDist = bagRadius + itemRadius + spacingMargin;
-                if (Vector2.Distance(candidateXZ, bagXZ) < minBagDist)
-                    continue;
-
-                // 2) Keep away from already spawned items.
-                bool overlapsExisting = false;
-                for (int j = 0; j < placedCenters.Count; j++)
-                {
-                    float minItemDist = placedRadii[j] + itemRadius + spacingMargin;
-                    if (Vector2.Distance(candidateXZ, placedCenters[j]) < minItemDist)
-                    {
-                        overlapsExisting = true;
-                        break;
-                    }
-                }
-
-                if (overlapsExisting)
-                    continue;
-
-                found = true;
-            }
-
-            if (!found)
-            {
-                // Fallback: place the item on a ring around the bag so
-                // that it still appears and stays away from the bag.
-                if (ringRadius > 0f)
-                {
-                    float angle = (Mathf.PI * 2f / Mathf.Max(1, itemCount)) * fallbackIndex;
-                    fallbackIndex++;
-
-                    Vector3 offset = new Vector3(Mathf.Cos(angle) * ringRadius, 0f, Mathf.Sin(angle) * ringRadius);
-                    spawnPos = tableCenter + offset;
-                    spawnPos.y = y;
-                }
-                else
-                {
-                    Debug.LogWarning($"ARMissionManager: Could not find non-overlapping position for item {item.name} after {maxAttemptsPerItem} attempts and ringRadius invalid. Spawning at table center.");
-                    spawnPos = tableCenter + Vector3.up * (tableHeight + 0.05f);
-                }
-            }
-
-            GameObject spawnedItem = Instantiate(item, spawnPos, Quaternion.identity);
-
-            Vector3 finalPos = spawnedItem.transform.position;
-            Vector2 finalXZ = new Vector2(finalPos.x, finalPos.z);
-            placedCenters.Add(finalXZ);
-            placedRadii.Add(itemRadius);
+            GameObject spawnedItem = Instantiate(item, slot.position, slot.rotation);
+            if (spawnedTable != null)
+                spawnedItem.transform.SetParent(spawnedTable.transform, true);
+            ConfigureDraggableItem(spawnedItem, tableSize);
         }
     }
 
-    // Compute a conservative clear radius around the bag so that
-    // spawned items never start inside its drop-zone area.
-    private float ComputeBagClearRadius(GameObject bagInstance, Vector3 tableSize)
+    private void ConfigureDraggableItem(GameObject spawnedItem, Vector3 tableSize)
     {
-        float tableMinSide = Mathf.Min(tableSize.x, tableSize.z);
+        if (spawnedItem == null)
+            return;
 
-        // 1) Explicit override wins when provided.
-        if (bagClearRadiusOverride > 0f)
-            return bagClearRadiusOverride;
-
-        float radiusFromCollider = 0f;
-        if (bagInstance != null)
+        var body = spawnedItem.GetComponent<Rigidbody>();
+        if (body != null)
         {
-            var colliders = bagInstance.GetComponentsInChildren<Collider>();
-            for (int i = 0; i < colliders.Length; i++)
+            body.useGravity = false;
+            body.isKinematic = true;
+        }
+
+        var draggable = spawnedItem.GetComponent<DraggableItem>();
+        if (draggable == null)
+            return;
+
+        draggable.tableTransform = spawnedTable != null ? spawnedTable.transform : null;
+        draggable.tableSize = tableSize;
+    }
+
+    private void CacheTableItemSlots()
+    {
+        cachedItemSlots.Clear();
+
+        if (spawnedTable == null || string.IsNullOrWhiteSpace(itemSlotsRootName))
+            return;
+
+        Transform slotsRoot = null;
+        var allTransforms = spawnedTable.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < allTransforms.Length; i++)
+        {
+            var t = allTransforms[i];
+            if (t != null && string.Equals(t.name, itemSlotsRootName, StringComparison.Ordinal))
             {
-                var c = colliders[i];
-                if (c == null) continue;
-                var extents = c.bounds.extents;
-                float r = Mathf.Max(extents.x, extents.z);
-                if (r > radiusFromCollider)
-                    radiusFromCollider = r;
+                slotsRoot = t;
+                break;
             }
         }
 
-        if (radiusFromCollider > 0f)
-            return radiusFromCollider * 1.3f; // small safety multiplier
+        if (slotsRoot == null)
+            return;
 
-        // 3) Final fallback based on prefab renderer size.
-        float fallbackRadius = tableMinSide * 0.25f;
-        return GetApproxPrefabRadius(bagPrefab, fallbackRadius) * 1.7f;
+        foreach (Transform child in slotsRoot)
+        {
+            if (child != null)
+                cachedItemSlots.Add(child);
+        }
+
+        cachedItemSlots.Sort((a, b) =>
+        {
+            if (a == null && b == null) return 0;
+            if (a == null) return 1;
+            if (b == null) return -1;
+            int nameCompare = string.Compare(a.name, b.name, StringComparison.Ordinal);
+            if (nameCompare != 0)
+                return nameCompare;
+            return a.GetSiblingIndex().CompareTo(b.GetSiblingIndex());
+        });
     }
 
-    // Approximate a 2D radius for a prefab using its renderer bounds.
-    private float GetApproxPrefabRadius(GameObject prefab, float fallbackRadius)
-    {
-        if (prefab == null)
-            return fallbackRadius;
-
-        var renderer = prefab.GetComponentInChildren<Renderer>();
-        if (renderer == null)
-            return fallbackRadius;
-
-        var extents = renderer.bounds.extents;
-        float radius = Mathf.Max(extents.x, extents.z);
-        if (radius <= 0f)
-            return fallbackRadius;
-
-        return radius;
-    }
 
     // Populate the item list UI with required items
     void PopulateItemListUI()
@@ -968,6 +890,7 @@ public class ARMissionManager : MonoBehaviour
             Destroy(spawnedTable);
         if (spawnedBag != null)
             Destroy(spawnedBag);
+        cachedItemSlots.Clear();
         foreach (var obj in GameObject.FindGameObjectsWithTag("EmergencyItem"))
             Destroy(obj);
 
