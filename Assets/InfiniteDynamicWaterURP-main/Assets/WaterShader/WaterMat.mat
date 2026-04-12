@@ -94,7 +94,7 @@ Material:
     - _FoamColor: {r: 1, g: 1, b: 1, a: 1}
     - _UV1: {r: 0.2, g: 0.2, b: 0, a: 0}
     - _UV2: {r: 0.1, g: 0.1, b: 0, a: 0}
-    - _WaterColor: {r: 0.35294113, g: 0.29019603, b: 0.2274509, a: 0}
+    - _WaterColor: {r: 0.3529412, g: 0.2901961, b: 0.22745098, a: 0}
     - _WaterSpeed1: {r: 0.1, g: 0.1, b: 0, a: 0}
     - _WaterSpeed2: {r: -0.1, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []

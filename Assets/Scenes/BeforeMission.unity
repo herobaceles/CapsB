@@ -4818,7 +4818,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0.000030517578}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &697464344
@@ -10292,6 +10292,8 @@ MonoBehaviour:
   continueButtonLabel: {fileID: 0}
   wrongAnswerMessage: Incorrect answer. Try again.
   questionTypingSpeed: 0.03
+  gameplayUIRootsToHide:
+  - {fileID: 1877941459}
 --- !u!4 &1639573637
 Transform:
   m_ObjectHideFlags: 0
