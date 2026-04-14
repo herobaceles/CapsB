@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 /// <summary>
 /// Manages the After Mission phase — recovery tasks.
@@ -43,6 +44,7 @@ public class AfterMissionManager : MissionSceneManager
 
     [Header("After Achievements UI")]
     [SerializeField] private GameObject achievementsPanel;
+    [SerializeField] private TMP_Text achievementDetailText;
 
     [Header("After Outro UI")]
     [SerializeField] private OuntroPanelController outroPanelController;
@@ -659,13 +661,31 @@ public class AfterMissionManager : MissionSceneManager
     /// </summary>
     private void ShowMissionCompleteBanner()
     {
-        // For Mission_After_02, we only want to show the MissionCompletePanel
-        // (no achievements panel).
-        bool isAfter02 = currentMission != null &&
-            string.Equals(currentMission.missionId, "after_02", System.StringComparison.OrdinalIgnoreCase);
+        // Determine which After mission is currently running.
+        string missionId = currentMission != null ? currentMission.missionId : null;
+        bool isAfter01 = string.Equals(missionId, "after_01", System.StringComparison.OrdinalIgnoreCase);
+        bool isAfter02 = string.Equals(missionId, "after_02", System.StringComparison.OrdinalIgnoreCase);
+        bool isAfter03 = string.Equals(missionId, "after_03", System.StringComparison.OrdinalIgnoreCase);
 
-        if (!isAfter02 && achievementsPanel != null)
-            achievementsPanel.SetActive(true);
+        // For Mission_After_01 (Hidden Danger), show the AchievementsPanel with
+        // a specific detail line. For After_02 and After_03 we only want the
+        // MissionCompletePanel (no achievements panel).
+        if (achievementsPanel != null)
+        {
+            if (isAfter01)
+            {
+                if (achievementDetailText != null)
+                {
+                    achievementDetailText.text = "Pest Control: Snake and rats cleared.";
+                }
+
+                achievementsPanel.SetActive(true);
+            }
+            else
+            {
+                achievementsPanel.SetActive(false);
+            }
+        }
 
         if (missionCompletePanel != null)
             missionCompletePanel.SetActive(true);
@@ -681,6 +701,26 @@ public class AfterMissionManager : MissionSceneManager
         }
 
         waitingForContinue = true;
+    }
+
+    /// <summary>
+    /// Called by the AchievementsPanel Proceed button. Hides only the
+    /// achievements panel so that the underlying MissionComplete UI remains
+    /// visible; does not complete or exit the mission.
+    /// </summary>
+    public void OnAchievementsProceedButton()
+    {
+        if (achievementsPanel != null)
+            achievementsPanel.SetActive(false);
+    }
+
+    /// <summary>
+    /// Called by the AchievementsPanel Restart button. Uses the same replay
+    /// behaviour as the base MissionSceneManager (reloads the current scene).
+    /// </summary>
+    public void OnAchievementsRestartButton()
+    {
+        OnReplayClicked();
     }
 
     private void OnContinueAfterBanner()
