@@ -186,6 +186,18 @@ public class MissionSelectManager : MonoBehaviour
             }
         }
 
+        if (missionToSelect == null && allMissions != null)
+        {
+            missionToSelect = allMissions
+                .Where(mission => mission != null && !IsMissionLocked(mission))
+                .OrderBy(mission => mission.phase)
+                .ThenBy(mission => mission.sortOrder)
+                .FirstOrDefault();
+
+            if (missionToSelect != null)
+                phaseToShow = missionToSelect.phase;
+        }
+
         // Switch to the chosen phase
         SwitchToPhase(phaseToShow);
 
@@ -273,22 +285,24 @@ public class MissionSelectManager : MonoBehaviour
         if (missionButtonPrefab == null) return;
 
         GameObject buttonObj = Instantiate(missionButtonPrefab, missionListContainer);
+        bool isLocked = IsMissionLocked(mission);
+        bool isCompleted = IsMissionCompleted(mission.missionId);
 
         // Get button component
         Button button = buttonObj.GetComponent<Button>();
         if (button != null)
         {
             MissionData missionRef = mission;
-            button.onClick.AddListener(() => SelectMission(missionRef));
+            button.interactable = !isLocked;
+
+            if (!isLocked)
+                button.onClick.AddListener(() => SelectMission(missionRef));
         }
 
         // Set text
         TMP_Text buttonText = buttonObj.GetComponentInChildren<TMP_Text>();
         if (buttonText != null)
         {
-            bool isLocked = IsMissionLocked(mission);
-            bool isCompleted = IsMissionCompleted(mission.missionId);
-
             string status = "";
             if (isCompleted) status = " ";
             else if (isLocked) status = " ";
@@ -302,6 +316,10 @@ public class MissionSelectManager : MonoBehaviour
         {
             iconImage.sprite = mission.missionIcon;
         }
+
+        CanvasGroup canvasGroup = buttonObj.GetComponent<CanvasGroup>();
+        if (canvasGroup != null)
+            canvasGroup.alpha = isLocked ? 0.6f : 1f;
     }
 
     #endregion
@@ -530,12 +548,29 @@ public class MissionSelectManager : MonoBehaviour
 
     #region Progress Queries
 
+    private bool IsInitialCampaignMission(MissionData mission)
+    {
+        if (mission == null)
+            return false;
+
+        if (allMissions == null || allMissions.Length == 0)
+            return !mission.isLocked && string.IsNullOrEmpty(mission.requiredMissionId);
+
+        MissionData firstMission = allMissions
+            .Where(candidate => candidate != null)
+            .OrderBy(candidate => candidate.phase)
+            .ThenBy(candidate => candidate.sortOrder)
+            .FirstOrDefault();
+
+        return firstMission == mission;
+    }
+
     public bool IsMissionLocked(MissionData mission)
     {
         if (mission == null) return true;
 
-        // First mission of each phase is always unlocked
-        if (!mission.isLocked && string.IsNullOrEmpty(mission.requiredMissionId))
+        // Only the first mission in the full campaign is available on a fresh save.
+        if (string.IsNullOrEmpty(mission.requiredMissionId) && IsInitialCampaignMission(mission))
             return false;
 
         // Check if explicitly unlocked

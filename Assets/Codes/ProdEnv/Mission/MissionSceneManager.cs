@@ -524,6 +524,12 @@ public abstract class MissionSceneManager : MonoBehaviour
             return false;
         }
 
+        if (nextMission.phase != currentMission.phase)
+        {
+            Debug.Log($"{GetType().Name}: Next mission '{nextMission.missionId}' starts a new phase. Returning to mission select instead of auto-loading.");
+            return false;
+        }
+
         MissionSelectManager.SetSelectedMission(nextMission);
         string sceneName = ResolveMissionSceneName(nextMission);
 
@@ -987,14 +993,20 @@ public abstract class MissionSceneManager : MonoBehaviour
         if (currentMission == null) return;
 
         string missionId = currentMission.missionId;
+        string nextMissionId = currentMission.unlocksMissionId;
 
         // Mark as completed
         PlayerPrefs.SetInt($"Mission_{missionId}_Completed", 1);
 
         // Unlock next mission if specified
-        if (!string.IsNullOrEmpty(currentMission.unlocksMissionId))
+        if (!string.IsNullOrEmpty(nextMissionId))
         {
-            PlayerPrefs.SetInt($"Mission_{currentMission.unlocksMissionId}_Unlocked", 1);
+            PlayerPrefs.SetInt($"Mission_{nextMissionId}_Unlocked", 1);
+        }
+
+        if (PlayerData.Instance != null)
+        {
+            PlayerData.Instance.SaveLastMission(string.IsNullOrEmpty(nextMissionId) ? missionId : nextMissionId);
         }
 
         PlayerPrefs.Save();

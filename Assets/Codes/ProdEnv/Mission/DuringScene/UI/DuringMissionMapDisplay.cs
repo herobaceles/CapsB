@@ -46,6 +46,17 @@ public class DuringMissionMapDisplay : MonoBehaviour
     [SerializeField] private Vector2 worldMin = new Vector2(-50f, -50f);
     [SerializeField] private Vector2 worldMax = new Vector2(50f, 50f);
 
+    [SerializeField, Tooltip("Optional: world-space Transform used as bottom-left corner of the playable area.")]
+    private Transform worldMinRef;
+    [SerializeField, Tooltip("Optional: world-space Transform used as top-right corner of the playable area.")]
+    private Transform worldMaxRef;
+
+    [Header("Marker Position Tuning")]
+    [SerializeField] private Vector2 mapPositionOffset = Vector2.zero;
+    [SerializeField] private bool invertY = false;
+    [SerializeField, Tooltip("Rotate world XZ before mapping to the minimap (degrees). Use this to align markers with an isometric/top-down map texture.")]
+    private float mapRotationDegrees = 0f;
+
     [Header("Auto Bounds")]
     [SerializeField] private bool autoBoundsFromTerrain = true;
     [SerializeField] private bool logBounds = false;
@@ -62,6 +73,10 @@ public class DuringMissionMapDisplay : MonoBehaviour
     private List<RectTransform> spawnedTaskMarkers = new List<RectTransform>();
     private Coroutine animationRoutine;
     private bool isVisible;
+
+    // Internal debug flags so we don't spam the console every frame
+    private bool triedFindPlayer;
+    private bool triedFindNpc;
 
     public bool IsVisible => isVisible;
 
@@ -93,30 +108,67 @@ public class DuringMissionMapDisplay : MonoBehaviour
     private void Start()
     {
         SetupAutoBounds();
-
-        // Auto-find player if not assigned
-        if (playerTransform == null)
-        {
-            var player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null)
-                playerTransform = player.transform;
-        }
-
-        // Auto-find NPC if not assigned
-        if (npcTransform == null)
-        {
-            var npc = FindObjectOfType<NPCFollower>();
-            if (npc != null)
-                npcTransform = npc.transform;
-        }
+        EnsurePlayerReference();
+        EnsureNpcReference();
 
         // Setup map background
         if (mapBackgroundImage != null && mapSprite != null)
             mapBackgroundImage.sprite = mapSprite;
     }
 
+    private void EnsurePlayerReference()
+    {
+        if (playerTransform != null)
+            return;
+
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            playerTransform = player.transform;
+            triedFindPlayer = false;
+            Debug.Log("DuringMissionMapDisplay: Found Player by tag.");
+        }
+        else if (!triedFindPlayer)
+        {
+            triedFindPlayer = true;
+            Debug.LogWarning("DuringMissionMapDisplay: No GameObject with tag 'Player' found. Player marker will not move.");
+        }
+    }
+
+    private void EnsureNpcReference()
+    {
+        if (npcTransform != null)
+            return;
+
+        var npc = FindObjectOfType<NPCFollower>();
+        if (npc != null)
+        {
+            npcTransform = npc.transform;
+            triedFindNpc = false;
+            Debug.Log("DuringMissionMapDisplay: Found NPCFollower instance.");
+        }
+        else if (!triedFindNpc)
+        {
+            triedFindNpc = true;
+            Debug.LogWarning("DuringMissionMapDisplay: No NPCFollower found in scene. NPC marker will not move.");
+        }
+    }
+
     private void SetupAutoBounds()
     {
+        // Prefer explicit reference points if provided.
+        if (worldMinRef != null && worldMaxRef != null)
+        {
+            worldMin = new Vector2(worldMinRef.position.x, worldMinRef.position.z);
+            worldMax = new Vector2(worldMaxRef.position.x, worldMaxRef.position.z);
+
+            if (logBounds)
+            {
+                Debug.Log($"DuringMissionMapDisplay: Using Transform bounds Min {worldMin} Max {worldMax}");
+            }
+            return;
+        }
+
         if (!autoBoundsFromTerrain)
             return;
 
@@ -138,8 +190,15 @@ public class DuringMissionMapDisplay : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (!isVisible) return;
+        // Handle dynamically spawned characters: keep trying to find them by tag/type
+        if (playerTransform == null)
+            EnsurePlayerReference();
 
+        if (npcTransform == null)
+            EnsureNpcReference();
+
+        // Always update markers so the minimap stays live,
+        // even if the panel is currently hidden/animated.
         UpdatePlayerMarker();
         UpdateNPCMarker();
     }
@@ -306,15 +365,35 @@ public class DuringMissionMapDisplay : MonoBehaviour
 
         Rect mapRect = mapContainer.rect;
 
-        // Normalize position within world bounds
-        float nx = Mathf.InverseLerp(worldMin.x, worldMax.x, worldPos.x);
-        float ny = Mathf.InverseLerp(worldMin.y, worldMax.y, worldPos.z);
+        // Optionally rotate world XZ around the world-bounds center so
+        // marker movement matches an isometric/top-down map texture.
+        Vector2 worldCenter = (worldMin + worldMax) * 0.5f;
+        Vector2 local = new Vector2(worldPos.x, worldPos.z) - worldCenter;
+
+        if (Mathf.Abs(mapRotationDegrees) > 0.01f)
+        {
+            float rad = mapRotationDegrees * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(rad);
+            float sin = Mathf.Sin(rad);
+            float rx = local.x * cos - local.y * sin;
+            float ry = local.x * sin + local.y * cos;
+            local = new Vector2(rx, ry);
+        }
+
+        Vector2 rotatedWorld = worldCenter + local;
+
+        // Normalize position within world bounds (after rotation)
+        float nx = Mathf.InverseLerp(worldMin.x, worldMax.x, rotatedWorld.x);
+        float ny = Mathf.InverseLerp(worldMin.y, worldMax.y, rotatedWorld.y);
+
+        if (invertY)
+            ny = 1f - ny;
 
         // Map to UI space (centered)
         float mapX = (nx - 0.5f) * mapRect.width;
         float mapY = (ny - 0.5f) * mapRect.height;
 
-        return new Vector2(mapX, mapY);
+        return new Vector2(mapX, mapY) + mapPositionOffset;
     }
 
     #endregion

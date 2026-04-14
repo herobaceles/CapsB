@@ -380,7 +380,7 @@ public class BeforeMissionManager : MissionSceneManager
         if (currentMission != null && !string.IsNullOrWhiteSpace(currentMission.unlocksMissionId))
         {
             MissionData nextMission = FindMissionById(currentMission.unlocksMissionId);
-            if (nextMission != null)
+            if (nextMission != null && nextMission.phase == currentMission.phase)
             {
                 string sceneName = ResolveMissionSceneName(nextMission);
                 if (!string.IsNullOrWhiteSpace(sceneName) && Application.CanStreamedLevelBeLoaded(sceneName))

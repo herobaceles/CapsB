@@ -19,8 +19,8 @@ MonoBehaviour:
   missionIcon: {fileID: 0}
   phase: 1
   missionSceneName: DuringMission
-  isLocked: 0
-  requiredMissionId: 
+  isLocked: 1
+  requiredMissionId: before_03
   sortOrder: 1
   tasks:
   - taskId: tutorial_open_map
@@ -145,22 +145,21 @@ MonoBehaviour:
     completeDialogueRich:
     - characterId: professor_lingap
       characterName: Professor Lingap
-      side: 3
-      expressionId: center
+      side: 1
+      expressionId: happy
       portraitOverride: {fileID: 0}
-      backgroundSprite: {fileID: 21300000, guid: dad6928e026e10848a66c1c7771a5679, type: 3}
+      backgroundSprite: {fileID: 0}
       clearBackground: 0
-      message: Great job understanding the registration process. Filling out the
-        form keeps you and your family safer during emergencies.
+      message: Great job. Your evacuation registration form is complete.
     - characterId: professor_lingap
       characterName: Professor Lingap
-      side: 3
-      expressionId: center
+      side: 1
+      expressionId: explaining
       portraitOverride: {fileID: 0}
-      backgroundSprite: {fileID: 21300000, guid: 97a703880110e3d44a93da7f4e983a2a, type: 3}
+      backgroundSprite: {fileID: 0}
       clearBackground: 0
-      message: Always cooperate with evacuation center staff and complete the form
-        honestly so they can give you the right help.
+      message: Because you registered, responders know you and your family are here
+        and safe.
     arScanForPlaneDialogueRich: []
     arTapToPlaceDialogueRich: []
     arGuidanceDialogueRich:
@@ -169,28 +168,10 @@ MonoBehaviour:
       side: 1
       expressionId: explaining
       portraitOverride: {fileID: 0}
-      backgroundSprite: {fileID: 21300000, guid: 0c51787abc18e2340a5efce2a5612bfa, type: 3}
+      backgroundSprite: {fileID: 0}
       clearBackground: 0
-      message: When you arrive at the evacuation center, staff will ask you to fill
-        out a registration form.
-    - characterId: professor_lingap
-      characterName: Professor Lingap
-      side: 2
-      expressionId: explaining
-      portraitOverride: {fileID: 0}
-      backgroundSprite: {fileID: 21300000, guid: b95d63fecd4757a42bac2b370e392ea7, type: 3}
-      clearBackground: 0
-      message: This form records your name, family members, address, and any special
-        needs you may have.
-    - characterId: professor_lingap
-      characterName: Professor Lingap
-      side: 3
-      expressionId: center
-      portraitOverride: {fileID: 0}
-      backgroundSprite: {fileID: 21300000, guid: f3435916131fbc54d90e8ea72cb57433, type: 3}
-      clearBackground: 0
-      message: Registration also helps avoid confusion when families are separated,
-        so everyone can be reunited faster.
+      message: When you arrive at the evacuation center, fill in the form so responders
+        can account for you and your family.
     taskStartQuiz:
       question: 
       options:
@@ -240,4 +221,4 @@ MonoBehaviour:
   useMissionTimer: 1
   missionTimeLimitSeconds: 600
   completionMessage: Mission Complete! Great job!
-  unlocksMissionId: 
+  unlocksMissionId: after_01

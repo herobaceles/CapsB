@@ -28,6 +28,11 @@ public class PlayerData : MonoBehaviour
 
     public void SaveOnboardingData(string playerName, Gender gender)
     {
+        bool isNewProfile = !IsOnboardingComplete;
+
+        if (isNewProfile)
+            ResetMissionProgress();
+
         PlayerName = playerName;
         PlayerGender = gender;
         IsOnboardingComplete = true;
@@ -57,10 +62,7 @@ public class PlayerData : MonoBehaviour
 
     public void ResetAllData()
     {
-        PlayerPrefs.DeleteKey(KEY_PLAYER_NAME);
-        PlayerPrefs.DeleteKey(KEY_PLAYER_GENDER);
-        PlayerPrefs.DeleteKey(KEY_ONBOARDING_COMPLETE);
-        PlayerPrefs.DeleteKey(KEY_LAST_MISSION_ID);
+        PlayerPrefs.DeleteAll();
         PlayerPrefs.Save();
         PlayerName = "";
         PlayerGender = Gender.NotSpecified;
@@ -74,5 +76,24 @@ public class PlayerData : MonoBehaviour
         int hour = System.DateTime.Now.Hour;
         string time = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
         return string.IsNullOrEmpty(PlayerName) ? time : $"{time}, {PlayerName}";
+    }
+
+    private void ResetMissionProgress()
+    {
+        PlayerPrefs.DeleteKey(KEY_LAST_MISSION_ID);
+
+        DeleteMissionKey("before_01");
+        DeleteMissionKey("before_02");
+        DeleteMissionKey("before_03");
+        DeleteMissionKey("mission_during_01");
+        DeleteMissionKey("after_01");
+        DeleteMissionKey("after_02");
+        DeleteMissionKey("after_03");
+    }
+
+    private static void DeleteMissionKey(string missionId)
+    {
+        PlayerPrefs.DeleteKey($"Mission_{missionId}_Completed");
+        PlayerPrefs.DeleteKey($"Mission_{missionId}_Unlocked");
     }
 }
