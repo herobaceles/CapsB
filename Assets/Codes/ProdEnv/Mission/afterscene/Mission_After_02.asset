@@ -38,7 +38,7 @@ MonoBehaviour:
     - Now find the table that has the go bag.
     completeDialogueRich:
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 3
       expressionId: ThumbsUp
       portraitOverride: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
@@ -129,7 +129,7 @@ MonoBehaviour:
     so we need to act smartly before the flood hits.
   introDialogueRich:
   - characterId: professor_lingap
-    characterName: Professor Lingap
+    characterName: Prof. Lingap
     side: 3
     expressionId: explaining
     portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
@@ -138,7 +138,7 @@ MonoBehaviour:
     message: Now, the kitchen. This is critical. Floodwater is toxic. We have to
       know what's safe to eat and drink.
   - characterId: professor_lingap
-    characterName: Professor Lingap
+    characterName: Prof. Lingap
     side: 3
     expressionId: explaining
     portraitOverride: {fileID: 21300000, guid: 6ce24a6d694c3f34cb36e2effad451ac, type: 3}

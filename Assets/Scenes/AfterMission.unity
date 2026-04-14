@@ -885,9 +885,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: ARMissionManager, Assembly-CSharp
-        m_MethodName: ProceedToWorld
+      - m_Target: {fileID: 1224748735}
+        m_TargetAssemblyTypeName: AfterMissionManager, Assembly-CSharp
+        m_MethodName: OnAchievementsProceedButton
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -13155,8 +13155,6 @@ MonoBehaviour:
   acceleration: 10
   deceleration: 10
   joystick: {fileID: 315523174}
-  invertHorizontalInput: 0
-  invertVerticalInput: 0
   gravity: -9.81
   groundCheckDistance: 0.1
   groundLayer:
@@ -17155,8 +17153,11 @@ MonoBehaviour:
   optionButton1Text: {fileID: 659688682}
   optionButton2Text: {fileID: 1805907524}
   optionButton3Text: {fileID: 1412576202}
+  continueButton: {fileID: 0}
+  continueButtonLabel: {fileID: 0}
   wrongAnswerMessage: Incorrect answer. Try again.
   questionTypingSpeed: 0.03
+  gameplayUIRootsToHide: []
 --- !u!1 &271654106
 GameObject:
   m_ObjectHideFlags: 0
@@ -17272,21 +17273,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: ARMissionManager, Assembly-CSharp
-        m_MethodName: ReplayARMission
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: BreakerTaskManager, Assembly-CSharp
-        m_MethodName: RestartBreakerTask
+      - m_Target: {fileID: 1224748735}
+        m_TargetAssemblyTypeName: AfterMissionManager, Assembly-CSharp
+        m_MethodName: OnAchievementsRestartButton
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -45318,7 +45307,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -325, y: 59.2}
+  m_AnchoredPosition: {x: -325, y: 136}
   m_SizeDelta: {x: 800, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &647794442
@@ -74696,7 +74685,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: f3826e30489f8d145939f366a9a4eae2, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 22d2200a3e0ced74d8a932e960cc7695, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -85012,6 +85001,7 @@ MonoBehaviour:
       m_Calls: []
   preparationUI: {fileID: 0}
   achievementsPanel: {fileID: 547444898}
+  achievementDetailText: {fileID: 2047457293}
   outroPanelController: {fileID: 288860897}
   afterSceneBgmClip: {fileID: 8300000, guid: 2b8208b4a26d4bc409bc73388090367c, type: 3}
   gameplayCamera: {fileID: 211612320}

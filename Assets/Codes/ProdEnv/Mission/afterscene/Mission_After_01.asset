@@ -34,15 +34,15 @@ MonoBehaviour:
     - Go to the marker to begin your inspection
     startDialogueRich:
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 1
       expressionId: explaining
       portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
       backgroundSprite: {fileID: 0}
       clearBackground: 0
-      message: The storm has passed
+      message: 'The storm has passed '
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 1
       expressionId: explaining
       portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
@@ -50,7 +50,7 @@ MonoBehaviour:
       clearBackground: 0
       message: and you're now inside your home
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 1
       expressionId: explaining
       portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
@@ -58,7 +58,7 @@ MonoBehaviour:
       clearBackground: 0
       message: But be careful. The flood leaves behind many hidden dangers.
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 1
       expressionId: explaining
       portraitOverride: {fileID: 21300000, guid: 12c35c77409217241a4bea176274794e, type: 3}
@@ -70,7 +70,7 @@ MonoBehaviour:
     - Inspect the House {PLAYER_NAME}
     completeDialogueRich:
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 1
       expressionId: explaining
       portraitOverride: {fileID: 0}
@@ -134,10 +134,7 @@ MonoBehaviour:
     taskStartQuiz:
       question: 
       options: []
-      wrongOptionFeedback:
-      - 
-      - 
-      - 
+      wrongOptionFeedback: []
       correctOptionIndex: 0
       optionSprites: []
       placeholderSprite: {fileID: 0}
@@ -158,7 +155,7 @@ MonoBehaviour:
     - go find the hidden danger
     startDialogueRich:
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 1
       expressionId: explaining
       portraitOverride: {fileID: 0}
@@ -170,7 +167,7 @@ MonoBehaviour:
     completeDialogueRich: []
     arScanForPlaneDialogueRich:
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 1
       expressionId: explaining
       portraitOverride: {fileID: 0}
@@ -178,7 +175,7 @@ MonoBehaviour:
       clearBackground: 0
       message: Move device slowly, scan floor, find flat/open space.
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 1
       expressionId: explaining
       portraitOverride: {fileID: 0}
@@ -188,7 +185,7 @@ MonoBehaviour:
         a grid appear.
     arTapToPlaceDialogueRich:
     - characterId: professor_lingap
-      characterName: 
+      characterName: Prof. Lingap
       side: 1
       expressionId: explaining
       portraitOverride: {fileID: 0}
@@ -199,7 +196,7 @@ MonoBehaviour:
 '
     arGuidanceDialogueRich:
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 1
       expressionId: explaining
       portraitOverride: {fileID: 0}
@@ -245,7 +242,7 @@ MonoBehaviour:
     - go find the hidden danger
     startDialogueRich:
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 1
       expressionId: explaining
       portraitOverride: {fileID: 0}
@@ -253,7 +250,7 @@ MonoBehaviour:
       clearBackground: 0
       message: Now search the house for hidden dangers.
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 1
       expressionId: shocked
       portraitOverride: {fileID: 0}
@@ -264,18 +261,18 @@ MonoBehaviour:
     completeDialogue: []
     completeDialogueRich: []
     arScanForPlaneDialogueRich:
-    - characterId: 
-      characterName: 
-      side: 0
-      expressionId: 
+    - characterId: Professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: Explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
       clearBackground: 0
       message: Look around; some animals may be hiding.
-    - characterId: 
-      characterName: 
-      side: 0
-      expressionId: 
+    - characterId: Professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: Explaining
       portraitOverride: {fileID: 0}
       backgroundSprite: {fileID: 0}
       clearBackground: 0
@@ -360,7 +357,7 @@ MonoBehaviour:
     correctAnswerDialogue: []
     correctAnswerDialogueRich:
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 3
       expressionId: ThumbsUp
       portraitOverride: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
@@ -390,7 +387,7 @@ MonoBehaviour:
     correctAnswerDialogue: []
     correctAnswerDialogueRich:
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 3
       expressionId: ThumbsUp
       portraitOverride: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
@@ -419,7 +416,7 @@ MonoBehaviour:
     correctAnswerDialogue: []
     correctAnswerDialogueRich:
     - characterId: professor_lingap
-      characterName: Professor Lingap
+      characterName: Prof. Lingap
       side: 3
       expressionId: ThumbsUp
       portraitOverride: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
