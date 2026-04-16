@@ -367,9 +367,26 @@ public class ARRuntimeContext : MonoBehaviour
 
         Pose pose = anchorRaycastHits[0].pose;
 
-        var anchor = AnchorManager.AddAnchor(pose);
+        // AnchorManager.AddAnchor(Pose) is obsolete. Create an anchor GameObject
+        // and add an ARAnchor component instead (recommended replacement).
+        ARAnchor anchor = null;
+        var anchorObject = new GameObject("ARAnchor");
+        anchorObject.transform.SetPositionAndRotation(pose.position, pose.rotation);
+
+        // If XROrigin has a TrackablesParent, keep anchors organized under it.
+        try
+        {
+            if (XROrigin != null && XROrigin.TrackablesParent != null)
+                anchorObject.transform.SetParent(XROrigin.TrackablesParent, true);
+        }
+        catch { }
+
+        anchor = anchorObject.AddComponent<ARAnchor>();
         if (anchor == null)
+        {
+            Destroy(anchorObject);
             return false;
+        }
 
         // Move the house to the anchor pose and parent it under the
         // anchor so that ARCore/ARKit keeps it stable in the real world.
