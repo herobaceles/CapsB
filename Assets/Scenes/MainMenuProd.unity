@@ -18807,6 +18807,7 @@ GameObject:
   - component: {fileID: 555024878}
   - component: {fileID: 555024876}
   - component: {fileID: 555024880}
+  - component: {fileID: 555024881}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -18937,6 +18938,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotationSpeed: 5
+--- !u!81 &555024881
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 555024875}
+  m_Enabled: 1
 --- !u!1001 &561118049
 PrefabInstance:
   m_ObjectHideFlags: 0

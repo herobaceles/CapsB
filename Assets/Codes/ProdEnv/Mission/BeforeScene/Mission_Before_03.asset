@@ -174,4 +174,4 @@ MonoBehaviour:
   useMissionTimer: 0
   missionTimeLimitSeconds: 0
   completionMessage: Mission Complete! Great job!
-  unlocksMissionId: 
+  unlocksMissionId: mission_during_01

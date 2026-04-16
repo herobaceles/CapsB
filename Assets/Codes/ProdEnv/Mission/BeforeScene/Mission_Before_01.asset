@@ -156,7 +156,7 @@ MonoBehaviour:
     portraitOverride: {fileID: 0}
     backgroundSprite: {fileID: 21300000, guid: 787a7f6d8a56e3a4daedfd3fd8bdad95, type: 3}
     clearBackground: 0
-    message: "\_Oh dear! That's a Signal Red warning, Edward. This is serious. "
+    message: "\_Oh dear! That's a Signal Red warning. This is serious. "
   - characterId: professor_lingap
     characterName: Prof. Lingap
     side: 1

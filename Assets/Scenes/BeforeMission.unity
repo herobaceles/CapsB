@@ -2219,13 +2219,13 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: bfd08d7fd181fbd42b423d96b140f797, type: 3}
   raycastManager: {fileID: 0}
   tablePrefab: {fileID: 5580475605631790240, guid: 1989b714c892be144a482d93edded18a, type: 3}
-  bagPrefab: {fileID: 7985754507910136159, guid: 3d3ee52ed79339541b3306a0aa9c349f, type: 3}
+  bagPrefab: {fileID: 8087657681563393829, guid: 271b69e1aab9c3e48a5603175c60ce1b, type: 3}
   itemPrefabs:
   - {fileID: 4429065721245072524, guid: bea5b37c49465e045a693d67e4c17ddc, type: 3}
   - {fileID: 5027927699460755503, guid: 2872779a5784f764aa8efe17b8cb1c0e, type: 3}
-  - {fileID: 8131523635679539708, guid: 2989f0390af4b0e49af3dc88be66a260, type: 3}
+  - {fileID: 6484570646323423995, guid: 9b02e299cfda42f41b2dedd6091198e9, type: 3}
   - {fileID: 6197828876777929895, guid: dbb9a0c83289b3840b285ebf910946e8, type: 3}
-  - {fileID: 5414604251775978727, guid: bedf06869526f5b4ab74316c9ff2c670, type: 3}
+  - {fileID: 5569730158192245294, guid: fce92be88adadf54696f5c0100151361, type: 3}
   - {fileID: 1186267060272105007, guid: cad47a43f19c8b24da6ed07188a351ad, type: 3}
   - {fileID: 29578874750293333, guid: 23b26b5de703a84469a94fc4b88be4a9, type: 3}
   - {fileID: 6197828876777929895, guid: 91604a97f59b98d47a03fc96a17652e8, type: 3}

@@ -13,18 +13,14 @@ MonoBehaviour:
   m_Name: Mission_After_01
   m_EditorClassIdentifier: 
   missionId: after_01
-  missionName: Hidden Dangers
+  missionName: 'After: Hidden Dangers'
   missionDescription: "After the flood, wild animals may sneak into your house searching
     for shelter\u2014be on the lookout and find them before they cause trouble!"
   missionIcon: {fileID: 0}
   phase: 2
   missionSceneName: AfterMission
-  isLocked: 0
-<<<<<<< Updated upstream
-  requiredMissionId: 
-=======
+  isLocked: 1
   requiredMissionId: mission_during_01
->>>>>>> Stashed changes
   sortOrder: 1
   tasks:
   - taskId: after01_quiz_zone
@@ -308,8 +304,8 @@ MonoBehaviour:
     - objectiveId: 
       description: 
       requiredCount: 2
-      isCompleted: 1
-      currentCount: 2
+      isCompleted: 0
+      currentCount: 0
   introDialogue:
   - The storm has passed, {PLAYER_NAME}.
   - It's time to go home. But be careful.
