@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Mission_After_02
   m_EditorClassIdentifier: 
   missionId: after_02
-  missionName: Safe_items
+  missionName: Safe Items
   missionDescription: Learn to identify safeitem to eat afte the flood and whats
     is not safe
   missionIcon: {fileID: 0}

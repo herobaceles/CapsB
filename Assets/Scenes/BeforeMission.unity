@@ -640,62 +640,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 65701639}
   m_CullTransparentMesh: 1
---- !u!1 &71565673
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 71565675}
-  - component: {fileID: 71565674}
-  m_Layer: 0
-  m_Name: PlayerSpawner (1)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &71565674
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 71565673}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1eed3d3481a68b642b41a2ae24106898, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  malePrefab: {fileID: 8128015579787818320, guid: d8b090226972f534db41972b0af2d136, type: 3}
-  femalePrefab: {fileID: 8128015579787818320, guid: 9ff4e5575965d7e4391700538f23bd94, type: 3}
-  defaultPrefab: {fileID: 0}
-  spawnPoint: {fileID: 71565675}
-  destroyExistingPlayer: 1
-  autoBindCamera: 1
-  spawnMode: 0
-  maleSceneAvatar: {fileID: 0}
-  femaleSceneAvatar: {fileID: 0}
-  defaultSceneAvatar: {fileID: 0}
-  autoBindJoystick: 1
-  overrideJoystick: {fileID: 0}
---- !u!4 &71565675
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 71565673}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 137.28, y: 0.1, z: 52.9}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &76421779
 GameObject:
   m_ObjectHideFlags: 0
@@ -12424,7 +12368,6 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1867790268}
-  - {fileID: 71565675}
   - {fileID: 1284292300}
   - {fileID: 603766150}
   - {fileID: 1128715054}

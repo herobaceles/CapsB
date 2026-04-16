@@ -75,6 +75,11 @@ public class AfterRecoveryARController : MonoBehaviour
     [Tooltip("AudioSource for the wrong-answer SFX (buzzer). Leave null to disable.")]
     [SerializeField] private AudioSource wrongAnswerSfx;
 
+    // Tracks an optionally-disabled player GameObject so we can restore it
+    // when AR ends for this controller.
+    private GameObject disabledPlayer;
+    private bool disabledPlayerByThisController;
+
     /// <summary>
     /// True while an AR recovery session is active.
     /// Used by detectors/items to gate behaviour.
@@ -161,6 +166,21 @@ public class AfterRecoveryARController : MonoBehaviour
 
         if (disableGameplayCameraInAR && gameplayCamera != null)
             gameplayCamera.gameObject.SetActive(false);
+
+        // Also explicitly disable any active player so the AR UI doesn't show
+        // an avatar falling while the AR house is placed. We'll restore it
+        // when AR ends in DisableAR().
+        try
+        {
+            var playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null && playerObj.activeInHierarchy)
+            {
+                disabledPlayer = playerObj;
+                disabledPlayerByThisController = true;
+                playerObj.SetActive(false);
+            }
+        }
+        catch { }
 
         if (ARRuntimeContext.Instance != null)
         {
@@ -346,6 +366,17 @@ public class AfterRecoveryARController : MonoBehaviour
             ARRuntimeContext.Instance.SetARActive(false);
         }
 
+        // Restore any player GameObject we disabled when AR started.
+        if (disabledPlayerByThisController && disabledPlayer != null)
+        {
+            try
+            {
+                disabledPlayer.SetActive(true);
+            }
+            catch { }
+            disabledPlayer = null;
+            disabledPlayerByThisController = false;
+        }
         // Clean up any lingering feedback icons when AR ends.
         ClearFeedbackIcons();
 

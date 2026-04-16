@@ -3088,7 +3088,7 @@ GameObject:
   - component: {fileID: 6247241337391751945}
   m_Layer: 0
   m_Name: low_poly_girl  (unlit shader) 1 1
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3102,7 +3102,7 @@ Transform:
   m_GameObject: {fileID: 6097680183818076670}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1069.2739, y: 0, z: -379.1864}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.78, y: 0.78, z: 0.78}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3160,7 +3160,7 @@ CharacterController:
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 1.2, z: 0}
+  m_Center: {x: 0, y: 1.62, z: 0}
 --- !u!54 &5865734932908980133
 Rigidbody:
   m_ObjectHideFlags: 0

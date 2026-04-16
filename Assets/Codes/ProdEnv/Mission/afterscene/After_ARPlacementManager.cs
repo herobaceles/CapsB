@@ -31,6 +31,8 @@ public class After_ARPlacementManager : MonoBehaviour
     private bool waitingForPlacement;
     private bool placed;
     private bool ignoreNextPointerDown;
+    private GameObject disabledPlayer;
+    private bool disabledPlayerByThisManager;
 
     // Optional mission/task context for AR guidance dialogue.
     private TaskData currentTask;
@@ -80,6 +82,13 @@ public class After_ARPlacementManager : MonoBehaviour
         }
 
         ResolveManagers();
+
+        // Subscribe to AR state changes so we can disable/restore the player
+        if (ARRuntimeContext.Instance != null)
+        {
+            ARRuntimeContext.Instance.OnARActiveChanged -= HandleARActiveChanged;
+            ARRuntimeContext.Instance.OnARActiveChanged += HandleARActiveChanged;
+        }
 
         placed = false;
         waitingForPlacement = true;
@@ -280,5 +289,53 @@ public class After_ARPlacementManager : MonoBehaviour
         {
             dialogueManager.ShowDialogueSequence(currentTask.arGuidanceDialogueRich, null);
         }
+    }
+
+    private void HandleARActiveChanged(bool active)
+    {
+        if (active)
+        {
+            // Prevent immediate placement from the tap that started AR
+            ignoreNextPointerDown = true;
+
+            GameObject player = null;
+            try { player = GameObject.FindGameObjectWithTag("Player"); } catch { }
+
+            if (player != null && player.activeInHierarchy)
+            {
+                disabledPlayer = player;
+                disabledPlayerByThisManager = true;
+                player.SetActive(false);
+
+                var cam = FindObjectOfType<IsometricCameraController>();
+                if (cam != null)
+                    cam.Target = null;
+
+                Debug.Log("After_ARPlacementManager: Disabled player for AR session.");
+            }
+        }
+        else
+        {
+            if (disabledPlayerByThisManager && disabledPlayer != null)
+            {
+                disabledPlayer.SetActive(true);
+                var cam = FindObjectOfType<IsometricCameraController>();
+                if (cam != null)
+                {
+                    cam.Target = disabledPlayer.transform;
+                    cam.SnapToTarget();
+                }
+
+                disabledPlayer = null;
+                disabledPlayerByThisManager = false;
+                Debug.Log("After_ARPlacementManager: Restored player after AR session.");
+            }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (ARRuntimeContext.Instance != null)
+            ARRuntimeContext.Instance.OnARActiveChanged -= HandleARActiveChanged;
     }
 }

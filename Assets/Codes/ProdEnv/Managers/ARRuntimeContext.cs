@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using Unity.XR.CoreUtils;
+using System;
 using System.Reflection;
 using System.Collections;
 
@@ -35,11 +36,13 @@ public class ARRuntimeContext : MonoBehaviour
     private bool xrOriginInitialized;
     private readonly System.Collections.Generic.List<ARRaycastHit> anchorRaycastHits = new System.Collections.Generic.List<ARRaycastHit>();
 
+    public event Action<bool> OnARActiveChanged;
+
     /// <summary>
     /// Returns true when a UnityEngine.Object reference has been destroyed
     /// (the C++ side is gone) but the C# variable is not yet null.
     /// </summary>
-    private static bool IsDestroyedUnityObject(Object obj)
+    private static bool IsDestroyedUnityObject(UnityEngine.Object obj)
     {
         // A destroyed Unity object is NOT "== null" from pure C#, but IS "== null"
         // through the overloaded operator.  ReferenceEquals skips that operator.
@@ -181,6 +184,12 @@ public class ARRuntimeContext : MonoBehaviour
         RebindIfMissing();
         isARCurrentlyActive = active;
 
+        try
+        {
+            OnARActiveChanged?.Invoke(active);
+        }
+        catch { }
+
         if (active)
         {
             // Snap XR Origin to simulation origin only once so the
@@ -252,6 +261,8 @@ public class ARRuntimeContext : MonoBehaviour
                 // Ensure AR plane colliders are disabled while not in AR
                 SetPlaneCollidersEnabled(false);
 
+                // Ensure player is positioned safely when AR is paused (Editor simulation)
+                PositionPlayerAfterARExit();
                 return;
             }
 #endif
@@ -273,6 +284,63 @@ public class ARRuntimeContext : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Ensure the player is not left falling when AR is disabled.
+    /// Unparents the player from AR root/anchor, raycasts down for ground
+    /// and teleports the player to a safe Y (fallback 0.5). Also re-binds
+    /// the isometric camera to the player and snaps to target.
+    /// </summary>
+    private void PositionPlayerAfterARExit()
+    {
+        GameObject player = null;
+        try
+        {
+            player = GameObject.FindGameObjectWithTag("Player");
+        }
+        catch { }
+
+        if (player == null)
+            return;
+
+        // If the player is parented under ARRoot (or an anchor), unparent it
+        if (ARRoot != null && player.transform.IsChildOf(ARRoot.transform))
+        {
+            player.transform.SetParent(null, true);
+        }
+
+        // Attempt to place player on nearest ground using a downward raycast
+        Vector3 origin = player.transform.position + Vector3.up * 1f;
+        RaycastHit hit;
+        Vector3 safePos;
+        if (Physics.Raycast(origin, Vector3.down, out hit, 100f))
+        {
+            safePos = hit.point + Vector3.up * 0.1f;
+        }
+        else
+        {
+            safePos = new Vector3(player.transform.position.x, 0.5f, player.transform.position.z);
+        }
+
+        var controller = player.GetComponent<IsometricPlayerController>();
+        if (controller != null)
+        {
+            controller.Teleport(safePos);
+            controller.SetMovementEnabled(true);
+        }
+        else
+        {
+            player.transform.position = safePos;
+        }
+
+        var cam = FindObjectOfType<IsometricCameraController>();
+        if (cam != null)
+        {
+            cam.Target = player.transform;
+            cam.SnapToTarget();
+        }
+
+        Debug.Log($"ARRuntimeContext: Positioned player after AR exit at {safePos}");
+    }
     /// <summary>
     /// Attempts to create an ARAnchor at the center of the screen on a
     /// detected plane and parent the provided house root under it. This

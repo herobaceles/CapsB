@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Mission_After_03
   m_EditorClassIdentifier: 
   missionId: after_03
-  missionName: CLEAN THE HOUSE
-  missionDescription: clean the mud
+  missionName: Disinfect Area
+  missionDescription: Clean and disinfect the mud left by the flood to make your
+    home safe again.
   missionIcon: {fileID: 0}
   phase: 2
   missionSceneName: AfterMission

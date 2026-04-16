@@ -34265,7 +34265,16 @@ MonoBehaviour:
   showEvacuationRoute: 1
   worldMin: {x: 0, y: 0}
   worldMax: {x: 100, y: 100}
+<<<<<<< Updated upstream
   autoBoundsFromTerrain: 1
+=======
+  worldMinRef: {fileID: 0}
+  worldMaxRef: {fileID: 0}
+  mapPositionOffset: {x: 0, y: 0}
+  invertY: 1
+  mapRotationDegrees: 0
+  autoBoundsFromTerrain: 0
+>>>>>>> Stashed changes
   logBounds: 1
   showDuration: 0.25
   hideDuration: 0.15
@@ -42749,8 +42758,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1eed3d3481a68b642b41a2ae24106898, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  malePrefab: {fileID: 0}
-  femalePrefab: {fileID: 0}
+  malePrefab: {fileID: 8128015579787818320, guid: d8b090226972f534db41972b0af2d136, type: 3}
+  femalePrefab: {fileID: 6097680183818076670, guid: 1efbb848abb729b4d9f3a2ff0322e2e5, type: 3}
   defaultPrefab: {fileID: 0}
   spawnPoint: {fileID: 898625651}
   destroyExistingPlayer: 1
