@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class BreakerTaskManager : MonoBehaviour
 {
@@ -9,6 +10,12 @@ public class BreakerTaskManager : MonoBehaviour
     public void RestartBreakerTask()
     {
         Debug.Log("[BreakerTaskManager] RestartBreakerTask called");
+
+        if (BeforeMissionManager.Instance != null && !BeforeMissionManager.Instance.IsARMissionActive)
+        {
+            BeforeMissionManager.Instance.StartARMission();
+        }
+
         // Ask the shared AR mission manager to clear any spawned
         // breaker instance and reset breaker-specific AR hints.
         if (ARMissionManager.Instance != null)
@@ -18,6 +25,7 @@ public class BreakerTaskManager : MonoBehaviour
 
         taskStarted = false;
         taskComplete = false;
+        pendingAchievementCallback = null;
         if (achievementPanel != null)
             achievementPanel.SetActive(false);
         StartBreakerTask();
@@ -27,6 +35,8 @@ public class BreakerTaskManager : MonoBehaviour
     [Header("Achievement UI")]
     [SerializeField] private GameObject achievementPanel;
     [SerializeField] private TMPro.TextMeshProUGUI achievementText;
+    [SerializeField] private Button achievementProceedButton;
+    [SerializeField] private Button achievementRestartButton;
 
     [Header("Breaker Task Prefab")]
     [SerializeField] private GameObject breakerPrefab; // Assign in inspector if you want to spawn it
@@ -45,10 +55,12 @@ public class BreakerTaskManager : MonoBehaviour
 
     private bool taskStarted = false;
     private bool taskComplete = false;
+    private UnityAction pendingAchievementCallback;
 
     private void Awake()
     {
         Instance = this;
+        ResolveAchievementButtons();
     }
 
     private void OnDestroy()
@@ -115,7 +127,6 @@ public class BreakerTaskManager : MonoBehaviour
                 if (BeforeMissionManager.Instance != null)
                     BeforeMissionManager.Instance.EndARMission();
 
-                CompleteExpectedTask();
                 ShowAchievementPanel(onComplete);
             };
 
@@ -146,7 +157,6 @@ public class BreakerTaskManager : MonoBehaviour
 
             UnityAction afterDialogue = () =>
             {
-                CompleteExpectedTask();
                 ShowAchievementPanel(onComplete);
             };
 
@@ -194,12 +204,59 @@ public class BreakerTaskManager : MonoBehaviour
 
     private void ShowAchievementPanel(UnityAction onComplete = null)
     {
+        ResolveAchievementButtons();
+        pendingAchievementCallback = onComplete;
+
         if (achievementPanel != null)
             achievementPanel.SetActive(true);
+
         if (achievementText != null)
             achievementText.text = "Breaker Task Complete!";
-        if (onComplete != null)
-            onComplete.Invoke();
+
+        if (achievementProceedButton != null)
+        {
+            achievementProceedButton.gameObject.SetActive(true);
+            achievementProceedButton.onClick.RemoveAllListeners();
+            achievementProceedButton.onClick.AddListener(OnAchievementProceedClicked);
+        }
+
+        if (achievementRestartButton != null)
+        {
+            achievementRestartButton.gameObject.SetActive(true);
+            achievementRestartButton.onClick.RemoveAllListeners();
+            achievementRestartButton.onClick.AddListener(RestartBreakerTask);
+        }
+    }
+
+    private void OnAchievementProceedClicked()
+    {
+        if (achievementPanel != null)
+            achievementPanel.SetActive(false);
+
+        CompleteExpectedTask();
+
+        pendingAchievementCallback?.Invoke();
+        pendingAchievementCallback = null;
+    }
+
+    private void ResolveAchievementButtons()
+    {
+        if (achievementPanel == null)
+            return;
+
+        if (achievementProceedButton == null)
+        {
+            Transform proceedTransform = achievementPanel.transform.Find("ProceedButton");
+            if (proceedTransform != null)
+                achievementProceedButton = proceedTransform.GetComponent<Button>();
+        }
+
+        if (achievementRestartButton == null)
+        {
+            Transform restartTransform = achievementPanel.transform.Find("RestartButton");
+            if (restartTransform != null)
+                achievementRestartButton = restartTransform.GetComponent<Button>();
+        }
     }
 
     // Temporary helper for UI button: call this from a button to
