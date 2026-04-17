@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Mission_Before_02
   m_EditorClassIdentifier: 
   missionId: before_02
-  missionName: CIRCUIT Breaker
-  missionDescription: Securing the cuircuit Breaker
+  missionName: Circuit Breaker
+  missionDescription: Securing the circuit Breaker
   missionIcon: {fileID: 0}
   phase: 0
   missionSceneName: BeforeMission
