@@ -145,18 +145,18 @@ MonoBehaviour:
     completeDialogueRich:
     - characterId: professor_lingap
       characterName: Professor Lingap
-      side: 1
-      expressionId: happy
+      side: 3
+      expressionId: center
       portraitOverride: {fileID: 0}
-      backgroundSprite: {fileID: 0}
+      backgroundSprite: {fileID: 21300000, guid: dad6928e026e10848a66c1c7771a5679, type: 3}
       clearBackground: 0
-      message: Great job. Your evacuation registration form is complete.
+      message: Great job. Your evacuation registration  is complete.
     - characterId: professor_lingap
       characterName: Professor Lingap
-      side: 1
-      expressionId: explaining
+      side: 3
+      expressionId: center
       portraitOverride: {fileID: 0}
-      backgroundSprite: {fileID: 0}
+      backgroundSprite: {fileID: 21300000, guid: 97a703880110e3d44a93da7f4e983a2a, type: 3}
       clearBackground: 0
       message: Because you registered, responders know you and your family are here
         and safe.
@@ -168,10 +168,28 @@ MonoBehaviour:
       side: 1
       expressionId: explaining
       portraitOverride: {fileID: 0}
-      backgroundSprite: {fileID: 0}
+      backgroundSprite: {fileID: 21300000, guid: 0c51787abc18e2340a5efce2a5612bfa, type: 3}
       clearBackground: 0
-      message: When you arrive at the evacuation center, fill in the form so responders
-        can account for you and your family.
+      message: When you arrive at the evacuation center, staff will ask you to fill
+        out a registration form
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 21300000, guid: b95d63fecd4757a42bac2b370e392ea7, type: 3}
+      clearBackground: 0
+      message: This form records your name, family members, address, and any special
+        needs you may have.
+    - characterId: professor_lingap
+      characterName: Professor Lingap
+      side: 3
+      expressionId: center
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 21300000, guid: b95d63fecd4757a42bac2b370e392ea7, type: 3}
+      clearBackground: 0
+      message: Registration also helps avoid confusion when families are separated,
+        so everyone can be reunited faster.
     taskStartQuiz:
       question: 
       options:

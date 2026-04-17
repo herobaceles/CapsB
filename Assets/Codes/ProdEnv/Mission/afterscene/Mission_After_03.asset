@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   missionId: after_03
   missionName: CLEAN THE HOUSE
-  missionDescription: clean the mud
+  missionDescription: Clean the mud.
   missionIcon: {fileID: 0}
   phase: 2
   missionSceneName: AfterMission

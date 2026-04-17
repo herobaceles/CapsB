@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Mission_After_02
   m_EditorClassIdentifier: 
   missionId: after_02
-  missionName: Safe_items
-  missionDescription: Learn to identify safeitem to eat afte the flood and whats
-    is not safe
+  missionName: Safe Items
+  missionDescription: Learn to identify which items are safe to eat after a flood
+    and which are not.
   missionIcon: {fileID: 0}
   phase: 2
   missionSceneName: AfterMission

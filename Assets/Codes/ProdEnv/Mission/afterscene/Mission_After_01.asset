@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Mission_After_01
   m_EditorClassIdentifier: 
   missionId: after_01
-  missionName: 'After: Hidden Dangers'
-  missionDescription: "After the flood, wild animals may sneak into your house searching
-    for shelter\u2014be on the lookout and find them before they cause trouble!"
+  missionName: Hidden Dangers
+  missionDescription: "After a flood, wild animals may enter your home\u2014stay
+    alert and find them before they cause trouble!"
   missionIcon: {fileID: 0}
   phase: 2
   missionSceneName: AfterMission
