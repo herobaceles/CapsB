@@ -156,6 +156,40 @@ public class DuringMissionManager : MissionSceneManager
         TryPlayIntroDialogue();
     }
 
+    protected override void CompleteMission()
+    {
+        Debug.Log("DuringMissionManager: Mission complete.");
+
+        StopMissionTimer();
+
+        if (activeARTask != null && activeARTask.IsActive)
+        {
+            activeARTask.CancelTask();
+        }
+
+        if (isMiniSceneActive)
+        {
+            ToggleMiniScene(false);
+        }
+
+        if (DuringMissionStoryDirector.Instance != null)
+        {
+            DuringMissionStoryDirector.Instance.ClearQueue();
+        }
+
+        isMissionActive = false;
+        currentTask = null;
+
+        SaveMissionProgress();
+
+        if (taskPanel != null)
+            taskPanel.SetActive(false);
+
+        ConfigureDefaultUIState();
+        ShowMissionCompleteUI();
+        OnMissionCompleted?.Invoke(currentMission);
+    }
+
     protected override void OnDestroy()
     {
         base.OnDestroy();
@@ -836,36 +870,7 @@ public class DuringMissionManager : MissionSceneManager
         }
 
         Debug.Log("[DEBUG] Force completing mission.");
-
-        // Cancel active AR task
-        if (activeARTask != null && activeARTask.IsActive)
-        {
-            activeARTask.CancelTask();
-        }
-
-        // Exit mini-scene
-        if (isMiniSceneActive)
-        {
-            ToggleMiniScene(false);
-        }
-
-        // Clear dialogue
-        if (DuringMissionStoryDirector.Instance != null)
-        {
-            DuringMissionStoryDirector.Instance.ClearQueue();
-        }
-
-        // Force complete all remaining tasks internally
-        isMissionActive = false;
-
-        // Show completion
-        SaveMissionProgress();
-        OnMissionCompleted?.Invoke(currentMission);
-
-        if (!TryProceedToNextMission())
-        {
-            ReturnToMissionSelect();
-        }
+        CompleteMission();
     }
 
     #endregion
