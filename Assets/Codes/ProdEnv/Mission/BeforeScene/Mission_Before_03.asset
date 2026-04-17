@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   missionId: before_03
   missionName: Secure the appliences
-  missionDescription: Securing the Appliences
+  missionDescription: Securing the appliances
   missionIcon: {fileID: 0}
   phase: 0
   missionSceneName: BeforeMission
@@ -152,7 +152,7 @@ MonoBehaviour:
     question: When leaving the house or evacuating what is the best way to do?
     options:
     - Just leave the appliences
-    - 'Secure important appliences '
+    - 'Secure important appliances '
     - Hide the appliences
     wrongOptionFeedback:
     - mali 0

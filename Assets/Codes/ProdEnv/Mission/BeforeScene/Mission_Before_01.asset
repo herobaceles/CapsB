@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   missionId: before_01
   missionName: Emergency Kit Go Bag
-  missionDescription: "\tLearn how to prepare an emergency kit before a flood strikes."
+  missionDescription: Learn how to prepare an emergency kit before a flood strikes.
   missionIcon: {fileID: 0}
   phase: 0
   missionSceneName: BeforeMission

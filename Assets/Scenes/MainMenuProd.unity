@@ -45155,8 +45155,8 @@ MonoBehaviour:
   progressText: {fileID: 2019077420}
   onboardingManager: {fileID: 1741410481}
   resetConfirmPanel: {fileID: 2119298764}
-  confirmResetButton: {fileID: 1660226581}
-  cancelResetButton: {fileID: 1596048685}
+  confirmResetButton: {fileID: 1596048685}
+  cancelResetButton: {fileID: 1660226581}
   resetWarningText: {fileID: 1381094374}
   resetWarningMessage: This will erase all saved progress and cannot be undone.
   settingsPanel: {fileID: 1774771967}

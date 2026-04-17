@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Mission_During_01
   m_EditorClassIdentifier: 
   missionId: mission_during_01
-  missionName: 'During: Evac Story'
+  missionName: Evacuation Story
   missionDescription: Story-mode evacuation with map tutorial, hazards, and shelter
     protocol.
   missionIcon: {fileID: 0}

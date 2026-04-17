@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 /// <summary>
 /// Base class for mission scene managers (Before, During, After).
@@ -576,6 +577,30 @@ public abstract class MissionSceneManager : MonoBehaviour
         };
     }
 
+    protected virtual MissionData FindFirstMissionInPhaseAndScene(MissionPhase phase, string sceneName)
+    {
+        if (string.IsNullOrWhiteSpace(sceneName))
+            return null;
+
+        MissionData[] loadedMissions = Resources.FindObjectsOfTypeAll<MissionData>();
+        MissionData firstMission = null;
+
+        foreach (var mission in loadedMissions)
+        {
+            if (mission == null || mission.phase != phase)
+                continue;
+
+            string missionSceneName = ResolveMissionSceneName(mission);
+            if (!string.Equals(missionSceneName, sceneName, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (firstMission == null || mission.sortOrder < firstMission.sortOrder)
+                firstMission = mission;
+        }
+
+        return firstMission;
+    }
+
     /// <summary>
     /// Override this to provide phase-specific completion messages
     /// </summary>
@@ -959,6 +984,21 @@ public abstract class MissionSceneManager : MonoBehaviour
     {
         PlayUiClick();
         Time.timeScale = 1f;
+
+        bool isFromMissionCompleteUI = missionCompletePanel != null && missionCompletePanel.activeSelf;
+
+        if (isFromMissionCompleteUI && currentMission != null)
+        {
+            string currentSceneName = ResolveMissionSceneName(currentMission);
+            MissionData firstMissionInScene = FindFirstMissionInPhaseAndScene(currentMission.phase, currentSceneName);
+
+            if (firstMissionInScene != null)
+            {
+                MissionSelectManager.SetSelectedMission(firstMissionInScene);
+                Debug.Log($"{GetType().Name}: Replay from complete UI reset to first mission '{firstMissionInScene.missionId}'.");
+            }
+        }
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
