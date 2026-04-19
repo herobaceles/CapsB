@@ -10,7 +10,7 @@ public class PreparingGoBagManager : MonoBehaviour
 {
     private const string PreparingGoBagMissionId = "before_01";
     private const string PreparingGoBagTaskId = "before_01_prepare_go_bag";
-    private const string QuizCharacterName = "Professor Lingap";
+    private const string QuizCharacterName = "Prof. Lingap";
     private const string QuizCharacterId = "professor_lingap";
 
     [SerializeField] private UnityEngine.UI.RawImage cutsceneRawImage; // Assign in inspector

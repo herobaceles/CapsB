@@ -495,7 +495,7 @@ public class MissionSelectManager : MonoBehaviour
 
             if (ProdDialogueManager.Instance != null)
             {
-                ProdDialogueManager.Instance.ShowDialogue("Professor Lingap",
+                ProdDialogueManager.Instance.ShowDialogue("Prof. Lingap",
                     "That mission area isn't ready yet. Let's try another one!",
                     null, () => {
                         if (loadingPanel != null) loadingPanel.SetActive(false);

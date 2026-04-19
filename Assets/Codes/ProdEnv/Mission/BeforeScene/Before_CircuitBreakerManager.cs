@@ -10,7 +10,7 @@ public class CircuitBreakerManager : MonoBehaviour
 {
     [Header("Dialogue Data")]
     [SerializeField] private string circuitBreakerTaskId = "before_02_secure_circuit_breaker";
-    [SerializeField] private string dialogueSpeaker = "Professor Lingap";
+    [SerializeField] private string dialogueSpeaker = "Prof. Lingap";
 
     private void Awake()
     {

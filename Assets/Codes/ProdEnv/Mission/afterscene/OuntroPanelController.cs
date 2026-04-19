@@ -210,7 +210,10 @@ public class OuntroPanelController : MonoBehaviour
 
     private void OnNextClicked()
     {
-        FinishSequence();
+        AudioManager.Instance?.PlayUiClick();
+        gameObject.SetActive(false);
+        onFinished = null;
+        SceneManager.LoadScene("MainMenuProd");
     }
 
     private void OnCloseClicked()
