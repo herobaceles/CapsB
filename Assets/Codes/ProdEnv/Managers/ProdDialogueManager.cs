@@ -33,6 +33,9 @@ public class ProdDialogueManager : MonoBehaviour
     [SerializeField] private float typingSpeed = 0.03f;
     [SerializeField] private bool allowSkipTyping = true;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip uiClickSfx;
+
     private Queue<ProdDialogueLine> dialogueQueue = new Queue<ProdDialogueLine>();
     private bool isTyping = false;
     private bool skipRequested = false;
@@ -1020,6 +1023,9 @@ public class ProdDialogueManager : MonoBehaviour
 
     private void OnContinueClicked()
     {
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayUiClick(uiClickSfx);
+
         if (isTyping && allowSkipTyping)
         {
             skipRequested = true;

@@ -471,6 +471,7 @@ public abstract class MissionSceneManager : MonoBehaviour
         Debug.Log($"{GetType().Name}: Completed task - {currentTask.taskName}");
 
         completedTasks.Add(currentTask);
+    SaveTaskProgress(currentMission, currentTask);
 
         // Deactivate trigger
         DeactivateTaskTrigger(currentTask.taskId);
@@ -940,6 +941,8 @@ public abstract class MissionSceneManager : MonoBehaviour
 
     public virtual void ResumeMission()
     {
+        PlayUiClick();
+
         isPaused = false;
         Time.timeScale = 1f;
 
@@ -952,6 +955,8 @@ public abstract class MissionSceneManager : MonoBehaviour
 
     protected virtual void OpenPauseSettings()
     {
+        PlayUiClick();
+
         if (pauseSettingsPanel == null)
             return;
 
@@ -976,6 +981,8 @@ public abstract class MissionSceneManager : MonoBehaviour
 
     protected virtual void ClosePauseSettings()
     {
+        PlayUiClick();
+
         if (pauseSettingsPanel != null)
             pauseSettingsPanel.SetActive(false);
     }
@@ -1050,7 +1057,7 @@ public abstract class MissionSceneManager : MonoBehaviour
 
     protected void PlayUiClick()
     {
-        if (uiClickSfx == null || AudioManager.Instance == null)
+        if (AudioManager.Instance == null)
             return;
 
         AudioManager.Instance.PlayUiClick(uiClickSfx);
@@ -1070,6 +1077,14 @@ public abstract class MissionSceneManager : MonoBehaviour
         // Mark as completed
         PlayerPrefs.SetInt($"Mission_{missionId}_Completed", 1);
 
+        if (currentMission.tasks != null)
+        {
+            foreach (TaskData task in currentMission.tasks)
+            {
+                SaveTaskProgress(currentMission, task);
+            }
+        }
+
         // Unlock next mission if specified
         if (!string.IsNullOrEmpty(nextMissionId))
         {
@@ -1088,6 +1103,31 @@ public abstract class MissionSceneManager : MonoBehaviour
     public static bool IsMissionCompleted(string missionId)
     {
         return PlayerPrefs.GetInt($"Mission_{missionId}_Completed", 0) == 1;
+    }
+
+    public static bool IsTaskCompleted(string missionId, string taskId)
+    {
+        if (string.IsNullOrWhiteSpace(missionId) || string.IsNullOrWhiteSpace(taskId))
+            return false;
+
+        if (IsMissionCompleted(missionId))
+            return true;
+
+        return PlayerPrefs.GetInt(GetTaskCompletedKey(missionId, taskId), 0) == 1;
+    }
+
+    public static string GetTaskCompletedKey(string missionId, string taskId)
+    {
+        return $"Mission_{missionId}_Task_{taskId}_Completed";
+    }
+
+    private static void SaveTaskProgress(MissionData mission, TaskData task)
+    {
+        if (mission == null || task == null || string.IsNullOrWhiteSpace(mission.missionId) || string.IsNullOrWhiteSpace(task.taskId))
+            return;
+
+        PlayerPrefs.SetInt(GetTaskCompletedKey(mission.missionId, task.taskId), 1);
+        PlayerPrefs.Save();
     }
 
     public static bool IsMissionUnlocked(string missionId)

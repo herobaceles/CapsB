@@ -878,12 +878,14 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
 
     private void OnAchievementProceedClicked()
     {
+        AudioManager.Instance?.PlayUiClick();
         HideAchievementPanel();
         CompleteExpectedTask();
     }
 
     private void OnAchievementRestartClicked()
     {
+        AudioManager.Instance?.PlayUiClick();
         HideAchievementPanel();
 
         if (BeforeMissionManager.Instance != null && !BeforeMissionManager.Instance.IsARMissionActive)

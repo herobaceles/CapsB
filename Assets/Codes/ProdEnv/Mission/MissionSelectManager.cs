@@ -632,6 +632,17 @@ public class MissionSelectManager : MonoBehaviour
                 {
                     PlayerPrefs.DeleteKey($"Mission_{mission.missionId}_Completed");
                     PlayerPrefs.DeleteKey($"Mission_{mission.missionId}_Unlocked");
+
+                    if (mission.tasks != null)
+                    {
+                        foreach (TaskData task in mission.tasks)
+                        {
+                            if (task == null || string.IsNullOrWhiteSpace(task.taskId))
+                                continue;
+
+                            PlayerPrefs.DeleteKey(MissionSceneManager.GetTaskCompletedKey(mission.missionId, task.taskId));
+                        }
+                    }
                 }
             }
         }

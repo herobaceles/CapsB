@@ -82,18 +82,30 @@ public class PlayerData : MonoBehaviour
     {
         PlayerPrefs.DeleteKey(KEY_LAST_MISSION_ID);
 
-        DeleteMissionKey("before_01");
-        DeleteMissionKey("before_02");
-        DeleteMissionKey("before_03");
-        DeleteMissionKey("mission_during_01");
-        DeleteMissionKey("after_01");
-        DeleteMissionKey("after_02");
-        DeleteMissionKey("after_03");
+        foreach (MissionData mission in MissionCatalog.LoadMissions())
+        {
+            DeleteMissionProgress(mission);
+        }
     }
 
-    private static void DeleteMissionKey(string missionId)
+    private static void DeleteMissionProgress(MissionData mission)
     {
+        if (mission == null || string.IsNullOrWhiteSpace(mission.missionId))
+            return;
+
+        string missionId = mission.missionId;
         PlayerPrefs.DeleteKey($"Mission_{missionId}_Completed");
         PlayerPrefs.DeleteKey($"Mission_{missionId}_Unlocked");
+
+        if (mission.tasks == null)
+            return;
+
+        foreach (TaskData task in mission.tasks)
+        {
+            if (task == null || string.IsNullOrWhiteSpace(task.taskId))
+                continue;
+
+            PlayerPrefs.DeleteKey(MissionSceneManager.GetTaskCompletedKey(missionId, task.taskId));
+        }
     }
 }
