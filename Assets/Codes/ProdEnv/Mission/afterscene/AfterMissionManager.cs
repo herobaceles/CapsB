@@ -95,7 +95,7 @@ public class AfterMissionManager : MissionSceneManager
         // Start background music specific to the After scene, if configured.
         if (AudioManager.Instance != null && afterSceneBgmClip != null)
         {
-            AudioManager.Instance.PlayBgm(afterSceneBgmClip);
+            AudioManager.Instance.PlayMusicIfDifferent(afterSceneBgmClip);
         }
     }
 

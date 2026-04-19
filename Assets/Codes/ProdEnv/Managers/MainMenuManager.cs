@@ -22,7 +22,9 @@ public class MainMenuManager : MonoBehaviour
 
     [Header("Settings")]
     [SerializeField] private GameObject settingsPanel;
-    [SerializeField] private Slider masterVolumeSlider;
+    [SerializeField] private GlobalAudioSettingsUI settingsAudioUI;
+    [SerializeField] private Slider bgmVolumeSlider;
+    [SerializeField] private Slider sfxVolumeSlider;
     [SerializeField] private Button closeSettingsButton;
 
     [Header("About")] 
@@ -32,6 +34,11 @@ public class MainMenuManager : MonoBehaviour
     [Header("Tutorial")]
     [SerializeField] private OuntroPanelController tutorialPanelController;
     [SerializeField] private Button tutorialButton;
+
+    [Header("Audio")]
+    [SerializeField] private AudioClip mainMenuBgmClip;
+    [SerializeField] private AudioClip buttonClickSfx;
+    [SerializeField] private AudioClip menuOpenSfx;
 
     private void Start()
     {
@@ -66,17 +73,7 @@ public class MainMenuManager : MonoBehaviour
         if (settingsPanel != null)
             settingsPanel.SetActive(false);
 
-        // Wire settings UI
-        if (masterVolumeSlider != null)
-        {
-            // Initialize slider from current audio settings if available
-            if (AudioManager.Instance != null)
-            {
-                masterVolumeSlider.value = AudioManager.Instance.GetMasterVolume();
-            }
-
-            masterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
-        }
+        RefreshAudioSliders();
 
         if (closeSettingsButton != null)
         {
@@ -95,11 +92,14 @@ public class MainMenuManager : MonoBehaviour
         {
             tutorialButton.onClick.AddListener(OpenTutorial);
         }
+
+        PlayMenuAudio();
     }
 
     // Called when "Play" button is clicked
     public void PlayGame()
     {
+        PlayButtonClick();
         Debug.Log("MainMenuManager: PlayGame clicked!");
 
         // If first-time player, start onboarding instead of jumping to gameplay
@@ -128,6 +128,7 @@ public class MainMenuManager : MonoBehaviour
     // Opens the mission manager scene to start the game.
     public void OpenMissionManager()
     {
+        PlayButtonClick();
         const string sceneName = "MissionManager";
 
         // Check if the scene is loadable first (guard against unguarded loader calls)
@@ -173,22 +174,19 @@ public class MainMenuManager : MonoBehaviour
     // Called when "Settings" button is clicked
     public void OpenSettings()
     {
+        PlayMenuOpenSound();
         Debug.Log("MainMenuManager: Settings button clicked");
 
         if (settingsPanel != null)
         {
             settingsPanel.SetActive(true);
-
-            // Refresh slider from current volume in case it changed elsewhere
-            if (masterVolumeSlider != null && AudioManager.Instance != null)
-            {
-                masterVolumeSlider.value = AudioManager.Instance.GetMasterVolume();
-            }
+            RefreshAudioSliders();
         }
     }
 
     private void CloseSettings()
     {
+        PlayButtonClick();
         if (settingsPanel != null)
         {
             settingsPanel.SetActive(false);
@@ -198,6 +196,7 @@ public class MainMenuManager : MonoBehaviour
     // Called when "Quit" button is clicked
     public void QuitGame()
     {
+        PlayButtonClick();
         Debug.Log("Quit button clicked");
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false; // Stop play mode in editor
@@ -208,6 +207,7 @@ public class MainMenuManager : MonoBehaviour
     // Called when "Reset" button is clicked - shows confirmation if available
     public void ResetProgress()
     {
+        PlayButtonClick();
         Debug.Log("MainMenuManager: ResetProgress clicked");
         if (resetConfirmPanel != null)
         {
@@ -220,6 +220,7 @@ public class MainMenuManager : MonoBehaviour
 
     private void ConfirmResetProgress()
     {
+        PlayButtonClick();
         PlayerData.Instance?.ResetAllData();
         if (resetConfirmPanel != null)
             resetConfirmPanel.SetActive(false);
@@ -239,21 +240,88 @@ public class MainMenuManager : MonoBehaviour
 
     private void CancelResetProgress()
     {
+        PlayButtonClick();
         if (resetConfirmPanel != null)
             resetConfirmPanel.SetActive(false);
     }
 
-    private void OnMasterVolumeChanged(float value)
+    private void OnBgmVolumeChanged(float value)
     {
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.SetMasterVolume(value);
+            AudioManager.Instance.SetMusicVolume(value);
         }
+    }
+
+    private void OnSfxVolumeChanged(float value)
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.SetSfxVolume(value);
+        }
+    }
+
+    private void RefreshAudioSliders()
+    {
+        if (AudioManager.Instance == null)
+            return;
+
+        if (settingsAudioUI != null)
+        {
+            settingsAudioUI.Bind(AudioManager.Instance);
+            return;
+        }
+
+        if (bgmVolumeSlider != null)
+        {
+            bgmVolumeSlider.SetValueWithoutNotify(AudioManager.Instance.GetMusicVolume());
+            bgmVolumeSlider.onValueChanged.RemoveListener(OnBgmVolumeChanged);
+            bgmVolumeSlider.onValueChanged.AddListener(OnBgmVolumeChanged);
+        }
+
+        if (sfxVolumeSlider != null)
+        {
+            sfxVolumeSlider.SetValueWithoutNotify(AudioManager.Instance.GetSfxVolume());
+            sfxVolumeSlider.onValueChanged.RemoveListener(OnSfxVolumeChanged);
+            sfxVolumeSlider.onValueChanged.AddListener(OnSfxVolumeChanged);
+        }
+    }
+
+    private void PlayMenuAudio()
+    {
+        if (AudioManager.Instance == null)
+            return;
+
+        if (mainMenuBgmClip != null)
+            AudioManager.Instance.PlayMusicIfDifferent(mainMenuBgmClip);
+
+        if (menuOpenSfx != null)
+            AudioManager.Instance.PlaySfx(menuOpenSfx);
+    }
+
+    private void PlayButtonClick()
+    {
+        if (AudioManager.Instance == null)
+            return;
+
+        AudioManager.Instance.PlayUiClick(buttonClickSfx);
+    }
+
+    private void PlayMenuOpenSound()
+    {
+        if (AudioManager.Instance == null)
+            return;
+
+        if (menuOpenSfx != null)
+            AudioManager.Instance.PlaySfx(menuOpenSfx);
+        else
+            PlayButtonClick();
     }
 
     // Called when "About" button is clicked
     public void OpenAbout()
     {
+        PlayMenuOpenSound();
         Debug.Log("MainMenuManager: About button clicked");
 
         if (mainMenuPanel != null)
@@ -271,6 +339,7 @@ public class MainMenuManager : MonoBehaviour
 
     private void CloseAbout()
     {
+        PlayButtonClick();
         if (aboutPanel != null)
             aboutPanel.SetActive(false);
 
@@ -280,6 +349,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void ShowMainMenu()
     {
+        PlayButtonClick();
         if (settingsPanel != null)
             settingsPanel.SetActive(false);
 
@@ -295,6 +365,7 @@ public class MainMenuManager : MonoBehaviour
 
     public void OpenTutorial()
     {
+        PlayMenuOpenSound();
         Debug.Log("MainMenuManager: Tutorial button clicked");
 
         if (mainMenuPanel != null)

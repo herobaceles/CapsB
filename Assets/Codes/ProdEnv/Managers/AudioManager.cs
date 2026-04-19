@@ -1,4 +1,6 @@
 using UnityEngine;
+using System;
+using UnityEngine.Serialization;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -33,21 +35,38 @@ public static class MissingScriptFinder
 
 public class AudioManager : MonoBehaviour
 {
-    public static AudioManager Instance;
-    public AudioSource bgmSource;
+    public static AudioManager Instance { get; private set; }
+
+    public event Action<float> MusicVolumeChanged;
+    public event Action<float> SfxVolumeChanged;
+
+    [Header("Audio Sources")]
+    [FormerlySerializedAs("bgmSource")]
+    [SerializeField] private AudioSource musicSource;
     [SerializeField] private AudioSource sfxSource;
+
+    [Header("Default UI Sounds")]
+    [SerializeField] private AudioClip defaultButtonClickSfx;
+    [SerializeField] private AudioClip defaultButtonHoverSfx;
 
     [Header("Volume Settings")]
     [Range(0f, 1f)]
-    [SerializeField] private float masterVolume = 1f;
-    [Range(0f, 1f)]
-    [SerializeField] private float bgmVolume = 1f;
+    [FormerlySerializedAs("bgmVolume")]
+    [SerializeField] private float musicVolume = 1f;
     [Range(0f, 1f)]
     [SerializeField] private float sfxVolume = 1f;
 
-    private const string MasterVolumeKey = "MasterVolume";
-    private const string BgmVolumeKey = "BgmVolume";
+    private const string MusicVolumeKey = "MusicVolume";
+    private const string LegacyBgmVolumeKey = "BgmVolume";
     private const string SfxVolumeKey = "SfxVolume";
+
+    private bool isInitialized;
+
+    public AudioSource MusicSource => musicSource;
+    public AudioSource SfxSource => sfxSource;
+    public AudioClip CurrentMusicClip => musicSource != null ? musicSource.clip : null;
+
+    public AudioSource bgmSource => musicSource;
 
     private void Awake()
     {
@@ -56,24 +75,78 @@ public class AudioManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        EnsureAudioSources();
+        ApplyVolumeSettings();
+    }
+
+    private void OnValidate()
+    {
+        if (!Application.isPlaying)
+            return;
+
+        EnsureAudioSources();
+        ApplyVolumeSettings();
     }
 
     public void Initialize()
     {
-        // Load saved volume settings
-        masterVolume = PlayerPrefs.GetFloat(MasterVolumeKey, 1f);
-        bgmVolume = PlayerPrefs.GetFloat(BgmVolumeKey, 1f);
-        sfxVolume = PlayerPrefs.GetFloat(SfxVolumeKey, 1f);
+        EnsureAudioSources();
+
+        if (isInitialized)
+        {
+            ApplyVolumeSettings();
+            return;
+        }
+
+        musicVolume = PlayerPrefs.HasKey(MusicVolumeKey)
+            ? PlayerPrefs.GetFloat(MusicVolumeKey, musicVolume)
+            : PlayerPrefs.GetFloat(LegacyBgmVolumeKey, musicVolume);
+        sfxVolume = PlayerPrefs.GetFloat(SfxVolumeKey, sfxVolume);
 
         ApplyVolumeSettings();
 
-        if (bgmSource != null)
-        {
-            bgmSource.Play();
-        }
+        isInitialized = true;
         Debug.Log("AudioManager Initialized");
+    }
+
+    private void EnsureAudioSources()
+    {
+        if (musicSource == null)
+            musicSource = GetOrCreateAudioSource("Music Source", true, 0);
+
+        if (sfxSource == null)
+            sfxSource = GetOrCreateAudioSource("SFX Source", false, 1);
+    }
+
+    private AudioSource GetOrCreateAudioSource(string childName, bool loop, int priority)
+    {
+        Transform child = transform.Find(childName);
+        AudioSource source = child != null ? child.GetComponent<AudioSource>() : null;
+
+        if (source == null)
+        {
+            GameObject childObject = child != null ? child.gameObject : new GameObject(childName);
+            childObject.transform.SetParent(transform, false);
+            source = childObject.GetComponent<AudioSource>();
+            if (source == null)
+                source = childObject.AddComponent<AudioSource>();
+        }
+
+        source.playOnAwake = false;
+        source.loop = loop;
+        source.spatialBlend = 0f;
+        source.priority = priority == 0 ? 64 : 128;
+        source.ignoreListenerPause = false;
+        return source;
+    }
+
+    private void SaveVolume(string key, float value)
+    {
+        PlayerPrefs.SetFloat(key, Mathf.Clamp01(value));
+        PlayerPrefs.Save();
     }
 
     /// <summary>
@@ -81,16 +154,7 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     public void PlaySFX(AudioClip clip)
     {
-        if (clip == null) return;
-
-        if (sfxSource != null)
-        {
-            sfxSource.PlayOneShot(clip);
-        }
-        else
-        {
-            AudioSource.PlayClipAtPoint(clip, Camera.main != null ? Camera.main.transform.position : Vector3.zero);
-        }
+        PlaySfx(clip);
     }
 
     /// <summary>
@@ -98,75 +162,85 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     public void PlaySFX(AudioClip clip, float volume)
     {
-        if (clip == null) return;
+        PlaySfx(clip, volume);
+    }
+
+    public void PlaySfx(AudioClip clip, float volumeScale = 1f)
+    {
+        if (clip == null)
+            return;
+
+        EnsureAudioSources();
 
         if (sfxSource != null)
         {
-            // Final volume is master * sfx * per-call volume
-            sfxSource.PlayOneShot(clip, Mathf.Clamp01(masterVolume * sfxVolume) * volume);
+            sfxSource.PlayOneShot(clip, Mathf.Clamp01(volumeScale));
+            return;
         }
-        else
-        {
-            AudioSource.PlayClipAtPoint(
-                clip,
-                Camera.main != null ? Camera.main.transform.position : Vector3.zero,
-                Mathf.Clamp01(masterVolume * sfxVolume) * volume);
-        }
+
+        AudioSource.PlayClipAtPoint(
+            clip,
+            Camera.main != null ? Camera.main.transform.position : Vector3.zero,
+            Mathf.Clamp01(sfxVolume * volumeScale));
     }
 
-    /// <summary>
-    /// Set overall master volume (0-1). Affects both BGM and SFX.
-    /// </summary>
-    public void SetMasterVolume(float value)
+    public void PlayUiClick(AudioClip clip = null, float volumeScale = 1f)
     {
-        masterVolume = Mathf.Clamp01(value);
-        PlayerPrefs.SetFloat(MasterVolumeKey, masterVolume);
-        PlayerPrefs.Save();
-        ApplyVolumeSettings();
+        PlaySfx(clip != null ? clip : defaultButtonClickSfx, volumeScale);
     }
 
-    /// <summary>
-    /// Set background music volume (0-1), multiplied by master volume.
-    /// </summary>
-    public void SetBgmVolume(float value)
+    public void PlayUiHover(AudioClip clip = null, float volumeScale = 1f)
     {
-        bgmVolume = Mathf.Clamp01(value);
-        PlayerPrefs.SetFloat(BgmVolumeKey, bgmVolume);
-        PlayerPrefs.Save();
-        ApplyVolumeSettings();
+        PlaySfx(clip != null ? clip : defaultButtonHoverSfx, volumeScale);
     }
 
     /// <summary>
-    /// Set sound effects volume (0-1), multiplied by master volume.
+    /// Set background music volume (0-1).
+    /// </summary>
+    public void SetMusicVolume(float value)
+    {
+        musicVolume = Mathf.Clamp01(value);
+        SaveVolume(MusicVolumeKey, musicVolume);
+        SaveVolume(LegacyBgmVolumeKey, musicVolume);
+        ApplyVolumeSettings();
+        MusicVolumeChanged?.Invoke(musicVolume);
+    }
+
+    /// <summary>
+    /// Set sound effects volume (0-1).
     /// </summary>
     public void SetSfxVolume(float value)
     {
         sfxVolume = Mathf.Clamp01(value);
-        PlayerPrefs.SetFloat(SfxVolumeKey, sfxVolume);
-        PlayerPrefs.Save();
+        SaveVolume(SfxVolumeKey, sfxVolume);
         ApplyVolumeSettings();
+        SfxVolumeChanged?.Invoke(sfxVolume);
     }
 
-    public float GetMasterVolume() => masterVolume;
-    public float GetBgmVolume() => bgmVolume;
+    public float GetMusicVolume() => musicVolume;
     public float GetSfxVolume() => sfxVolume;
+    public float GetBgmVolume() => musicVolume;
+
+    public void SetBgmVolume(float value)
+    {
+        SetMusicVolume(value);
+    }
 
     /// <summary>
     /// Apply current volume settings to underlying AudioSources.
     /// </summary>
     private void ApplyVolumeSettings()
     {
-        float masterBgm = Mathf.Clamp01(masterVolume * bgmVolume);
-        float masterSfx = Mathf.Clamp01(masterVolume * sfxVolume);
+        EnsureAudioSources();
 
-        if (bgmSource != null)
+        if (musicSource != null)
         {
-            bgmSource.volume = masterBgm;
+            musicSource.volume = Mathf.Clamp01(musicVolume);
         }
 
         if (sfxSource != null)
         {
-            sfxSource.volume = masterSfx;
+            sfxSource.volume = Mathf.Clamp01(sfxVolume);
         }
     }
 
@@ -178,18 +252,26 @@ public class AudioManager : MonoBehaviour
     /// <param name="loop">If true, the BGM source will loop.</param>
     public void SetBgmClip(AudioClip clip, bool playImmediately = true, bool loop = true)
     {
-        if (bgmSource == null)
+        EnsureAudioSources();
+
+        if (musicSource == null)
             return;
 
-        bgmSource.loop = loop;
-        bgmSource.clip = clip;
+        bool shouldRestart = musicSource.clip != clip;
 
-        // Ensure volume is up-to-date for the new clip.
+        musicSource.loop = loop;
+        musicSource.clip = clip;
+
         ApplyVolumeSettings();
 
         if (playImmediately && clip != null)
         {
-            bgmSource.Play();
+            if (shouldRestart || !musicSource.isPlaying)
+                musicSource.Play();
+        }
+        else if (clip == null)
+        {
+            musicSource.Stop();
         }
     }
 
@@ -198,7 +280,12 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     public void PlayBgm(AudioClip clip)
     {
-        SetBgmClip(clip, true, true);
+        PlayMusic(clip);
+    }
+
+    public void PlayMusic(AudioClip clip, bool loop = true)
+    {
+        SetBgmClip(clip, true, loop);
     }
 
     /// <summary>
@@ -207,16 +294,31 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     public void PlayBgmIfDifferent(AudioClip clip)
     {
-        if (bgmSource == null || clip == null)
+        PlayMusicIfDifferent(clip, true);
+    }
+
+    public void PlayMusicIfDifferent(AudioClip clip, bool loop = true)
+    {
+        EnsureAudioSources();
+
+        if (musicSource == null || clip == null)
             return;
 
-        if (bgmSource.clip == clip && bgmSource.isPlaying)
+        if (musicSource.clip == clip && musicSource.isPlaying)
         {
             ApplyVolumeSettings();
             return;
         }
 
-        PlayBgm(clip);
+        SetBgmClip(clip, true, loop);
+    }
+
+    public void StopMusic()
+    {
+        if (musicSource == null)
+            return;
+
+        musicSource.Stop();
     }
 
     /// <summary>
@@ -224,10 +326,10 @@ public class AudioManager : MonoBehaviour
     /// </summary>
     public void RestartCurrentBgm()
     {
-        if (bgmSource == null || bgmSource.clip == null)
+        if (musicSource == null || musicSource.clip == null)
             return;
 
         ApplyVolumeSettings();
-        bgmSource.Play();
+        musicSource.Play();
     }
 }
