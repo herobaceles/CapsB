@@ -11,6 +11,7 @@ using UnityEngine.SceneManagement;
 public class BeforeMissionManager : MissionSceneManager
 {
     public new static BeforeMissionManager Instance { get; private set; }
+    private const string PreparingGoBagMissionId = "before_01";
 
     [System.Serializable]
     private class MissionTriggerBinding
@@ -75,7 +76,19 @@ public class BeforeMissionManager : MissionSceneManager
         if (sceneBgmClip == null && beforeSceneBgmClip != null)
             sceneBgmClip = beforeSceneBgmClip;
 
+        if (!ShouldDelaySceneMusicUntilAfterCutscene())
+            PlaySceneAudio();
+    }
+
+    public void StartSceneMusic()
+    {
         PlaySceneAudio();
+    }
+
+    private bool ShouldDelaySceneMusicUntilAfterCutscene()
+    {
+        return currentMission != null &&
+               string.Equals(currentMission.missionId, PreparingGoBagMissionId, System.StringComparison.OrdinalIgnoreCase);
     }
 
     private void ResolveGameplayCamera()
@@ -300,6 +313,8 @@ public class BeforeMissionManager : MissionSceneManager
     /// </summary>
     public void RestartCurrentArTask()
     {
+        PlayUiClick();
+
         if (!IsARMissionActive)
         {
             Debug.Log("BeforeMissionManager: RestartCurrentArTask called but AR mission is not active.");
@@ -428,9 +443,13 @@ public class BeforeMissionManager : MissionSceneManager
     private void OnContinueAfterBanner()
     {
         if (!waitingForContinue) return;
+
+        PlayUiClick();
         waitingForContinue = false;
+
         if (missionCompletePanel != null)
             missionCompletePanel.SetActive(false);
+
         base.CompleteMission();
     }
 

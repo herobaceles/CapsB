@@ -35,6 +35,10 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private OuntroPanelController tutorialPanelController;
     [SerializeField] private Button tutorialButton;
 
+    [Header("Achievements")]
+    [SerializeField] private Button achievementsButton;
+    [SerializeField] private MainMenuAchievementsPanel achievementsPanel;
+
     [Header("Audio")]
     [SerializeField] private AudioClip mainMenuBgmClip;
     [SerializeField] private AudioClip buttonClickSfx;
@@ -92,6 +96,12 @@ public class MainMenuManager : MonoBehaviour
         {
             tutorialButton.onClick.AddListener(OpenTutorial);
         }
+
+        if (achievementsButton != null)
+            achievementsButton.onClick.AddListener(OpenAchievements);
+
+        achievementsPanel?.SetCloseHandler(CloseAchievements);
+        achievementsPanel?.Hide();
 
         PlayMenuAudio();
     }
@@ -387,5 +397,39 @@ public class MainMenuManager : MonoBehaviour
         }
 
         Debug.LogWarning("MainMenuManager: Tutorial panel controller not assigned.");
+    }
+
+    public void OpenAchievements()
+    {
+        PlayMenuOpenSound();
+
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(false);
+
+        if (settingsPanel != null)
+            settingsPanel.SetActive(false);
+
+        if (aboutPanel != null)
+            aboutPanel.SetActive(false);
+
+        if (resetConfirmPanel != null)
+            resetConfirmPanel.SetActive(false);
+
+        if (achievementsPanel == null)
+        {
+            Debug.LogWarning("MainMenuManager: Achievements panel is not assigned.");
+            return;
+        }
+
+        achievementsPanel.Show();
+    }
+
+    public void CloseAchievements()
+    {
+        PlayButtonClick();
+        achievementsPanel?.Hide();
+
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(true);
     }
 }
