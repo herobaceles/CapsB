@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using System;
+using UnityEngine.UI;
 
 /// <summary>
 /// Mission controller for "Before_03 – Securing Appliances".
@@ -43,11 +44,16 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
     [SerializeField] private GameObject floodWarningUI;
     [SerializeField] private GameObject statusPanel;
     [SerializeField] private TMP_Text statusText;
+    [SerializeField] private GameObject achievementsPanel;
+    [SerializeField] private TMP_Text achievementText;
+    [SerializeField] private Button achievementProceedButton;
+    [SerializeField] private Button achievementRestartButton;
 
     [Header("Audio")]
     [SerializeField] private AudioClip selectApplianceSfx;
     [SerializeField] private AudioClip placeApplianceSfx;
     [SerializeField] private AudioClip illegalMoveSfx;
+    [SerializeField] private AudioClip achievementCompleteSfx;
 
     [Header("AR Return Sync")]
     [SerializeField] private bool syncPlacementsBackToScene = true;
@@ -63,6 +69,7 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
     private Transform spawnedHouseRoot;
     private ApplianceSecureItem selectedAppliance;
     private bool arGuidanceShown;
+    private bool achievementsPanelResolved;
 
     // Cache of initial local transforms so the AR placement can be
     // restarted without reloading the entire scene/AR content.
@@ -88,6 +95,8 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        UnhookAchievementButtons();
+
         if (Instance == this)
             Instance = null;
     }
@@ -560,7 +569,7 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
         if (BeforeMissionManager.Instance != null)
             BeforeMissionManager.Instance.EndARMission();
 
-        CompleteExpectedTask();
+        ShowAchievementPanel();
     }
 
     private void CompleteExpectedTask()
@@ -735,6 +744,32 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
         // new plane and place the house again.
         ResolveArPlacementManager();
 
+        if (arPlacementManager != null && spawnedHouseRoot == null)
+        {
+            missionActive = false;
+            missionStarted = false;
+            illegalMoves = 0;
+            ClearSelection();
+            UnhookApplianceEvents();
+            appliancesRegistered = false;
+            appliances.Clear();
+            elevatedAreas.Clear();
+            initialLocalPositions.Clear();
+            initialLocalRotations.Clear();
+
+            if (statusPanel != null)
+                statusPanel.SetActive(false);
+            else if (statusText != null)
+                statusText.gameObject.SetActive(false);
+
+            if (floodWarningUI != null)
+                floodWarningUI.SetActive(false);
+
+            DisableFloodLineVisuals();
+            arPlacementManager.BeginPlacement(this);
+            return;
+        }
+
         if (arPlacementManager != null && spawnedHouseRoot != null)
         {
             // Stop current mission flow and unhook events for the
@@ -803,6 +838,121 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
 
         UpdateStatusText();
         UpdateAreaMarkers();
+    }
+
+    private void ShowAchievementPanel()
+    {
+        ResolveAchievementsPanel();
+
+        if (achievementsPanel == null)
+        {
+            Debug.LogWarning("SecuringAppliancesManager: Achievements panel not found; completing task immediately.");
+            CompleteExpectedTask();
+            return;
+        }
+
+        achievementsPanel.SetActive(true);
+
+        if (achievementCompleteSfx != null && AudioManager.Instance != null)
+            AudioManager.Instance.PlaySFX(achievementCompleteSfx);
+
+        if (achievementText != null)
+            achievementText.text = "Securing Appliances Complete!";
+
+        UnhookAchievementButtons();
+
+        if (achievementProceedButton != null)
+            achievementProceedButton.onClick.AddListener(OnAchievementProceedClicked);
+
+        if (achievementRestartButton != null)
+            achievementRestartButton.onClick.AddListener(OnAchievementRestartClicked);
+    }
+
+    private void HideAchievementPanel()
+    {
+        UnhookAchievementButtons();
+
+        if (achievementsPanel != null)
+            achievementsPanel.SetActive(false);
+    }
+
+    private void OnAchievementProceedClicked()
+    {
+        HideAchievementPanel();
+        CompleteExpectedTask();
+    }
+
+    private void OnAchievementRestartClicked()
+    {
+        HideAchievementPanel();
+
+        if (BeforeMissionManager.Instance != null && !BeforeMissionManager.Instance.IsARMissionActive)
+            BeforeMissionManager.Instance.StartARMission();
+
+        RestartAppliancePlacement();
+    }
+
+    private void UnhookAchievementButtons()
+    {
+        if (achievementProceedButton != null)
+            achievementProceedButton.onClick.RemoveListener(OnAchievementProceedClicked);
+
+        if (achievementRestartButton != null)
+            achievementRestartButton.onClick.RemoveListener(OnAchievementRestartClicked);
+    }
+
+    private void ResolveAchievementsPanel()
+    {
+        if (achievementsPanelResolved)
+            return;
+
+        achievementsPanelResolved = true;
+
+        if (achievementsPanel == null)
+        {
+            GameObject[] allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
+            for (int i = 0; i < allObjects.Length; i++)
+            {
+                var candidate = allObjects[i];
+                if (candidate == null || !candidate.scene.IsValid())
+                    continue;
+
+                if (string.Equals(candidate.name, "AchievementsPanel", StringComparison.Ordinal))
+                {
+                    achievementsPanel = candidate;
+                    break;
+                }
+            }
+        }
+
+        if (achievementsPanel == null)
+            return;
+
+        if (achievementText == null)
+        {
+            foreach (var text in achievementsPanel.GetComponentsInChildren<TMP_Text>(true))
+            {
+                if (text != null && string.Equals(text.gameObject.name, "Text (TMP)", StringComparison.Ordinal))
+                {
+                    achievementText = text;
+                    break;
+                }
+            }
+        }
+
+        if (achievementProceedButton == null)
+        {
+            Transform proceedTransform = achievementsPanel.transform.Find("ProceedButton");
+            if (proceedTransform != null)
+                achievementProceedButton = proceedTransform.GetComponent<Button>();
+        }
+
+        if (achievementRestartButton == null)
+        {
+            Transform restartTransform = achievementsPanel.transform.Find("RestartButton");
+            if (restartTransform != null)
+                achievementRestartButton = restartTransform.GetComponent<Button>();
+        }
     }
 
     public void ShowWarning(string message)

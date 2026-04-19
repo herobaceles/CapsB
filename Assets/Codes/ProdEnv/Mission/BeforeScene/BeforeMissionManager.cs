@@ -26,7 +26,7 @@ public class BeforeMissionManager : MissionSceneManager
     [SerializeField] private GameObject preparationUI;
     [SerializeField] private GameObject inventoryPanel;
 
-    [Header("Audio")]
+    [Header("Legacy Audio")]
     [SerializeField] private AudioClip beforeSceneBgmClip;
 
     [Header("Camera")]
@@ -72,11 +72,10 @@ public class BeforeMissionManager : MissionSceneManager
         if (preparationUI != null)
             preparationUI.SetActive(true);
 
-        // Start background music specific to the Before scene, if configured.
-        if (AudioManager.Instance != null && beforeSceneBgmClip != null)
-        {
-            AudioManager.Instance.PlayBgm(beforeSceneBgmClip);
-        }
+        if (sceneBgmClip == null && beforeSceneBgmClip != null)
+            sceneBgmClip = beforeSceneBgmClip;
+
+        PlaySceneAudio();
     }
 
     private void ResolveGameplayCamera()
@@ -411,6 +410,7 @@ public class BeforeMissionManager : MissionSceneManager
         // Show the Mission Complete UI and wait for user to press Continue
         if (missionCompletePanel != null)
             missionCompletePanel.SetActive(true);
+        PlayMissionCompleteSfx();
         if (missionCompleteTitleText != null)
             missionCompleteTitleText.text = "Before Phase Completed!";
         if (missionCompleteMessageText != null)

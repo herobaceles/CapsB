@@ -11,6 +11,7 @@ public class PreparingGoBagManager : MonoBehaviour
     private const string PreparingGoBagMissionId = "before_01";
     private const string PreparingGoBagTaskId = "before_01_prepare_go_bag";
     private const string QuizCharacterName = "Professor Lingap";
+    private const string QuizCharacterId = "professor_lingap";
 
     [SerializeField] private UnityEngine.UI.RawImage cutsceneRawImage; // Assign in inspector
     private void OnDisable()
@@ -28,6 +29,7 @@ public class PreparingGoBagManager : MonoBehaviour
     [Header("Achievement UI")]
     [SerializeField] private GameObject achievementPanel;
     [SerializeField] private TMPro.TextMeshProUGUI achievementText;
+    [SerializeField] private AudioClip achievementCompleteSfx;
     [Header("Cutscene Video")]
     [SerializeField] private GameObject videoPlayerObject; // Assign a VideoPlayer GameObject or panel
     [SerializeField] private float cutsceneDuration = 5f; // Duration in seconds (replace with actual video length)
@@ -91,6 +93,9 @@ public class PreparingGoBagManager : MonoBehaviour
     {
         if (achievementPanel != null)
             achievementPanel.SetActive(true);
+
+        if (achievementCompleteSfx != null && AudioManager.Instance != null)
+            AudioManager.Instance.PlaySFX(achievementCompleteSfx);
 
         if (achievementText != null)
             achievementText.text = "Preparing Go Bag Complete!";
@@ -392,25 +397,105 @@ public class PreparingGoBagManager : MonoBehaviour
     /// </summary>
     public void ShowWrongItemDialogue()
     {
+        ShowWrongItemDialogue(default, null);
+    }
+
+    public void ShowCorrectItemDialogue(GoBagItemDefinition definition, string itemName)
+    {
+        ShowItemExplanationDialogue(
+            definition.correctDropDialogueRich,
+            null,
+            itemName,
+            "{ITEM_NAME} is essential because it helps you stay safe and prepared during evacuation.");
+    }
+
+    public void ShowWrongItemDialogue(GoBagItemDefinition definition, string itemName)
+    {
+        ShowItemExplanationDialogue(
+            definition.wrongDropDialogueRich,
+            goBagWrongItemDialogueRich,
+            itemName,
+            "{ITEM_NAME} is not a priority for the go bag. Save space for emergency essentials.");
+    }
+
+    private void ShowItemExplanationDialogue(
+        IList<DialogueLineData> specificDialogue,
+        IList<DialogueLineData> fallbackDialogue,
+        string itemName,
+        string defaultMessage)
+    {
         if (!IsPreparingGoBagMissionActive())
             return;
 
         var dialogueManager = ProdDialogueManager.Instance;
-        if (dialogueManager != null && goBagWrongItemDialogueRich != null && goBagWrongItemDialogueRich.Count > 0)
+        if (dialogueManager == null)
         {
-            dialogueManager.ShowDialogueSequence(goBagWrongItemDialogueRich, null);
+            Debug.LogWarning("PreparingGoBagManager: ProdDialogueManager not found; skipping Go Bag item explanation dialogue.");
+            return;
         }
-        else
+
+        var placeholders = BuildItemDialoguePlaceholders(itemName);
+
+        if (specificDialogue != null && specificDialogue.Count > 0)
         {
-            if (dialogueManager == null)
-            {
-                Debug.LogWarning("PreparingGoBagManager: ProdDialogueManager not found; skipping wrong-item dialogue.");
-            }
-            else
-            {
-                Debug.LogWarning("PreparingGoBagManager: goBagWrongItemDialogueRich is empty; skipping wrong-item dialogue.");
-            }
+            dialogueManager.ShowDialogueSequence(PrepareExplanationDialogueLines(specificDialogue), null, placeholders);
+            return;
         }
+
+        if (fallbackDialogue != null && fallbackDialogue.Count > 0)
+        {
+            dialogueManager.ShowDialogueSequence(PrepareExplanationDialogueLines(fallbackDialogue), null, placeholders);
+            return;
+        }
+
+        var fallbackLines = new List<DialogueLineData>
+        {
+            new DialogueLineData
+            {
+                characterId = QuizCharacterId,
+                characterName = QuizCharacterName,
+                message = defaultMessage
+            }
+        };
+
+        dialogueManager.ShowDialogueSequence(fallbackLines, null, placeholders);
+    }
+
+    private Dictionary<string, string> BuildItemDialoguePlaceholders(string itemName)
+    {
+        return new Dictionary<string, string>
+        {
+            ["{ITEM_NAME}"] = string.IsNullOrWhiteSpace(itemName) ? "This item" : itemName
+        };
+    }
+
+    private List<DialogueLineData> PrepareExplanationDialogueLines(IList<DialogueLineData> sourceLines)
+    {
+        if (sourceLines == null || sourceLines.Count == 0)
+            return null;
+
+        var preparedLines = new List<DialogueLineData>(sourceLines.Count);
+
+        for (int i = 0; i < sourceLines.Count; i++)
+        {
+            var line = sourceLines[i];
+            if (line == null)
+                continue;
+
+            preparedLines.Add(new DialogueLineData
+            {
+                characterId = string.IsNullOrWhiteSpace(line.characterId) ? QuizCharacterId : line.characterId,
+                characterName = line.characterName,
+                side = line.side,
+                expressionId = line.expressionId,
+                portraitOverride = line.portraitOverride,
+                backgroundSprite = line.backgroundSprite,
+                clearBackground = line.clearBackground,
+                message = line.message
+            });
+        }
+
+        return preparedLines;
     }
 
     // Example handler for Next button after bag found (no longer needed, handled by DialogueManager)

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Mission_Before_02
   m_EditorClassIdentifier: 
   missionId: before_02
-  missionName: Cuircuit Breaker
-  missionDescription: Securing the cuircuit Breaker
+  missionName: Circuit Breaker
+  missionDescription: Securing the circuit Breaker
   missionIcon: {fileID: 0}
   phase: 0
   missionSceneName: BeforeMission
@@ -129,8 +129,10 @@ MonoBehaviour:
     - 
     - 
     wrongOptionFeedback:
-    - 
-    - 
+    - "Turning off lights alone isn\u2019t enough\u2014electricity can still flow
+      and cause hazards during flooding."
+    - "Unplugging appliances like a PS5 helps, but it doesn\u2019t cut off the main
+      power supply, which can still be dangerous."
     - 
     correctOptionIndex: 2
     optionSprites:

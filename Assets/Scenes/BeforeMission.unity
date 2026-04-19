@@ -1178,6 +1178,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   achievementPanel: {fileID: 1722201804}
   achievementText: {fileID: 1115204200}
+  achievementProceedButton: {fileID: 0}
+  achievementRestartButton: {fileID: 0}
   breakerPrefab: {fileID: 2095028937993367117, guid: e9b0abaaa6bd88140a155d2e548ba7be, type: 3}
   breakerExitButton: {fileID: 43629799}
   instructionDialogueRich: []
@@ -1377,7 +1379,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -200, y: 0}
+  m_SizeDelta: {x: -300, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &154044645
 MonoBehaviour:
@@ -2186,12 +2188,12 @@ MonoBehaviour:
   correctFeedbackText: Correct
   wrongFeedbackText: Wrong
   requiredItemNames:
-  - folded_clothes
-  - medkit
-  - sardines
+  - Clothes
+  - Medkit
+  - Food
   - Map
-  - water_bottle
-  - flashlight
+  - Water
+  - Flashlight
   notRequiredItemNames:
   - Toy
   - Toy 1
@@ -2205,18 +2207,95 @@ MonoBehaviour:
   goBagItemDefinitions:
   - itemName: folded_clothes
     icon: {fileID: 21300000, guid: 1e815ec2d28ddcb4bb47e23071923b58, type: 3}
+    inclusionType: 1
+    correctDropDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 1
+      message: ' Clothes help keep you warm, dry, and protected.'
+    wrongDropDialogueRich: []
   - itemName: medkit
     icon: {fileID: 21300000, guid: 676c127835c6a6746b78c6e61365b314, type: 3}
+    inclusionType: 1
+    correctDropDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 1
+      message: A medkit helps treat small injuries during emergencies.
+    wrongDropDialogueRich: []
   - itemName: sardines
     icon: {fileID: 21300000, guid: 0f605498419ced444948012619ea4dae, type: 3}
+    inclusionType: 1
+    correctDropDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 1
+      message: Food gives you energy while waiting for help.
+    wrongDropDialogueRich: []
   - itemName: Toy
     icon: {fileID: 21300000, guid: d69b4f7535855c04c8871fa880ba02ad, type: 3}
+    inclusionType: 2
+    correctDropDialogueRich: []
+    wrongDropDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 1
+      message: Toys are not essential in a go bag.
   - itemName: Map
     icon: {fileID: 21300000, guid: adf9f5a8e1538c946a9e436e9f8c8a07, type: 3}
+    inclusionType: 1
+    correctDropDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 1
+      message: A map helps you find safe routes and evacuation centers.
+    wrongDropDialogueRich: []
   - itemName: water_bottle
     icon: {fileID: 21300000, guid: 322f8ce5330ab3d4fb16842e83f24179, type: 3}
+    inclusionType: 1
+    correctDropDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 1
+      message: Water is important to prevent dehydration.
+    wrongDropDialogueRich: []
   - itemName: flashlight
     icon: {fileID: 21300000, guid: bfd08d7fd181fbd42b423d96b140f797, type: 3}
+    inclusionType: 1
+    correctDropDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 1
+      message: A flashlight helps you move safely in the dark.
+    wrongDropDialogueRich: []
   raycastManager: {fileID: 0}
   tablePrefab: {fileID: 5580475605631790240, guid: 1989b714c892be144a482d93edded18a, type: 3}
   bagPrefab: {fileID: 8087657681563393829, guid: 271b69e1aab9c3e48a5603175c60ce1b, type: 3}
@@ -2281,15 +2360,14 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 984068255}
-  - {fileID: 1109371604}
   - {fileID: 154044644}
   - {fileID: 781401509}
   m_Father: {fileID: 857647959}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -288.8}
-  m_SizeDelta: {x: 0, y: -577.6}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: 0, y: 148.4}
+  m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &225367157
 MonoBehaviour:
@@ -2748,9 +2826,9 @@ RectTransform:
   - {fileID: 745588912}
   m_Father: {fileID: 65701640}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 754, y: -134}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -311.5, y: 55.3}
   m_SizeDelta: {x: 286.9391, y: 87.1853}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &384764653
@@ -2868,7 +2946,7 @@ RectTransform:
   m_Father: {fileID: 2122750268}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -3184,9 +3262,13 @@ MonoBehaviour:
       blinkSprite: {fileID: 0}
       talkingSprites: []
     - expressionId: approved
-      sprite: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
-      blinkSprite: {fileID: 0}
-      talkingSprites: []
+      sprite: {fileID: 21300000, guid: c48bf792751870748b8847ef9ff6cb8e, type: 3}
+      blinkSprite: {fileID: 21300000, guid: 1f6fd92571e9e5549b604c9e9858715e, type: 3}
+      talkingSprites:
+      - {fileID: 21300000, guid: c48bf792751870748b8847ef9ff6cb8e, type: 3}
+      - {fileID: 21300000, guid: 861cdd91eccc5b54b8f53c848e8234d3, type: 3}
+      - {fileID: 21300000, guid: 23e714208d58b994d945beb8877b9017, type: 3}
+      - {fileID: 21300000, guid: 54b101c28ea7c1d498e580a9d16a48b2, type: 3}
     - expressionId: hi
       sprite: {fileID: 21300000, guid: 9d1638244ee645d4f916860af4e06434, type: 3}
       blinkSprite: {fileID: 0}
@@ -4221,7 +4303,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 734, y: -345}
-  m_SizeDelta: {x: 160, y: 30}
+  m_SizeDelta: {x: 250, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &655784122
 MonoBehaviour:
@@ -4287,8 +4369,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: 08149b4c716213944a52860003ae61bd, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -4556,7 +4638,7 @@ RectTransform:
   m_Father: {fileID: 196978427}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -4623,16 +4705,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 695815304}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1467562977}
+  m_Father: {fileID: 1810332136}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -568, y: 148.7}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 291.926, y: 56.0008}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &695815306
@@ -5420,9 +5502,9 @@ RectTransform:
   - {fileID: 1230385885}
   m_Father: {fileID: 225367156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 646.5, y: -84}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -311.5, y: 55.3}
   m_SizeDelta: {x: 286.9391, y: 87.1853}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &781401510
@@ -6569,12 +6651,13 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1109371604}
   m_Father: {fileID: 225367156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 393.85364, y: 152.1}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 335, y: -2.399994}
   m_SizeDelta: {x: 388.0394, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &984068256
@@ -6747,7 +6830,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: -100, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &990864633
 GameObject:
@@ -6950,7 +7033,7 @@ RectTransform:
   m_Father: {fileID: 47890440}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -7041,8 +7124,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -2.2177734, y: 7.8447266}
-  m_SizeDelta: {x: -87.7911, y: -162.0709}
+  m_AnchoredPosition: {x: 47.49996, y: 28.149963}
+  m_SizeDelta: {x: -175.00008, y: -96.29993}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1034182707
 MonoBehaviour:
@@ -7172,16 +7255,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1109371603}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 225367156}
+  m_Father: {fileID: 984068255}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -568, y: 148.7}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 291.926, y: 56.0008}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1109371605
@@ -8109,7 +8192,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: -300, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1243226333
 CanvasRenderer:
@@ -8515,8 +8598,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -8533,12 +8616,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
+  m_fontSize: 48.82
   m_fontSizeBase: 24
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMax: 48.82
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -9216,7 +9299,7 @@ RectTransform:
   m_Father: {fileID: 1404152429}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -9657,13 +9740,12 @@ RectTransform:
   - {fileID: 1243226332}
   - {fileID: 1838501562}
   - {fileID: 1810332136}
-  - {fileID: 695815305}
   m_Father: {fileID: 65701640}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -43.353027}
-  m_SizeDelta: {x: 0, y: -86.7065}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: 0, y: 148.4}
+  m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1467562978
 MonoBehaviour:
@@ -9946,7 +10028,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: -116.13165}
-  m_SizeDelta: {x: 0, y: 232.2633}
+  m_SizeDelta: {x: -1000, y: 232.2633}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1610659940
 MonoBehaviour:
@@ -10019,7 +10101,7 @@ RectTransform:
   m_Father: {fileID: 881237595}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -10097,8 +10179,24 @@ MonoBehaviour:
   cutsceneDuration: 5
   skipButton: {fileID: 655784122}
   quizDialogueUI: {fileID: 0}
-  goBagFoundDialogueRich: []
-  goBagCompleteDialogueRich: []
+  goBagFoundDialogueRich:
+  - characterId: professor_lingap
+    characterName: Prof. Lingap
+    side: 1
+    expressionId: shocked
+    portraitOverride: {fileID: 0}
+    backgroundSprite: {fileID: 21300000, guid: 787a7f6d8a56e3a4daedfd3fd8bdad95, type: 3}
+    clearBackground: 0
+    message: FOUND THE GO BAG
+  goBagCompleteDialogueRich:
+  - characterId: professor_lingap
+    characterName: Prof. Lingap
+    side: 3
+    expressionId: center
+    portraitOverride: {fileID: 0}
+    backgroundSprite: {fileID: 21300000, guid: 787a7f6d8a56e3a4daedfd3fd8bdad95, type: 3}
+    clearBackground: 0
+    message: GO BAG DONE
   goBagWrongItemDialogueRich: []
 --- !u!4 &1629681705
 Transform:
@@ -10703,12 +10801,13 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 695815305}
   m_Father: {fileID: 1467562977}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 393.85364, y: 152.1}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 335, y: -2.399994}
   m_SizeDelta: {x: 388.0394, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1810332137
@@ -11290,7 +11389,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1877941460
 RectTransform:
   m_ObjectHideFlags: 0
@@ -11643,6 +11742,10 @@ MonoBehaviour:
   floodWarningUI: {fileID: 0}
   statusPanel: {fileID: 1610659938}
   statusText: {fileID: 984653249}
+  achievementsPanel: {fileID: 0}
+  achievementText: {fileID: 0}
+  achievementProceedButton: {fileID: 0}
+  achievementRestartButton: {fileID: 0}
   selectApplianceSfx: {fileID: 0}
   placeApplianceSfx: {fileID: 0}
   illegalMoveSfx: {fileID: 0}
@@ -12042,7 +12145,7 @@ RectTransform:
   m_Father: {fileID: 1596787867}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}

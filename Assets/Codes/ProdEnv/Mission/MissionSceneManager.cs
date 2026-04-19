@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 /// <summary>
 /// Base class for mission scene managers (Before, During, After).
@@ -53,6 +54,11 @@ public abstract class MissionSceneManager : MonoBehaviour
 
     [Header("Pause Audio")]
     [SerializeField] protected AudioClip uiClickSfx;
+
+    [Header("Scene Audio")]
+    [SerializeField] protected AudioClip sceneBgmClip;
+    [SerializeField] protected AudioClip sceneOpenSfx;
+    [SerializeField] protected AudioClip missionCompleteSfx;
 
     [Header("Loading")]
     [SerializeField] protected GameObject loadingPanel;
@@ -151,27 +157,48 @@ public abstract class MissionSceneManager : MonoBehaviour
             closeSettingsButton.onClick.AddListener(ClosePauseSettings);
 
         // Initialize pause audio sliders from current AudioManager settings, if available.
+        RefreshAudioSliders();
+    }
+
+    protected void RefreshAudioSliders()
+    {
         var audio = AudioManager.Instance;
-        if (audio != null)
+        if (audio == null)
+            return;
+
+        if (masterVolumeSlider != null)
         {
-            if (masterVolumeSlider != null)
-            {
-                masterVolumeSlider.SetValueWithoutNotify(audio.GetMasterVolume());
-                masterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeSliderChanged);
-            }
-
-            if (bgmVolumeSlider != null)
-            {
-                bgmVolumeSlider.SetValueWithoutNotify(audio.GetBgmVolume());
-                bgmVolumeSlider.onValueChanged.AddListener(OnBgmVolumeSliderChanged);
-            }
-
-            if (sfxVolumeSlider != null)
-            {
-                sfxVolumeSlider.SetValueWithoutNotify(audio.GetSfxVolume());
-                sfxVolumeSlider.onValueChanged.AddListener(OnSfxVolumeSliderChanged);
-            }
+            masterVolumeSlider.SetValueWithoutNotify(audio.GetMasterVolume());
+            masterVolumeSlider.onValueChanged.RemoveListener(OnMasterVolumeSliderChanged);
+            masterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeSliderChanged);
         }
+
+        if (bgmVolumeSlider != null)
+        {
+            bgmVolumeSlider.SetValueWithoutNotify(audio.GetBgmVolume());
+            bgmVolumeSlider.onValueChanged.RemoveListener(OnBgmVolumeSliderChanged);
+            bgmVolumeSlider.onValueChanged.AddListener(OnBgmVolumeSliderChanged);
+        }
+
+        if (sfxVolumeSlider != null)
+        {
+            sfxVolumeSlider.SetValueWithoutNotify(audio.GetSfxVolume());
+            sfxVolumeSlider.onValueChanged.RemoveListener(OnSfxVolumeSliderChanged);
+            sfxVolumeSlider.onValueChanged.AddListener(OnSfxVolumeSliderChanged);
+        }
+    }
+
+    protected void PlaySceneAudio()
+    {
+        var audio = AudioManager.Instance;
+        if (audio == null)
+            return;
+
+        if (sceneBgmClip != null)
+            audio.PlayBgmIfDifferent(sceneBgmClip);
+
+        if (sceneOpenSfx != null)
+            audio.PlaySFX(sceneOpenSfx);
     }
 
     protected virtual void LoadMission()
@@ -576,6 +603,30 @@ public abstract class MissionSceneManager : MonoBehaviour
         };
     }
 
+    protected virtual MissionData FindFirstMissionInPhaseAndScene(MissionPhase phase, string sceneName)
+    {
+        if (string.IsNullOrWhiteSpace(sceneName))
+            return null;
+
+        MissionData[] loadedMissions = Resources.FindObjectsOfTypeAll<MissionData>();
+        MissionData firstMission = null;
+
+        foreach (var mission in loadedMissions)
+        {
+            if (mission == null || mission.phase != phase)
+                continue;
+
+            string missionSceneName = ResolveMissionSceneName(mission);
+            if (!string.Equals(missionSceneName, sceneName, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (firstMission == null || mission.sortOrder < firstMission.sortOrder)
+                firstMission = mission;
+        }
+
+        return firstMission;
+    }
+
     /// <summary>
     /// Override this to provide phase-specific completion messages
     /// </summary>
@@ -749,11 +800,21 @@ public abstract class MissionSceneManager : MonoBehaviour
         if (missionCompletePanel != null)
             missionCompletePanel.SetActive(true);
 
+        PlayMissionCompleteSfx();
+
         if (missionCompleteTitleText != null)
             missionCompleteTitleText.text = "Mission Complete!";
 
         if (missionCompleteMessageText != null)
             missionCompleteMessageText.text = currentMission.completionMessage;
+    }
+
+    protected void PlayMissionCompleteSfx()
+    {
+        if (missionCompleteSfx == null || AudioManager.Instance == null)
+            return;
+
+        AudioManager.Instance.PlaySFX(missionCompleteSfx);
     }
 
     protected virtual void ShowTaskDialogue(string[] lines, System.Action onComplete)
@@ -959,6 +1020,21 @@ public abstract class MissionSceneManager : MonoBehaviour
     {
         PlayUiClick();
         Time.timeScale = 1f;
+
+        bool isFromMissionCompleteUI = missionCompletePanel != null && missionCompletePanel.activeSelf;
+
+        if (isFromMissionCompleteUI && currentMission != null)
+        {
+            string currentSceneName = ResolveMissionSceneName(currentMission);
+            MissionData firstMissionInScene = FindFirstMissionInPhaseAndScene(currentMission.phase, currentSceneName);
+
+            if (firstMissionInScene != null)
+            {
+                MissionSelectManager.SetSelectedMission(firstMissionInScene);
+                Debug.Log($"{GetType().Name}: Replay from complete UI reset to first mission '{firstMissionInScene.missionId}'.");
+            }
+        }
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 

@@ -1,17 +1,14 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using TMPro;
 
 /// <summary>
 /// AR task for choosing between safe/risky routes.
 /// Player must select evacuation markers on the correct path.
 /// </summary>
-public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
+public class ARRouteChoiceTask : ARTaskBase
 {
-    [Header("Drag Settings")]
     [SerializeField] private RectTransform draggablePanel;
-    [SerializeField] private Canvas parentCanvas;
 
     [Header("Route Options")]
     [SerializeField] private Button safeRouteButton;
@@ -52,7 +49,6 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
 
     private bool choiceMade;
     private bool correctChoice;
-    private Vector2 dragOffset;
     private bool[] previousUIStates;
     private bool previousMovementEnabled;
     private bool hasShownChoicePrompt;
@@ -70,9 +66,6 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
 
         if (canvasGroup == null && taskCanvas != null)
             canvasGroup = taskCanvas.GetComponent<CanvasGroup>();
-
-        if (parentCanvas == null && draggablePanel != null)
-            parentCanvas = draggablePanel.GetComponentInParent<Canvas>();
 
         if (playerController == null)
             playerController = FindObjectOfType<IsometricPlayerController>();
@@ -98,9 +91,6 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
 
         if (canvasGroup == null && taskCanvas != null)
             canvasGroup = taskCanvas.GetComponent<CanvasGroup>();
-
-        if (parentCanvas == null && draggablePanel != null)
-            parentCanvas = draggablePanel.GetComponentInParent<Canvas>();
 
         if (playerController == null)
             playerController = FindObjectOfType<IsometricPlayerController>();
@@ -511,33 +501,5 @@ public class ARRouteChoiceTask : ARTaskBase, IBeginDragHandler, IDragHandler
         CheckCompletion();
     }
 
-    public void OnBeginDrag(PointerEventData eventData)
-    {
-        if (draggablePanel == null || parentCanvas == null) return;
-
-        // Cache the offset between the pointer and the panel's anchored position to keep drag stable
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            draggablePanel.parent as RectTransform,
-            eventData.position,
-            eventData.pressEventCamera,
-            out var localPoint))
-        {
-            dragOffset = draggablePanel.anchoredPosition - localPoint;
-        }
-    }
-
-    public void OnDrag(PointerEventData eventData)
-    {
-        if (draggablePanel == null || parentCanvas == null) return;
-
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            draggablePanel.parent as RectTransform,
-            eventData.position,
-            eventData.pressEventCamera,
-            out var localPoint))
-        {
-            draggablePanel.anchoredPosition = localPoint + dragOffset;
-        }
-    }
 }
 

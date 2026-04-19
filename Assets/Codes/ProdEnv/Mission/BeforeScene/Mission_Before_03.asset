@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   missionId: before_03
   missionName: Secure the appliences
-  missionDescription: Securing the Appliences
+  missionDescription: Securing the appliances
   missionIcon: {fileID: 0}
   phase: 0
   missionSceneName: BeforeMission
@@ -152,12 +152,14 @@ MonoBehaviour:
     question: When leaving the house or evacuating what is the best way to do?
     options:
     - Just leave the appliences
-    - 'Secure important appliences '
+    - 'Secure important appliances '
     - Hide the appliences
     wrongOptionFeedback:
-    - mali 0
-    - "mali 1\t"
-    - malo2
+    - Leaving appliances unsecured can lead to damage or safety hazards during the
+      flood.
+    - 
+    - "Hiding appliances doesn\u2019t protect them from water or electrical risks\u2014properly
+      securing them is safer."
     correctOptionIndex: 1
     optionSprites:
     - {fileID: 21300000, guid: 915242ea84990a64b858609cae115da1, type: 3}
