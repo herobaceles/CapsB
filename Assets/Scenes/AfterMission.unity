@@ -17061,6 +17061,7 @@ MonoBehaviour:
   optionButton3Text: {fileID: 1412576202}
   continueButton: {fileID: 1412349425}
   continueButtonLabel: {fileID: 1625475283}
+  uiClickSfx: {fileID: 0}
   wrongAnswerMessage: Incorrect answer. Try again.
   questionTypingSpeed: 0.03
   gameplayUIRootsToHide: []
@@ -46974,7 +46975,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 449.6, y: 238.6}
+  m_AnchoredPosition: {x: 449.6, y: 244.1}
   m_SizeDelta: {x: 400, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &670065220
@@ -59266,8 +59267,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -0.00012207031, y: 20.8}
-  m_SizeDelta: {x: 0, y: 600}
+  m_AnchoredPosition: {x: -0.00012207031, y: -49.4}
+  m_SizeDelta: {x: 0, y: 450}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &820704280
 MonoBehaviour:
@@ -69046,7 +69047,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -536, y: 238.6}
+  m_AnchoredPosition: {x: -536, y: 244.1}
   m_SizeDelta: {x: 400, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &978770063
@@ -139021,7 +139022,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -71.7, y: 176.9}
+  m_AnchoredPosition: {x: -71.7, y: 223.72}
   m_SizeDelta: {x: 500, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2001532776
@@ -143760,6 +143761,7 @@ MonoBehaviour:
   talkingScaleSpeed: 6
   typingSpeed: 0.03
   allowSkipTyping: 1
+  uiClickSfx: {fileID: 0}
   characterPresets:
   - characterId: professor_lingap
     displayName: Prof. Lingap
