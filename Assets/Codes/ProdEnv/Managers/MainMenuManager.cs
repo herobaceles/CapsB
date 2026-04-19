@@ -28,6 +28,10 @@ public class MainMenuManager : MonoBehaviour
     [Header("About")] 
     [SerializeField] private GameObject aboutPanel;
     [SerializeField] private Button closeAboutButton;
+    
+    [Header("Tutorial")]
+    [SerializeField] private OuntroPanelController tutorialPanelController;
+    [SerializeField] private Button tutorialButton;
 
     private void Start()
     {
@@ -87,6 +91,10 @@ public class MainMenuManager : MonoBehaviour
         {
             closeAboutButton.onClick.AddListener(CloseAbout);
         }
+        if (tutorialButton != null)
+        {
+            tutorialButton.onClick.AddListener(OpenTutorial);
+        }
     }
 
     // Called when "Play" button is clicked
@@ -114,6 +122,30 @@ public class MainMenuManager : MonoBehaviour
         else
         {
             Debug.LogError($"MainMenuManager: Scene '{sceneName}' not found in Build Settings!");
+        }
+    }
+
+    // Opens the mission manager scene to start the game.
+    public void OpenMissionManager()
+    {
+        const string sceneName = "MissionManager";
+
+        // Check if the scene is loadable first (guard against unguarded loader calls)
+        if (!Application.CanStreamedLevelBeLoaded(sceneName))
+        {
+            Debug.LogError($"MainMenuManager: Scene '{sceneName}' not found in Build Settings!");
+            return;
+        }
+
+        // Scene is loadable; attempt to load via AppSceneLoader if available, otherwise use SceneManager
+        AppSceneLoader.EnsureExists();
+        if (AppSceneLoader.Instance != null)
+        {
+            AppSceneLoader.Instance.LoadSceneSingle(sceneName);
+        }
+        else
+        {
+            SceneManager.LoadScene(sceneName);
         }
     }
 
@@ -244,5 +276,45 @@ public class MainMenuManager : MonoBehaviour
 
         if (mainMenuPanel != null)
             mainMenuPanel.SetActive(true);
+    }
+
+    public void ShowMainMenu()
+    {
+        if (settingsPanel != null)
+            settingsPanel.SetActive(false);
+
+        if (aboutPanel != null)
+            aboutPanel.SetActive(false);
+
+        if (resetConfirmPanel != null)
+            resetConfirmPanel.SetActive(false);
+
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(true);
+    }
+
+    public void OpenTutorial()
+    {
+        Debug.Log("MainMenuManager: Tutorial button clicked");
+
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(false);
+
+        if (settingsPanel != null)
+            settingsPanel.SetActive(false);
+
+        if (resetConfirmPanel != null)
+            resetConfirmPanel.SetActive(false);
+
+        if (aboutPanel != null)
+            aboutPanel.SetActive(false);
+
+        if (tutorialPanelController != null)
+        {
+            tutorialPanelController.StartSequence(OpenMissionManager);
+            return;
+        }
+
+        Debug.LogWarning("MainMenuManager: Tutorial panel controller not assigned.");
     }
 }
