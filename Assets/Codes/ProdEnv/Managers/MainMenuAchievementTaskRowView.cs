@@ -8,19 +8,19 @@ public class MainMenuAchievementTaskRowView : MonoBehaviour
     private const float CardHeight = 260f;
     private const float IconSize = 104f;
 
-    private static readonly Color CompletedTextColor = new Color(0.96f, 0.98f, 1f, 1f);
-    private static readonly Color IncompleteTextColor = new Color(0.88f, 0.91f, 0.95f, 1f);
-    private static readonly Color CompletedIconColor = Color.white;
-    private static readonly Color IncompleteIconColor = new Color(0.78f, 0.84f, 0.9f, 0.9f);
-    private static readonly Color CompletedCardColor = new Color(0.13f, 0.2f, 0.26f, 0.94f);
-    private static readonly Color IncompleteCardColor = new Color(0.15f, 0.18f, 0.24f, 0.94f);
-    private static readonly Color CompletedBorderColor = new Color(0.42f, 0.88f, 0.72f, 0.55f);
-    private static readonly Color IncompleteBorderColor = new Color(0.56f, 0.68f, 0.84f, 0.38f);
-    private static readonly Color CompletedStatusBadgeColor = new Color(0.19f, 0.42f, 0.29f, 0.95f);
-    private static readonly Color IncompleteStatusBadgeColor = new Color(0.25f, 0.29f, 0.38f, 0.95f);
-    private static readonly Color CompletedStatusTextColor = new Color(0.8f, 1f, 0.86f, 1f);
-    private static readonly Color IncompleteStatusTextColor = new Color(0.9f, 0.93f, 0.98f, 0.92f);
-    private static readonly Color TextOutlineColor = new Color(0.03f, 0.05f, 0.08f, 0.95f);
+    private static readonly Color CompletedTextColor = new Color(0.97f, 0.94f, 0.88f, 1f);
+    private static readonly Color IncompleteTextColor = new Color(0.91f, 0.86f, 0.78f, 1f);
+    private static readonly Color CompletedIconColor = new Color(0.99f, 0.96f, 0.9f, 1f);
+    private static readonly Color IncompleteIconColor = new Color(0.86f, 0.8f, 0.72f, 0.92f);
+    private static readonly Color CompletedCardColor = new Color(0.27f, 0.24f, 0.18f, 0.94f);
+    private static readonly Color IncompleteCardColor = new Color(0.31f, 0.28f, 0.22f, 0.92f);
+    private static readonly Color CompletedBorderColor = new Color(0.73f, 0.66f, 0.46f, 0.62f);
+    private static readonly Color IncompleteBorderColor = new Color(0.62f, 0.54f, 0.39f, 0.42f);
+    private static readonly Color CompletedStatusBadgeColor = new Color(0.4f, 0.48f, 0.26f, 0.96f);
+    private static readonly Color IncompleteStatusBadgeColor = new Color(0.46f, 0.38f, 0.25f, 0.94f);
+    private static readonly Color CompletedStatusTextColor = new Color(0.94f, 0.96f, 0.82f, 1f);
+    private static readonly Color IncompleteStatusTextColor = new Color(0.95f, 0.88f, 0.74f, 0.94f);
+    private static readonly Color TextOutlineColor = new Color(0.09f, 0.06f, 0.03f, 0.95f);
 
     [SerializeField] private Image taskIconImage;
     [SerializeField] private TMP_Text taskNameText;
@@ -120,7 +120,7 @@ public class MainMenuAchievementTaskRowView : MonoBehaviour
             if (backgroundShadow == null)
                 backgroundShadow = backgroundImage.gameObject.AddComponent<Shadow>();
             backgroundShadow.effectDistance = new Vector2(0f, -6f);
-            backgroundShadow.effectColor = new Color(0.01f, 0.02f, 0.03f, 0.35f);
+            backgroundShadow.effectColor = new Color(0.09f, 0.06f, 0.03f, 0.32f);
         }
 
         if (taskIconImage != null)
@@ -144,7 +144,7 @@ public class MainMenuAchievementTaskRowView : MonoBehaviour
             Outline iconOutline = taskIconImage.GetComponent<Outline>();
             if (iconOutline == null)
                 iconOutline = taskIconImage.gameObject.AddComponent<Outline>();
-            iconOutline.effectColor = new Color(0.05f, 0.07f, 0.1f, 0.55f);
+            iconOutline.effectColor = new Color(0.17f, 0.12f, 0.07f, 0.45f);
             iconOutline.effectDistance = new Vector2(1f, -1f);
         }
 
@@ -221,7 +221,7 @@ public class MainMenuAchievementTaskRowView : MonoBehaviour
             fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, outlineWidth);
 
         if (fontMaterial.HasProperty(ShaderUtilities.ID_UnderlayColor))
-            fontMaterial.SetColor(ShaderUtilities.ID_UnderlayColor, new Color(0.01f, 0.02f, 0.03f, 0.6f));
+            fontMaterial.SetColor(ShaderUtilities.ID_UnderlayColor, new Color(0.12f, 0.08f, 0.04f, 0.52f));
 
         if (fontMaterial.HasProperty(ShaderUtilities.ID_UnderlaySoftness))
             fontMaterial.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0.15f);
