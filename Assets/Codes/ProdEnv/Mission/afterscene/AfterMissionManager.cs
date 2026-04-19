@@ -687,12 +687,38 @@ public class AfterMissionManager : MissionSceneManager
             }
         }
 
+        // Select mission-specific title/message
+        string completeTitle = "Mission Complete";
+        string completeMessage = string.Empty;
+
+        if (isAfter01)
+        {
+            completeTitle = "Hidden Danger Completed!";
+            completeMessage = "Well done! You’ve cleared out the hidden dangers and made the area safer.";
+        }
+        else if (isAfter02)
+        {
+            completeTitle = "Safe Choices";
+            completeMessage = "Good job! You chose the safe items to eat.";
+        }
+        else if (isAfter03)
+        {
+            completeTitle = "Home Restored";
+            completeMessage = "Great job! You made the home safe again.";
+        }
+
         if (missionCompletePanel != null)
             missionCompletePanel.SetActive(true);
         if (missionCompleteTitleText != null)
-            missionCompleteTitleText.text = "After Phase Completed!";
+            missionCompleteTitleText.text = completeTitle;
         if (missionCompleteMessageText != null)
-            missionCompleteMessageText.text = "Great work! The community is safer thanks to you.";
+            missionCompleteMessageText.text = completeMessage;
+
+        // Hide ReplayButton for after_03 mission; show only ContinueButton
+        if (replayButton != null)
+        {
+            replayButton.gameObject.SetActive(!isAfter03);
+        }
 
         if (continueButton != null)
         {

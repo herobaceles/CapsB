@@ -44123,18 +44123,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1eed3d3481a68b642b41a2ae24106898, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  malePrefab: {fileID: 0}
-  femalePrefab: {fileID: 0}
+  malePrefab: {fileID: 8128015579787818320, guid: d8b090226972f534db41972b0af2d136, type: 3}
+  femalePrefab: {fileID: 6097680183818076670, guid: 1efbb848abb729b4d9f3a2ff0322e2e5, type: 3}
   defaultPrefab: {fileID: 0}
   spawnPoint: {fileID: 898625651}
   destroyExistingPlayer: 1
   autoBindCamera: 1
-  spawnMode: 1
+  spawnMode: 0
   maleSceneAvatar: {fileID: 1299472825}
   femaleSceneAvatar: {fileID: 666033996}
   defaultSceneAvatar: {fileID: 0}
   autoBindJoystick: 1
-  overrideJoystick: {fileID: 0}
+  overrideJoystick: {fileID: 1456186003}
 --- !u!1 &903771384
 GameObject:
   m_ObjectHideFlags: 0

@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Mission_After_03
   m_EditorClassIdentifier: 
   missionId: after_03
-  missionName: CLEAN THE HOUSE
-  missionDescription: Clean the mud.
+  missionName: Disinfect Area
+  missionDescription: Clean and disinfect the mud left by the flood to make your
+    home safe again.
   missionIcon: {fileID: 0}
   phase: 2
   missionSceneName: AfterMission
@@ -232,8 +233,8 @@ MonoBehaviour:
     - objectiveId: after_03_mud
       description: Disinfect all mud patches in the house.
       requiredCount: 6
-      isCompleted: 0
-      currentCount: 0
+      isCompleted: 1
+      currentCount: 6
   introDialogue:
   - Oh no! That's a Signal Red warning. This is serious. The water could rise fast,
     so we need to act smartly before the flood hits.
@@ -284,9 +285,9 @@ MonoBehaviour:
     - 
     - 
     wrongOptionFeedback:
+    - Not enough. Water alone cannot kill harmful bacteria.
     - 
-    - 
-    - 
+    - "Not quite. Soap can clean dirt, but it won\u2019t fully disinfect bacteria."
     correctOptionIndex: 1
     optionSprites:
     - {fileID: 21300000, guid: 140da2bf1a9109e4c968e16471ea53f1, type: 3}
