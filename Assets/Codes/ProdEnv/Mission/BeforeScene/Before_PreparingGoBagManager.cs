@@ -104,6 +104,8 @@ public class PreparingGoBagManager : MonoBehaviour
     public void SkipCutscene()
     {
         if (!IsCutscenePlaying) return;
+
+        AudioManager.Instance?.PlayUiClick();
         cutsceneSkipped = true;
     }
 
@@ -168,6 +170,9 @@ public class PreparingGoBagManager : MonoBehaviour
         EndCutsceneVisuals();
 
         IsCutscenePlaying = false;
+
+        if (BeforeMissionManager.Instance != null)
+            BeforeMissionManager.Instance.StartSceneMusic();
         
         // After cutscene, wait for the mission intro sequence to finish
         // before showing the post-cutscene briefing and quiz.

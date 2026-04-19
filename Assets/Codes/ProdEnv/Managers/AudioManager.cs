@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using UnityEngine.Serialization;
+using UnityEngine.SceneManagement;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -78,8 +79,18 @@ public class AudioManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        SceneManager.activeSceneChanged += HandleActiveSceneChanged;
         EnsureAudioSources();
         ApplyVolumeSettings();
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            SceneManager.activeSceneChanged -= HandleActiveSceneChanged;
+            Instance = null;
+        }
     }
 
     private void OnValidate()
@@ -87,8 +98,7 @@ public class AudioManager : MonoBehaviour
         if (!Application.isPlaying)
             return;
 
-        EnsureAudioSources();
-        ApplyVolumeSettings();
+        ApplyVolumeSettingsToExistingSources();
     }
 
     public void Initialize()
@@ -114,33 +124,45 @@ public class AudioManager : MonoBehaviour
 
     private void EnsureAudioSources()
     {
-        if (musicSource == null)
-            musicSource = GetOrCreateAudioSource("Music Source", true, 0);
+        AudioSource[] existingSources = GetComponents<AudioSource>();
+
+        if (musicSource == null && existingSources.Length > 0)
+            musicSource = existingSources[0];
 
         if (sfxSource == null)
-            sfxSource = GetOrCreateAudioSource("SFX Source", false, 1);
+        {
+            if (existingSources.Length > 1)
+            {
+                sfxSource = existingSources[1];
+            }
+            else if (Application.isPlaying)
+            {
+                sfxSource = gameObject.AddComponent<AudioSource>();
+            }
+        }
+
+        if (musicSource == null && Application.isPlaying)
+            musicSource = gameObject.AddComponent<AudioSource>();
+
+        ConfigureAudioSource(musicSource, true, 64);
+        ConfigureAudioSource(sfxSource, false, 128);
     }
 
-    private AudioSource GetOrCreateAudioSource(string childName, bool loop, int priority)
+    private void ConfigureAudioSource(AudioSource source, bool loop, int priority)
     {
-        Transform child = transform.Find(childName);
-        AudioSource source = child != null ? child.GetComponent<AudioSource>() : null;
-
         if (source == null)
-        {
-            GameObject childObject = child != null ? child.gameObject : new GameObject(childName);
-            childObject.transform.SetParent(transform, false);
-            source = childObject.GetComponent<AudioSource>();
-            if (source == null)
-                source = childObject.AddComponent<AudioSource>();
-        }
+            return;
 
         source.playOnAwake = false;
         source.loop = loop;
         source.spatialBlend = 0f;
-        source.priority = priority == 0 ? 64 : 128;
+        source.priority = priority;
         source.ignoreListenerPause = false;
-        return source;
+    }
+
+    private void HandleActiveSceneChanged(Scene previousScene, Scene nextScene)
+    {
+        StopMusic();
     }
 
     private void SaveVolume(string key, float value)
@@ -233,6 +255,11 @@ public class AudioManager : MonoBehaviour
     {
         EnsureAudioSources();
 
+        ApplyVolumeSettingsToExistingSources();
+    }
+
+    private void ApplyVolumeSettingsToExistingSources()
+    {
         if (musicSource != null)
         {
             musicSource.volume = Mathf.Clamp01(musicVolume);

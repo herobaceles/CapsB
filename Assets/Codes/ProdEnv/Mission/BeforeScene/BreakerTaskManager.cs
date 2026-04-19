@@ -9,6 +9,7 @@ public class BreakerTaskManager : MonoBehaviour
     // Call this from the Restart button to restart the AR breaker task
     public void RestartBreakerTask()
     {
+        AudioManager.Instance?.PlayUiClick();
         Debug.Log("[BreakerTaskManager] RestartBreakerTask called");
 
         if (BeforeMissionManager.Instance != null && !BeforeMissionManager.Instance.IsARMissionActive)
@@ -234,6 +235,8 @@ public class BreakerTaskManager : MonoBehaviour
 
     private void OnAchievementProceedClicked()
     {
+        AudioManager.Instance?.PlayUiClick();
+
         if (achievementPanel != null)
             achievementPanel.SetActive(false);
 
@@ -267,6 +270,7 @@ public class BreakerTaskManager : MonoBehaviour
     // end the AR breaker task and show the completion flow manually.
     public void OnBreakerExitButtonClicked()
     {
+        AudioManager.Instance?.PlayUiClick();
         CompleteBreakerTask();
     }
 }

@@ -29,6 +29,9 @@ public class QuizDialogueUIManager : MonoBehaviour
     [SerializeField] private Button continueButton;
     [SerializeField] private TMP_Text continueButtonLabel;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip uiClickSfx;
+
     [Header("Messages")]
     [SerializeField] private string wrongAnswerMessage = "Incorrect answer. Try again.";
 
@@ -200,6 +203,8 @@ public class QuizDialogueUIManager : MonoBehaviour
 
     private void OnOptionSelected(int selectedIndex)
     {
+        PlayUiClick();
+
         if (selectedIndex == correctOptionIndex)
         {
             StopTypingAndTalking();
@@ -486,6 +491,15 @@ public class QuizDialogueUIManager : MonoBehaviour
 
     private void OnContinueButtonClicked()
     {
+        PlayUiClick();
         isWaitingForContinue = false;
+    }
+
+    private void PlayUiClick()
+    {
+        if (AudioManager.Instance == null)
+            return;
+
+        AudioManager.Instance.PlayUiClick(uiClickSfx);
     }
 }

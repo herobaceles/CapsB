@@ -39,7 +39,8 @@ public class ARBootstrapPersistent : MonoBehaviour
         if (arRoot == null)
             arRoot = gameObject;
 
-        DontDestroyOnLoad(arRoot);
+        if (arRoot != gameObject)
+            DontDestroyOnLoad(arRoot);
 
         AutoBindMissingReferences();
         EnsureRuntimeContext();
