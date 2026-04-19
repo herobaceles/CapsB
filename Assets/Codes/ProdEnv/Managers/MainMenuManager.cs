@@ -26,6 +26,7 @@ public class MainMenuManager : MonoBehaviour
 
     [Header("Settings")]
     [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private GlobalAudioSettingsUI settingsAudioUI;
     [SerializeField] private Slider masterVolumeSlider;
     [SerializeField] private Slider bgmVolumeSlider;
     [SerializeField] private Slider sfxVolumeSlider;
@@ -369,7 +370,7 @@ public class MainMenuManager : MonoBehaviour
     {
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.SetBgmVolume(value);
+            AudioManager.Instance.SetMusicVolume(value);
         }
     }
 
@@ -386,6 +387,12 @@ public class MainMenuManager : MonoBehaviour
         if (AudioManager.Instance == null)
             return;
 
+        if (settingsAudioUI != null)
+        {
+            settingsAudioUI.Bind(AudioManager.Instance);
+            return;
+        }
+
         if (masterVolumeSlider != null)
         {
             masterVolumeSlider.SetValueWithoutNotify(AudioManager.Instance.GetMasterVolume());
@@ -395,7 +402,7 @@ public class MainMenuManager : MonoBehaviour
 
         if (bgmVolumeSlider != null)
         {
-            bgmVolumeSlider.SetValueWithoutNotify(AudioManager.Instance.GetBgmVolume());
+            bgmVolumeSlider.SetValueWithoutNotify(AudioManager.Instance.GetMusicVolume());
             bgmVolumeSlider.onValueChanged.RemoveListener(OnBgmVolumeChanged);
             bgmVolumeSlider.onValueChanged.AddListener(OnBgmVolumeChanged);
         }
@@ -414,18 +421,18 @@ public class MainMenuManager : MonoBehaviour
             return;
 
         if (mainMenuBgmClip != null)
-            AudioManager.Instance.PlayBgmIfDifferent(mainMenuBgmClip);
+            AudioManager.Instance.PlayMusicIfDifferent(mainMenuBgmClip);
 
         if (menuOpenSfx != null)
-            AudioManager.Instance.PlaySFX(menuOpenSfx);
+            AudioManager.Instance.PlaySfx(menuOpenSfx);
     }
 
     private void PlayButtonClick()
     {
-        if (AudioManager.Instance == null || buttonClickSfx == null)
+        if (AudioManager.Instance == null)
             return;
 
-        AudioManager.Instance.PlaySFX(buttonClickSfx);
+        AudioManager.Instance.PlayUiClick(buttonClickSfx);
     }
 
     private void PlayMenuOpenSound()
@@ -434,7 +441,7 @@ public class MainMenuManager : MonoBehaviour
             return;
 
         if (menuOpenSfx != null)
-            AudioManager.Instance.PlaySFX(menuOpenSfx);
+            AudioManager.Instance.PlaySfx(menuOpenSfx);
         else
             PlayButtonClick();
     }

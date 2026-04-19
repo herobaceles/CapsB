@@ -47,6 +47,7 @@ public abstract class MissionSceneManager : MonoBehaviour
 
     [SerializeField] protected Button settingsButton;
     [SerializeField] protected GameObject pauseSettingsPanel;
+    [SerializeField] protected GlobalAudioSettingsUI pauseAudioSettingsUI;
     [SerializeField] protected Slider masterVolumeSlider;
     [SerializeField] protected Slider bgmVolumeSlider;
     [SerializeField] protected Slider sfxVolumeSlider;
@@ -166,6 +167,12 @@ public abstract class MissionSceneManager : MonoBehaviour
         if (audio == null)
             return;
 
+        if (pauseAudioSettingsUI != null)
+        {
+            pauseAudioSettingsUI.Bind(audio);
+            return;
+        }
+
         if (masterVolumeSlider != null)
         {
             masterVolumeSlider.SetValueWithoutNotify(audio.GetMasterVolume());
@@ -175,7 +182,7 @@ public abstract class MissionSceneManager : MonoBehaviour
 
         if (bgmVolumeSlider != null)
         {
-            bgmVolumeSlider.SetValueWithoutNotify(audio.GetBgmVolume());
+            bgmVolumeSlider.SetValueWithoutNotify(audio.GetMusicVolume());
             bgmVolumeSlider.onValueChanged.RemoveListener(OnBgmVolumeSliderChanged);
             bgmVolumeSlider.onValueChanged.AddListener(OnBgmVolumeSliderChanged);
         }
@@ -195,10 +202,10 @@ public abstract class MissionSceneManager : MonoBehaviour
             return;
 
         if (sceneBgmClip != null)
-            audio.PlayBgmIfDifferent(sceneBgmClip);
+            audio.PlayMusicIfDifferent(sceneBgmClip);
 
         if (sceneOpenSfx != null)
-            audio.PlaySFX(sceneOpenSfx);
+            audio.PlaySfx(sceneOpenSfx);
     }
 
     protected virtual void LoadMission()
@@ -962,11 +969,17 @@ public abstract class MissionSceneManager : MonoBehaviour
         if (audio == null)
             return;
 
+        if (pauseAudioSettingsUI != null)
+        {
+            pauseAudioSettingsUI.Bind(audio);
+            return;
+        }
+
         if (masterVolumeSlider != null)
             masterVolumeSlider.SetValueWithoutNotify(audio.GetMasterVolume());
 
         if (bgmVolumeSlider != null)
-            bgmVolumeSlider.SetValueWithoutNotify(audio.GetBgmVolume());
+            bgmVolumeSlider.SetValueWithoutNotify(audio.GetMusicVolume());
 
         if (sfxVolumeSlider != null)
             sfxVolumeSlider.SetValueWithoutNotify(audio.GetSfxVolume());
@@ -987,7 +1000,7 @@ public abstract class MissionSceneManager : MonoBehaviour
     protected virtual void OnBgmVolumeSliderChanged(float value)
     {
         if (AudioManager.Instance != null)
-            AudioManager.Instance.SetBgmVolume(value);
+            AudioManager.Instance.SetMusicVolume(value);
     }
 
     protected virtual void OnSfxVolumeSliderChanged(float value)
@@ -1057,7 +1070,7 @@ public abstract class MissionSceneManager : MonoBehaviour
         if (uiClickSfx == null || AudioManager.Instance == null)
             return;
 
-        AudioManager.Instance.PlaySFX(uiClickSfx);
+        AudioManager.Instance.PlayUiClick(uiClickSfx);
     }
 
     #endregion
