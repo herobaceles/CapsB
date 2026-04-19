@@ -155,9 +155,11 @@ MonoBehaviour:
     - 'Secure important appliances '
     - Hide the appliences
     wrongOptionFeedback:
-    - mali 0
-    - "mali 1\t"
-    - malo2
+    - Leaving appliances unsecured can lead to damage or safety hazards during the
+      flood.
+    - 
+    - "Hiding appliances doesn\u2019t protect them from water or electrical risks\u2014properly
+      securing them is safer."
     correctOptionIndex: 1
     optionSprites:
     - {fileID: 21300000, guid: 915242ea84990a64b858609cae115da1, type: 3}

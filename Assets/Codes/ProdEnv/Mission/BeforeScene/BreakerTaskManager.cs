@@ -37,6 +37,7 @@ public class BreakerTaskManager : MonoBehaviour
     [SerializeField] private TMPro.TextMeshProUGUI achievementText;
     [SerializeField] private Button achievementProceedButton;
     [SerializeField] private Button achievementRestartButton;
+    [SerializeField] private AudioClip achievementCompleteSfx;
 
     [Header("Breaker Task Prefab")]
     [SerializeField] private GameObject breakerPrefab; // Assign in inspector if you want to spawn it
@@ -209,6 +210,9 @@ public class BreakerTaskManager : MonoBehaviour
 
         if (achievementPanel != null)
             achievementPanel.SetActive(true);
+
+        if (achievementCompleteSfx != null && AudioManager.Instance != null)
+            AudioManager.Instance.PlaySFX(achievementCompleteSfx);
 
         if (achievementText != null)
             achievementText.text = "Breaker Task Complete!";

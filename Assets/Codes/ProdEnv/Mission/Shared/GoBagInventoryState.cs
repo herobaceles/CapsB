@@ -2,11 +2,21 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum GoBagInclusionType
+{
+    Unknown,
+    Required,
+    NotRequired
+}
+
 [Serializable]
 public struct GoBagItemDefinition
 {
     public string itemName;
     public Sprite icon;
+    public GoBagInclusionType inclusionType;
+    public List<DialogueLineData> correctDropDialogueRich;
+    public List<DialogueLineData> wrongDropDialogueRich;
 }
 
 public readonly struct GoBagItemSnapshot

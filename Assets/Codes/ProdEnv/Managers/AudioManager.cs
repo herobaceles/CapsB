@@ -202,6 +202,24 @@ public class AudioManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Plays the requested BGM clip only when it differs from the one already assigned.
+    /// Useful for scene entry points that should not restart identical looping music.
+    /// </summary>
+    public void PlayBgmIfDifferent(AudioClip clip)
+    {
+        if (bgmSource == null || clip == null)
+            return;
+
+        if (bgmSource.clip == clip && bgmSource.isPlaying)
+        {
+            ApplyVolumeSettings();
+            return;
+        }
+
+        PlayBgm(clip);
+    }
+
+    /// <summary>
     /// Restart playback of the currently assigned BGM clip, if any.
     /// </summary>
     public void RestartCurrentBgm()

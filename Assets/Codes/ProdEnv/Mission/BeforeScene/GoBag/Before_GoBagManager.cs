@@ -9,6 +9,13 @@ using System.Reflection;
 
 public class ARMissionManager : MonoBehaviour
 {
+    private enum GoBagDropResult
+    {
+        Unknown,
+        Required,
+        NotRequired
+    }
+
     // --- Breaker AR Placement ---
     [Header("Breaker AR Placement")]
     public GameObject breakerPrefabToPlace; // Assign in inspector (breaker prefab)
@@ -46,19 +53,27 @@ public class ARMissionManager : MonoBehaviour
     // Call this from DraggableItem when dropped into backpack
     public void OnItemDroppedInBag(GameObject item)
     {
-        string itemName = item.name.Replace("(Clone)", "").Trim();
-        if (requiredItemNames.Contains(itemName))
+        if (item == null)
+            return;
+
+        string itemName = NormalizeItemName(item.name);
+        GoBagItemDefinition definition;
+        GoBagDropResult dropResult = DetermineGoBagDropResult(itemName, out definition);
+
+        if (dropResult == GoBagDropResult.Required)
         {
             ShowFeedbackPanel(correctFeedbackText);
             MarkItemCollected(itemName);
+            if (PreparingGoBagManager.Instance != null)
+                PreparingGoBagManager.Instance.ShowCorrectItemDialogue(definition, itemName);
             ItemCollected();
             Destroy(item);
         }
-        else if (notRequiredItemNames.Contains(itemName))
+        else if (dropResult == GoBagDropResult.NotRequired)
         {
             ShowFeedbackPanel(wrongFeedbackText);
             if (PreparingGoBagManager.Instance != null)
-                PreparingGoBagManager.Instance.ShowWrongItemDialogue();
+                PreparingGoBagManager.Instance.ShowWrongItemDialogue(definition, itemName);
             Destroy(item);
         }
         else
@@ -66,6 +81,72 @@ public class ARMissionManager : MonoBehaviour
             ShowFeedbackPanel("Unknown Item");
             Destroy(item);
         }
+    }
+
+    private GoBagDropResult DetermineGoBagDropResult(string itemName, out GoBagItemDefinition definition)
+    {
+        definition = default;
+
+        if (TryGetConfiguredGoBagDefinition(itemName, out definition))
+        {
+            switch (definition.inclusionType)
+            {
+                case GoBagInclusionType.Required:
+                    return GoBagDropResult.Required;
+                case GoBagInclusionType.NotRequired:
+                    return GoBagDropResult.NotRequired;
+            }
+        }
+
+        if (ListContainsItemName(requiredItemNames, itemName))
+            return GoBagDropResult.Required;
+
+        if (ListContainsItemName(notRequiredItemNames, itemName))
+            return GoBagDropResult.NotRequired;
+
+        return GoBagDropResult.Unknown;
+    }
+
+    private bool TryGetConfiguredGoBagDefinition(string itemName, out GoBagItemDefinition definition)
+    {
+        definition = default;
+
+        if (string.IsNullOrWhiteSpace(itemName) || goBagItemDefinitions == null)
+            return false;
+
+        for (int i = 0; i < goBagItemDefinitions.Count; i++)
+        {
+            var candidate = goBagItemDefinitions[i];
+            if (string.Equals(candidate.itemName?.Trim(), itemName, StringComparison.OrdinalIgnoreCase))
+            {
+                definition = candidate;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool ListContainsItemName(List<string> itemNames, string itemName)
+    {
+        if (itemNames == null || string.IsNullOrWhiteSpace(itemName))
+            return false;
+
+        for (int i = 0; i < itemNames.Count; i++)
+        {
+            if (string.Equals(itemNames[i]?.Trim(), itemName, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static string NormalizeItemName(string rawItemName)
+    {
+        if (string.IsNullOrWhiteSpace(rawItemName))
+            return string.Empty;
+
+        return rawItemName.Replace("(Clone)", string.Empty).Trim();
     }
 
     private void ShowFeedbackPanel(string message)

@@ -1234,6 +1234,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   achievementPanel: {fileID: 1722201804}
   achievementText: {fileID: 1115204200}
+  achievementProceedButton: {fileID: 0}
+  achievementRestartButton: {fileID: 0}
   breakerPrefab: {fileID: 2095028937993367117, guid: e9b0abaaa6bd88140a155d2e548ba7be, type: 3}
   breakerExitButton: {fileID: 43629799}
   instructionDialogueRich: []
@@ -2261,18 +2263,95 @@ MonoBehaviour:
   goBagItemDefinitions:
   - itemName: folded_clothes
     icon: {fileID: 21300000, guid: 1e815ec2d28ddcb4bb47e23071923b58, type: 3}
+    inclusionType: 1
+    correctDropDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 1
+      message: ' Clothes help keep you warm, dry, and protected.'
+    wrongDropDialogueRich: []
   - itemName: medkit
     icon: {fileID: 21300000, guid: 676c127835c6a6746b78c6e61365b314, type: 3}
+    inclusionType: 1
+    correctDropDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 1
+      message: A medkit helps treat small injuries during emergencies.
+    wrongDropDialogueRich: []
   - itemName: sardines
     icon: {fileID: 21300000, guid: 0f605498419ced444948012619ea4dae, type: 3}
+    inclusionType: 1
+    correctDropDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 1
+      message: Food gives you energy while waiting for help.
+    wrongDropDialogueRich: []
   - itemName: Toy
     icon: {fileID: 21300000, guid: d69b4f7535855c04c8871fa880ba02ad, type: 3}
+    inclusionType: 2
+    correctDropDialogueRich: []
+    wrongDropDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 1
+      message: Toys are not essential in a go bag.
   - itemName: Map
     icon: {fileID: 21300000, guid: adf9f5a8e1538c946a9e436e9f8c8a07, type: 3}
+    inclusionType: 1
+    correctDropDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 1
+      message: A map helps you find safe routes and evacuation centers.
+    wrongDropDialogueRich: []
   - itemName: water_bottle
     icon: {fileID: 21300000, guid: 322f8ce5330ab3d4fb16842e83f24179, type: 3}
+    inclusionType: 1
+    correctDropDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 1
+      message: Water is important to prevent dehydration.
+    wrongDropDialogueRich: []
   - itemName: flashlight
     icon: {fileID: 21300000, guid: bfd08d7fd181fbd42b423d96b140f797, type: 3}
+    inclusionType: 1
+    correctDropDialogueRich:
+    - characterId: professor_lingap
+      characterName: Prof. Lingap
+      side: 2
+      expressionId: explaining
+      portraitOverride: {fileID: 0}
+      backgroundSprite: {fileID: 0}
+      clearBackground: 1
+      message: A flashlight helps you move safely in the dark.
+    wrongDropDialogueRich: []
   raycastManager: {fileID: 0}
   tablePrefab: {fileID: 5580475605631790240, guid: 1989b714c892be144a482d93edded18a, type: 3}
   bagPrefab: {fileID: 8087657681563393829, guid: 271b69e1aab9c3e48a5603175c60ce1b, type: 3}
@@ -3239,9 +3318,13 @@ MonoBehaviour:
       blinkSprite: {fileID: 0}
       talkingSprites: []
     - expressionId: approved
-      sprite: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
-      blinkSprite: {fileID: 0}
-      talkingSprites: []
+      sprite: {fileID: 21300000, guid: c48bf792751870748b8847ef9ff6cb8e, type: 3}
+      blinkSprite: {fileID: 21300000, guid: 1f6fd92571e9e5549b604c9e9858715e, type: 3}
+      talkingSprites:
+      - {fileID: 21300000, guid: c48bf792751870748b8847ef9ff6cb8e, type: 3}
+      - {fileID: 21300000, guid: 861cdd91eccc5b54b8f53c848e8234d3, type: 3}
+      - {fileID: 21300000, guid: 23e714208d58b994d945beb8877b9017, type: 3}
+      - {fileID: 21300000, guid: 54b101c28ea7c1d498e580a9d16a48b2, type: 3}
     - expressionId: hi
       sprite: {fileID: 21300000, guid: 9d1638244ee645d4f916860af4e06434, type: 3}
       blinkSprite: {fileID: 0}
@@ -10152,8 +10235,24 @@ MonoBehaviour:
   cutsceneDuration: 5
   skipButton: {fileID: 655784122}
   quizDialogueUI: {fileID: 0}
-  goBagFoundDialogueRich: []
-  goBagCompleteDialogueRich: []
+  goBagFoundDialogueRich:
+  - characterId: professor_lingap
+    characterName: Prof. Lingap
+    side: 1
+    expressionId: shocked
+    portraitOverride: {fileID: 0}
+    backgroundSprite: {fileID: 21300000, guid: 787a7f6d8a56e3a4daedfd3fd8bdad95, type: 3}
+    clearBackground: 0
+    message: FOUND THE GO BAG
+  goBagCompleteDialogueRich:
+  - characterId: professor_lingap
+    characterName: Prof. Lingap
+    side: 3
+    expressionId: center
+    portraitOverride: {fileID: 0}
+    backgroundSprite: {fileID: 21300000, guid: 787a7f6d8a56e3a4daedfd3fd8bdad95, type: 3}
+    clearBackground: 0
+    message: GO BAG DONE
   goBagWrongItemDialogueRich: []
 --- !u!4 &1629681705
 Transform:
@@ -11699,6 +11798,10 @@ MonoBehaviour:
   floodWarningUI: {fileID: 0}
   statusPanel: {fileID: 1610659938}
   statusText: {fileID: 984653249}
+  achievementsPanel: {fileID: 0}
+  achievementText: {fileID: 0}
+  achievementProceedButton: {fileID: 0}
+  achievementRestartButton: {fileID: 0}
   selectApplianceSfx: {fileID: 0}
   placeApplianceSfx: {fileID: 0}
   illegalMoveSfx: {fileID: 0}

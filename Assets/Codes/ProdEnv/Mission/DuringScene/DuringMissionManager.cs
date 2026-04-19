@@ -135,6 +135,7 @@ public class DuringMissionManager : MissionSceneManager
     {
         base.Start();
         ConfigureDefaultUIState();
+        PlaySceneAudio();
         TryPlayIntroDialogue();
         SubscribeToMapEvents();
     }

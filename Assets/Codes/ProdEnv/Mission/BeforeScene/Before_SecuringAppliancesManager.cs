@@ -53,6 +53,7 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
     [SerializeField] private AudioClip selectApplianceSfx;
     [SerializeField] private AudioClip placeApplianceSfx;
     [SerializeField] private AudioClip illegalMoveSfx;
+    [SerializeField] private AudioClip achievementCompleteSfx;
 
     [Header("AR Return Sync")]
     [SerializeField] private bool syncPlacementsBackToScene = true;
@@ -851,6 +852,9 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
         }
 
         achievementsPanel.SetActive(true);
+
+        if (achievementCompleteSfx != null && AudioManager.Instance != null)
+            AudioManager.Instance.PlaySFX(achievementCompleteSfx);
 
         if (achievementText != null)
             achievementText.text = "Securing Appliances Complete!";
