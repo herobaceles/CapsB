@@ -7,10 +7,6 @@ public class GlobalAudioSettingsUI : MonoBehaviour
     [SerializeField] private Slider musicVolumeSlider;
     [SerializeField] private Slider sfxVolumeSlider;
 
-    [Header("Legacy")]
-    [SerializeField] private Slider legacyMasterVolumeSlider;
-    [SerializeField] private bool hideLegacyMasterSlider = true;
-
     private AudioManager boundAudioManager;
 
     private void OnEnable()
@@ -44,9 +40,6 @@ public class GlobalAudioSettingsUI : MonoBehaviour
 
     public void Refresh()
     {
-        if (hideLegacyMasterSlider && legacyMasterVolumeSlider != null)
-            legacyMasterVolumeSlider.gameObject.SetActive(false);
-
         if (boundAudioManager == null)
             boundAudioManager = AudioManager.Instance;
 

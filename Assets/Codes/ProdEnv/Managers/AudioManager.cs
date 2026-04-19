@@ -51,14 +51,11 @@ public class AudioManager : MonoBehaviour
 
     [Header("Volume Settings")]
     [Range(0f, 1f)]
-    [SerializeField] private float masterVolume = 1f;
-    [Range(0f, 1f)]
     [FormerlySerializedAs("bgmVolume")]
     [SerializeField] private float musicVolume = 1f;
     [Range(0f, 1f)]
     [SerializeField] private float sfxVolume = 1f;
 
-    private const string MasterVolumeKey = "MasterVolume";
     private const string MusicVolumeKey = "MusicVolume";
     private const string LegacyBgmVolumeKey = "BgmVolume";
     private const string SfxVolumeKey = "SfxVolume";
@@ -104,7 +101,6 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
-        masterVolume = PlayerPrefs.GetFloat(MasterVolumeKey, masterVolume);
         musicVolume = PlayerPrefs.HasKey(MusicVolumeKey)
             ? PlayerPrefs.GetFloat(MusicVolumeKey, musicVolume)
             : PlayerPrefs.GetFloat(LegacyBgmVolumeKey, musicVolume);
@@ -176,18 +172,16 @@ public class AudioManager : MonoBehaviour
 
         EnsureAudioSources();
 
-        float outputVolume = Mathf.Clamp01(masterVolume * sfxVolume) * Mathf.Clamp01(volumeScale);
-
         if (sfxSource != null)
         {
-            sfxSource.PlayOneShot(clip, outputVolume);
+            sfxSource.PlayOneShot(clip, Mathf.Clamp01(volumeScale));
             return;
         }
 
         AudioSource.PlayClipAtPoint(
             clip,
             Camera.main != null ? Camera.main.transform.position : Vector3.zero,
-            outputVolume);
+            Mathf.Clamp01(sfxVolume * volumeScale));
     }
 
     public void PlayUiClick(AudioClip clip = null, float volumeScale = 1f)
@@ -201,17 +195,7 @@ public class AudioManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Set overall master volume (0-1). Affects both BGM and SFX.
-    /// </summary>
-    public void SetMasterVolume(float value)
-    {
-        masterVolume = Mathf.Clamp01(value);
-        SaveVolume(MasterVolumeKey, masterVolume);
-        ApplyVolumeSettings();
-    }
-
-    /// <summary>
-    /// Set background music volume (0-1), multiplied by master volume.
+    /// Set background music volume (0-1).
     /// </summary>
     public void SetMusicVolume(float value)
     {
@@ -223,7 +207,7 @@ public class AudioManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Set sound effects volume (0-1), multiplied by master volume.
+    /// Set sound effects volume (0-1).
     /// </summary>
     public void SetSfxVolume(float value)
     {
@@ -233,7 +217,6 @@ public class AudioManager : MonoBehaviour
         SfxVolumeChanged?.Invoke(sfxVolume);
     }
 
-    public float GetMasterVolume() => masterVolume;
     public float GetMusicVolume() => musicVolume;
     public float GetSfxVolume() => sfxVolume;
     public float GetBgmVolume() => musicVolume;
@@ -250,17 +233,14 @@ public class AudioManager : MonoBehaviour
     {
         EnsureAudioSources();
 
-        float masterMusic = Mathf.Clamp01(masterVolume * musicVolume);
-        float masterSfx = Mathf.Clamp01(masterVolume * sfxVolume);
-
         if (musicSource != null)
         {
-            musicSource.volume = masterMusic;
+            musicSource.volume = Mathf.Clamp01(musicVolume);
         }
 
         if (sfxSource != null)
         {
-            sfxSource.volume = masterSfx;
+            sfxSource.volume = Mathf.Clamp01(sfxVolume);
         }
     }
 

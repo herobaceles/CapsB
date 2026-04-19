@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -74,8 +75,10 @@ public class OuntroPanelController : MonoBehaviour
 
         gameObject.SetActive(true);
 
-        // Play mission complete sound and disable background music if configured
-        if (disableBgmOnActivate && AudioManager.Instance != null)
+        bool isMainMenuScene = SceneManager.GetActiveScene().name == "MainMenuProd";
+
+        // Keep menu BGM running when this controller is reused as a tutorial panel in main menu.
+        if (disableBgmOnActivate && !isMainMenuScene && AudioManager.Instance != null)
         {
             AudioManager.Instance.bgmSource.Stop();
         }
@@ -126,6 +129,8 @@ public class OuntroPanelController : MonoBehaviour
 
     private void OnContinueClicked()
     {
+        AudioManager.Instance?.PlayUiClick();
+
         if (pages == null || pages.Length == 0)
         {
             FinishSequence();
@@ -144,6 +149,8 @@ public class OuntroPanelController : MonoBehaviour
 
     private void OnPreviousClicked()
     {
+        AudioManager.Instance?.PlayUiClick();
+
         if (pages == null || pages.Length == 0)
             return;
 
@@ -165,11 +172,14 @@ public class OuntroPanelController : MonoBehaviour
 
     private void OnStartClicked()
     {
+        AudioManager.Instance?.PlayUiClick();
         FinishSequence();
     }
 
     private void OnCloseClicked()
     {
+        AudioManager.Instance?.PlayUiClick();
+
         // Hide panel and cancel any pending finished callback without invoking it.
         gameObject.SetActive(false);
         onFinished = null;

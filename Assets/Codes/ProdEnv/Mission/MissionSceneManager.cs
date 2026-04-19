@@ -48,7 +48,6 @@ public abstract class MissionSceneManager : MonoBehaviour
     [SerializeField] protected Button settingsButton;
     [SerializeField] protected GameObject pauseSettingsPanel;
     [SerializeField] protected GlobalAudioSettingsUI pauseAudioSettingsUI;
-    [SerializeField] protected Slider masterVolumeSlider;
     [SerializeField] protected Slider bgmVolumeSlider;
     [SerializeField] protected Slider sfxVolumeSlider;
     [SerializeField] protected Button closeSettingsButton;
@@ -171,13 +170,6 @@ public abstract class MissionSceneManager : MonoBehaviour
         {
             pauseAudioSettingsUI.Bind(audio);
             return;
-        }
-
-        if (masterVolumeSlider != null)
-        {
-            masterVolumeSlider.SetValueWithoutNotify(audio.GetMasterVolume());
-            masterVolumeSlider.onValueChanged.RemoveListener(OnMasterVolumeSliderChanged);
-            masterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeSliderChanged);
         }
 
         if (bgmVolumeSlider != null)
@@ -975,9 +967,6 @@ public abstract class MissionSceneManager : MonoBehaviour
             return;
         }
 
-        if (masterVolumeSlider != null)
-            masterVolumeSlider.SetValueWithoutNotify(audio.GetMasterVolume());
-
         if (bgmVolumeSlider != null)
             bgmVolumeSlider.SetValueWithoutNotify(audio.GetMusicVolume());
 
@@ -989,12 +978,6 @@ public abstract class MissionSceneManager : MonoBehaviour
     {
         if (pauseSettingsPanel != null)
             pauseSettingsPanel.SetActive(false);
-    }
-
-    protected virtual void OnMasterVolumeSliderChanged(float value)
-    {
-        if (AudioManager.Instance != null)
-            AudioManager.Instance.SetMasterVolume(value);
     }
 
     protected virtual void OnBgmVolumeSliderChanged(float value)
