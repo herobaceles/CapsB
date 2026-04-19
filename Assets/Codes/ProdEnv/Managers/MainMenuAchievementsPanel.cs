@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -7,7 +8,7 @@ using UnityEngine.UI;
 public class MainMenuAchievementsPanel : MonoBehaviour
 {
     private const float DefaultTaskCardWidth = 250f;
-    private const float DefaultTaskCardHeight = 235f;
+    private const float DefaultTaskCardHeight = 260f;
     private const float TopContentMargin = 20f;
 
     [SerializeField] private float itemSpacing = 12f;
@@ -24,6 +25,9 @@ public class MainMenuAchievementsPanel : MonoBehaviour
     [SerializeField] private MainMenuAchievementTaskRowView taskRowTemplate;
     [SerializeField] private Sprite fallbackIcon;
 
+    private Vector2 lastArrangedViewportSize = Vector2.zero;
+    private Coroutine pendingResponsiveRelayout;
+
     public void SetCloseHandler(UnityAction handler)
     {
         if (closeButton == null)
@@ -39,15 +43,25 @@ public class MainMenuAchievementsPanel : MonoBehaviour
         if (panelRoot != null)
             panelRoot.SetActive(true);
 
-        Canvas.ForceUpdateCanvases();
+        lastArrangedViewportSize = Vector2.zero;
+        ForceResponsiveRelayout();
         Refresh();
 
-        if (contentRoot != null)
-            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRoot);
+        if (pendingResponsiveRelayout != null)
+            StopCoroutine(pendingResponsiveRelayout);
+        pendingResponsiveRelayout = StartCoroutine(RelayoutNextFrame());
     }
 
     public void Hide()
     {
+        lastArrangedViewportSize = Vector2.zero;
+
+        if (pendingResponsiveRelayout != null)
+        {
+            StopCoroutine(pendingResponsiveRelayout);
+            pendingResponsiveRelayout = null;
+        }
+
         if (panelRoot != null)
             panelRoot.SetActive(false);
     }
@@ -102,16 +116,70 @@ public class MainMenuAchievementsPanel : MonoBehaviour
             panelRoot.SetActive(false);
     }
 
+    private IEnumerator RelayoutNextFrame()
+    {
+        yield return null;
+
+        pendingResponsiveRelayout = null;
+
+        if (!isActiveAndEnabled)
+            yield break;
+
+        if (panelRoot != null && !panelRoot.activeInHierarchy)
+            yield break;
+
+        if (!HasRuntimeChildren())
+            yield break;
+
+        ForceResponsiveRelayout();
+        ArrangeRuntimeChildren();
+    }
+
+    private void OnRectTransformDimensionsChange()
+    {
+        if (!isActiveAndEnabled)
+            return;
+
+        if (panelRoot != null && !panelRoot.activeInHierarchy)
+            return;
+
+        if (!HasRuntimeChildren())
+            return;
+
+        Vector2 viewportSize = GetViewportSize();
+        if (viewportSize.x <= 0f || viewportSize.y <= 0f)
+            return;
+
+        if ((viewportSize - lastArrangedViewportSize).sqrMagnitude < 0.25f)
+            return;
+
+        ForceResponsiveRelayout();
+        ArrangeRuntimeChildren();
+    }
+
     private void ClearRuntimeChildren()
     {
+        if (contentRoot == null)
+            return;
+
+        List<GameObject> staleChildren = new List<GameObject>();
         for (int index = contentRoot.childCount - 1; index >= 0; index--)
         {
             Transform child = contentRoot.GetChild(index);
             if (child == missionHeaderTemplate.transform || child == taskRowTemplate.transform)
                 continue;
 
-            Destroy(child.gameObject);
+            staleChildren.Add(child.gameObject);
+            child.SetParent(null, false);
         }
+
+        for (int index = 0; index < staleChildren.Count; index++)
+        {
+            staleChildren[index].SetActive(false);
+            Destroy(staleChildren[index]);
+        }
+
+        lastArrangedViewportSize = Vector2.zero;
     }
 
     private void ArrangeRuntimeChildren()
@@ -124,6 +192,9 @@ public class MainMenuAchievementsPanel : MonoBehaviour
         availableWidth = Mathf.Max(availableWidth, contentRoot.rect.width);
         if (availableWidth <= 0f)
             availableWidth = 700f;
+
+        if (viewport != null)
+            lastArrangedViewportSize = viewport.rect.size;
 
         HorizontalLayoutGroup contentLayoutGroup = contentRoot.GetComponent<HorizontalLayoutGroup>();
         float leftPadding = contentLayoutGroup != null ? contentLayoutGroup.padding.left : 0f;
@@ -237,6 +308,44 @@ public class MainMenuAchievementsPanel : MonoBehaviour
         FlushTaskRow();
 
         contentRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, currentY);
+    }
+
+    private bool HasRuntimeChildren()
+    {
+        if (contentRoot == null)
+            return false;
+
+        for (int index = 0; index < contentRoot.childCount; index++)
+        {
+            Transform child = contentRoot.GetChild(index);
+            if (child == missionHeaderTemplate.transform || child == taskRowTemplate.transform)
+                continue;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private Vector2 GetViewportSize()
+    {
+        RectTransform viewport = contentRoot != null ? contentRoot.parent as RectTransform : null;
+        if (viewport == null)
+            return Vector2.zero;
+
+        return viewport.rect.size;
+    }
+
+    private void ForceResponsiveRelayout()
+    {
+        Canvas.ForceUpdateCanvases();
+
+        RectTransform viewport = contentRoot != null ? contentRoot.parent as RectTransform : null;
+        if (viewport != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(viewport);
+
+        if (contentRoot != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRoot);
     }
 
     private void ConfigureContentLayout()
