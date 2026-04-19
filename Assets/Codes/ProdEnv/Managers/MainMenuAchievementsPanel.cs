@@ -6,8 +6,9 @@ using UnityEngine.UI;
 
 public class MainMenuAchievementsPanel : MonoBehaviour
 {
-    private const float DefaultTaskCardWidth = 180f;
-    private const float DefaultTaskCardHeight = 180f;
+    private const float DefaultTaskCardWidth = 250f;
+    private const float DefaultTaskCardHeight = 235f;
+    private const float TopContentMargin = 20f;
 
     [SerializeField] private float itemSpacing = 12f;
     [SerializeField] private float sectionSpacing = 20f;
@@ -35,10 +36,14 @@ public class MainMenuAchievementsPanel : MonoBehaviour
 
     public void Show()
     {
-        Refresh();
-
         if (panelRoot != null)
             panelRoot.SetActive(true);
+
+        Canvas.ForceUpdateCanvases();
+        Refresh();
+
+        if (contentRoot != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(contentRoot);
     }
 
     public void Hide()
@@ -114,13 +119,53 @@ public class MainMenuAchievementsPanel : MonoBehaviour
         if (contentRoot == null)
             return;
 
-        float availableWidth = contentRoot.rect.width;
+        RectTransform viewport = contentRoot.parent as RectTransform;
+        float availableWidth = viewport != null ? viewport.rect.width : contentRoot.rect.width;
+        availableWidth = Mathf.Max(availableWidth, contentRoot.rect.width);
         if (availableWidth <= 0f)
             availableWidth = 700f;
 
-        float currentY = 0f;
-        float currentX = 0f;
+        HorizontalLayoutGroup contentLayoutGroup = contentRoot.GetComponent<HorizontalLayoutGroup>();
+        float leftPadding = contentLayoutGroup != null ? contentLayoutGroup.padding.left : 0f;
+        float rightPadding = contentLayoutGroup != null ? contentLayoutGroup.padding.right : 0f;
+        float usableWidth = Mathf.Max(0f, availableWidth - leftPadding - rightPadding);
+
+        float currentY = TopContentMargin;
         float currentRowHeight = 0f;
+        List<RectTransform> rowChildren = new List<RectTransform>();
+        List<float> rowWidths = new List<float>();
+
+        void FlushTaskRow()
+        {
+            if (rowChildren.Count == 0)
+                return;
+
+            float totalRowWidth = 0f;
+            for (int rowIndex = 0; rowIndex < rowWidths.Count; rowIndex++)
+                totalRowWidth += rowWidths[rowIndex];
+
+            float remainingWidth = Mathf.Max(0f, usableWidth - totalRowWidth);
+            float slotSpacing = Mathf.Max(itemSpacing, remainingWidth / (rowChildren.Count + 1));
+            float currentX = leftPadding + slotSpacing;
+            for (int rowIndex = 0; rowIndex < rowChildren.Count; rowIndex++)
+            {
+                RectTransform rowChild = rowChildren[rowIndex];
+                float childWidth = rowWidths[rowIndex];
+
+                rowChild.anchorMin = new Vector2(0f, 1f);
+                rowChild.anchorMax = new Vector2(0f, 1f);
+                rowChild.pivot = new Vector2(0f, 1f);
+                rowChild.anchoredPosition = new Vector2(currentX, -currentY);
+                rowChild.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, childWidth);
+
+                currentX += childWidth + slotSpacing;
+            }
+
+            currentY += currentRowHeight;
+            rowChildren.Clear();
+            rowWidths.Clear();
+            currentRowHeight = 0f;
+        }
 
         for (int index = 0; index < contentRoot.childCount; index++)
         {
@@ -141,11 +186,10 @@ public class MainMenuAchievementsPanel : MonoBehaviour
                     continue;
                 }
 
-                if (currentRowHeight > 0f)
+                if (rowChildren.Count > 0)
                 {
-                    currentY += currentRowHeight + sectionSpacing;
-                    currentX = 0f;
-                    currentRowHeight = 0f;
+                    FlushTaskRow();
+                    currentY += sectionSpacing;
                 }
 
                 child.anchorMin = new Vector2(0f, 1f);
@@ -164,32 +208,33 @@ public class MainMenuAchievementsPanel : MonoBehaviour
 
             float preferredWidth = LayoutUtility.GetPreferredWidth(child);
             if (preferredWidth <= 0f)
-                preferredWidth = child.sizeDelta.x > 0f ? child.sizeDelta.x : 180f;
+                preferredWidth = child.sizeDelta.x > 0f ? child.sizeDelta.x : DefaultTaskCardWidth;
 
             float preferredHeight = LayoutUtility.GetPreferredHeight(child);
             if (preferredHeight <= 0f)
-                preferredHeight = child.sizeDelta.y > 0f ? child.sizeDelta.y : 180f;
+                preferredHeight = child.sizeDelta.y > 0f ? child.sizeDelta.y : DefaultTaskCardHeight;
 
-            if (currentX > 0f && currentX + preferredWidth > availableWidth)
-            {
-                currentY += currentRowHeight + itemSpacing;
-                currentX = 0f;
-                currentRowHeight = 0f;
-            }
-
-            child.anchorMin = new Vector2(0f, 1f);
-            child.anchorMax = new Vector2(0f, 1f);
-            child.pivot = new Vector2(0f, 1f);
-            child.anchoredPosition = new Vector2(currentX, -currentY);
-            child.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, preferredWidth);
             child.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, preferredHeight);
 
-            currentX += preferredWidth + itemSpacing;
+            float projectedRowWidth = preferredWidth;
+            for (int rowIndex = 0; rowIndex < rowWidths.Count; rowIndex++)
+                projectedRowWidth += rowWidths[rowIndex];
+
+            int projectedItemCount = rowChildren.Count + 1;
+            projectedRowWidth += itemSpacing * (projectedItemCount + 1);
+
+            if (rowChildren.Count > 0 && projectedRowWidth > usableWidth)
+            {
+                FlushTaskRow();
+                currentY += itemSpacing;
+            }
+
+            rowChildren.Add(child);
+            rowWidths.Add(preferredWidth);
             currentRowHeight = Mathf.Max(currentRowHeight, preferredHeight);
         }
 
-        if (currentRowHeight > 0f)
-            currentY += currentRowHeight;
+        FlushTaskRow();
 
         contentRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, currentY);
     }
