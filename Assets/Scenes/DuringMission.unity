@@ -82402,6 +82402,39 @@ MonoBehaviour:
   closeButton: {fileID: 1258355849}
   emptyStateLabel: {fileID: 273085003}
   hudButtonsToHide: []
+  overlayUiToHide: []
+  inventoryMissionId: before_01
+  goBagItemDefinitions:
+  - itemName: Clothes
+    icon: {fileID: 21300000, guid: 1e815ec2d28ddcb4bb47e23071923b58, type: 3}
+    inclusionType: 0
+    correctDropDialogueRich: []
+    wrongDropDialogueRich: []
+  - itemName: Medkit
+    icon: {fileID: 21300000, guid: 676c127835c6a6746b78c6e61365b314, type: 3}
+    inclusionType: 0
+    correctDropDialogueRich: []
+    wrongDropDialogueRich: []
+  - itemName: Food
+    icon: {fileID: 21300000, guid: 0f605498419ced444948012619ea4dae, type: 3}
+    inclusionType: 0
+    correctDropDialogueRich: []
+    wrongDropDialogueRich: []
+  - itemName: Map
+    icon: {fileID: 21300000, guid: adf9f5a8e1538c946a9e436e9f8c8a07, type: 3}
+    inclusionType: 0
+    correctDropDialogueRich: []
+    wrongDropDialogueRich: []
+  - itemName: Water
+    icon: {fileID: 21300000, guid: 322f8ce5330ab3d4fb16842e83f24179, type: 3}
+    inclusionType: 0
+    correctDropDialogueRich: []
+    wrongDropDialogueRich: []
+  - itemName: Flashlight
+    icon: {fileID: 21300000, guid: bfd08d7fd181fbd42b423d96b140f797, type: 3}
+    inclusionType: 0
+    correctDropDialogueRich: []
+    wrongDropDialogueRich: []
   viewMapButton: {fileID: 0}
   mapDisplay: {fileID: 0}
 --- !u!114 &1598479412

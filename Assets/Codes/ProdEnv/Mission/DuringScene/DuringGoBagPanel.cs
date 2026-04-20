@@ -18,6 +18,13 @@ public class DuringGoBagPanel : MonoBehaviour
 
     [Header("HUD Visibility")]
     [SerializeField] private GameObject[] hudButtonsToHide;
+    [SerializeField] private GameObject[] overlayUiToHide;
+
+    [Header("Inventory Sync")]
+    [Tooltip("Mission inventory key to read go-bag progress from. Defaults to the Before go-bag mission.")]
+    [SerializeField] private string inventoryMissionId = "before_01";
+    [Tooltip("Definitions used to rebuild go-bag icons after a cold app restart.")]
+    [SerializeField] private List<GoBagItemDefinition> goBagItemDefinitions = new List<GoBagItemDefinition>();
 
     [Header("Map Access")]
     [SerializeField] private Button viewMapButton;
@@ -25,13 +32,14 @@ public class DuringGoBagPanel : MonoBehaviour
 
     private readonly List<GoBagItemSnapshot> snapshotBuffer = new List<GoBagItemSnapshot>();
     private readonly List<DuringGoBagPanelItemView> pooledViews = new List<DuringGoBagPanelItemView>();
-    private bool[] cachedHudButtonStates;
+    private readonly List<GameObject> resolvedUiToHide = new List<GameObject>();
+    private bool[] cachedUiStates;
 
     public bool IsVisible => panelRoot != null && panelRoot.activeSelf;
 
     private void Awake()
     {
-        ResolveHudButtonsToHide();
+        EnsureInventoryDefinitionsApplied();
 
         if (panelRoot != null)
             panelRoot.SetActive(false);
@@ -69,8 +77,10 @@ public class DuringGoBagPanel : MonoBehaviour
         }
 
         EnsureCanvasGroup(panelRoot);
+        EnsureInventoryDefinitionsApplied();
         RefreshList();
-        SetHudButtonsVisible(false);
+        ResolveUiRootsToHide();
+        SetTrackedUiVisible(false);
         panelRoot.SetActive(true);
         Debug.Log("DuringGoBagPanel: Opened backpack panel.");
     }
@@ -80,7 +90,7 @@ public class DuringGoBagPanel : MonoBehaviour
         if (panelRoot != null)
         {
             panelRoot.SetActive(false);
-            SetHudButtonsVisible(true);
+            SetTrackedUiVisible(true);
             Debug.Log("DuringGoBagPanel: Closed backpack panel.");
         }
     }
@@ -108,6 +118,7 @@ public class DuringGoBagPanel : MonoBehaviour
     private void RefreshList()
     {
         var inventory = GoBagInventoryState.Instance;
+        EnsureInventoryDefinitionsApplied();
         snapshotBuffer.Clear();
         if (inventory != null)
             inventory.FillSnapshot(snapshotBuffer);
@@ -233,21 +244,49 @@ public class DuringGoBagPanel : MonoBehaviour
         cg.blocksRaycasts = true;
     }
 
-    private void ResolveHudButtonsToHide()
+    private void EnsureInventoryDefinitionsApplied()
     {
-        if (hudButtonsToHide != null && hudButtonsToHide.Length > 0)
+        var inventory = GoBagInventoryState.Instance;
+        if (inventory == null)
             return;
 
-        var resolvedButtons = new List<GameObject>();
+        if (!string.IsNullOrWhiteSpace(inventoryMissionId))
+            inventory.SetActiveMissionId(inventoryMissionId);
 
-        TryAddHudButton(resolvedButtons, GameObject.Find("BagButton"));
-        TryAddHudButton(resolvedButtons, GameObject.Find("Pause"));
+        if (goBagItemDefinitions == null || goBagItemDefinitions.Count == 0)
+            return;
 
-        if (resolvedButtons.Count > 0)
-            hudButtonsToHide = resolvedButtons.ToArray();
+        inventory.ApplyDefinitions(goBagItemDefinitions, false);
     }
 
-    private void TryAddHudButton(List<GameObject> buttons, GameObject candidate)
+    private void ResolveUiRootsToHide()
+    {
+        resolvedUiToHide.Clear();
+
+        if (hudButtonsToHide != null && hudButtonsToHide.Length > 0)
+        {
+            for (int i = 0; i < hudButtonsToHide.Length; i++)
+                TryAddUiRoot(hudButtonsToHide[i]);
+        }
+        else
+        {
+            TryAddUiRoot(GameObject.Find("BagButton"));
+            TryAddUiRoot(GameObject.Find("Pause"));
+        }
+
+        if (overlayUiToHide != null && overlayUiToHide.Length > 0)
+        {
+            for (int i = 0; i < overlayUiToHide.Length; i++)
+                TryAddUiRoot(overlayUiToHide[i]);
+        }
+        else
+        {
+            TryAddUiRoot(GameObject.Find("DialoguePanel"));
+            TryAddUiRoot(GameObject.Find("BubblePanel"));
+        }
+    }
+
+    private void TryAddUiRoot(GameObject candidate)
     {
         if (candidate == null)
             return;
@@ -255,44 +294,44 @@ public class DuringGoBagPanel : MonoBehaviour
         if (panelRoot != null && candidate == panelRoot)
             return;
 
-        if (buttons.Contains(candidate))
+        if (resolvedUiToHide.Contains(candidate))
             return;
 
-        buttons.Add(candidate);
+        resolvedUiToHide.Add(candidate);
     }
 
-    private void SetHudButtonsVisible(bool visible)
+    private void SetTrackedUiVisible(bool visible)
     {
-        if (hudButtonsToHide == null || hudButtonsToHide.Length == 0)
+        if (resolvedUiToHide.Count == 0)
             return;
 
         if (!visible)
         {
-            cachedHudButtonStates = new bool[hudButtonsToHide.Length];
-            for (int i = 0; i < hudButtonsToHide.Length; i++)
+            cachedUiStates = new bool[resolvedUiToHide.Count];
+            for (int i = 0; i < resolvedUiToHide.Count; i++)
             {
-                GameObject hudButton = hudButtonsToHide[i];
-                if (hudButton == null)
+                GameObject uiRoot = resolvedUiToHide[i];
+                if (uiRoot == null)
                     continue;
 
-                cachedHudButtonStates[i] = hudButton.activeSelf;
-                hudButton.SetActive(false);
+                cachedUiStates[i] = uiRoot.activeSelf;
+                uiRoot.SetActive(false);
             }
 
             return;
         }
 
-        if (cachedHudButtonStates == null)
+        if (cachedUiStates == null)
             return;
 
-        for (int i = 0; i < hudButtonsToHide.Length; i++)
+        for (int i = 0; i < resolvedUiToHide.Count; i++)
         {
-            GameObject hudButton = hudButtonsToHide[i];
-            if (hudButton == null)
+            GameObject uiRoot = resolvedUiToHide[i];
+            if (uiRoot == null)
                 continue;
 
-            bool shouldRestore = i < cachedHudButtonStates.Length && cachedHudButtonStates[i];
-            hudButton.SetActive(shouldRestore);
+            bool shouldRestore = i < cachedUiStates.Length && cachedUiStates[i];
+            uiRoot.SetActive(shouldRestore);
         }
     }
 }
