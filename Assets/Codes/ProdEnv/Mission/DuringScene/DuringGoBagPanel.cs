@@ -16,17 +16,23 @@ public class DuringGoBagPanel : MonoBehaviour
     [SerializeField] private Button closeButton;
     [SerializeField] private TextMeshProUGUI emptyStateLabel;
 
+    [Header("HUD Visibility")]
+    [SerializeField] private GameObject[] hudButtonsToHide;
+
     [Header("Map Access")]
     [SerializeField] private Button viewMapButton;
     [SerializeField] private DuringMissionMapDisplay mapDisplay;
 
     private readonly List<GoBagItemSnapshot> snapshotBuffer = new List<GoBagItemSnapshot>();
     private readonly List<DuringGoBagPanelItemView> pooledViews = new List<DuringGoBagPanelItemView>();
+    private bool[] cachedHudButtonStates;
 
     public bool IsVisible => panelRoot != null && panelRoot.activeSelf;
 
     private void Awake()
     {
+        ResolveHudButtonsToHide();
+
         if (panelRoot != null)
             panelRoot.SetActive(false);
 
@@ -64,6 +70,7 @@ public class DuringGoBagPanel : MonoBehaviour
 
         EnsureCanvasGroup(panelRoot);
         RefreshList();
+        SetHudButtonsVisible(false);
         panelRoot.SetActive(true);
         Debug.Log("DuringGoBagPanel: Opened backpack panel.");
     }
@@ -73,6 +80,7 @@ public class DuringGoBagPanel : MonoBehaviour
         if (panelRoot != null)
         {
             panelRoot.SetActive(false);
+            SetHudButtonsVisible(true);
             Debug.Log("DuringGoBagPanel: Closed backpack panel.");
         }
     }
@@ -223,5 +231,68 @@ public class DuringGoBagPanel : MonoBehaviour
         cg.alpha = 1f;
         cg.interactable = true;
         cg.blocksRaycasts = true;
+    }
+
+    private void ResolveHudButtonsToHide()
+    {
+        if (hudButtonsToHide != null && hudButtonsToHide.Length > 0)
+            return;
+
+        var resolvedButtons = new List<GameObject>();
+
+        TryAddHudButton(resolvedButtons, GameObject.Find("BagButton"));
+        TryAddHudButton(resolvedButtons, GameObject.Find("Pause"));
+
+        if (resolvedButtons.Count > 0)
+            hudButtonsToHide = resolvedButtons.ToArray();
+    }
+
+    private void TryAddHudButton(List<GameObject> buttons, GameObject candidate)
+    {
+        if (candidate == null)
+            return;
+
+        if (panelRoot != null && candidate == panelRoot)
+            return;
+
+        if (buttons.Contains(candidate))
+            return;
+
+        buttons.Add(candidate);
+    }
+
+    private void SetHudButtonsVisible(bool visible)
+    {
+        if (hudButtonsToHide == null || hudButtonsToHide.Length == 0)
+            return;
+
+        if (!visible)
+        {
+            cachedHudButtonStates = new bool[hudButtonsToHide.Length];
+            for (int i = 0; i < hudButtonsToHide.Length; i++)
+            {
+                GameObject hudButton = hudButtonsToHide[i];
+                if (hudButton == null)
+                    continue;
+
+                cachedHudButtonStates[i] = hudButton.activeSelf;
+                hudButton.SetActive(false);
+            }
+
+            return;
+        }
+
+        if (cachedHudButtonStates == null)
+            return;
+
+        for (int i = 0; i < hudButtonsToHide.Length; i++)
+        {
+            GameObject hudButton = hudButtonsToHide[i];
+            if (hudButton == null)
+                continue;
+
+            bool shouldRestore = i < cachedHudButtonStates.Length && cachedHudButtonStates[i];
+            hudButton.SetActive(shouldRestore);
+        }
     }
 }
