@@ -105,6 +105,7 @@ public class TaskTrigger : MonoBehaviour
         if (!IsPlayer(other)) return;
 
         playerInside = true;
+        ResetJoystick();
         OnPlayerEntered?.Invoke();
 
         if (isActive && completeOnEnter && !isCompleted)
@@ -184,6 +185,15 @@ public class TaskTrigger : MonoBehaviour
         }
 
         return false;
+    }
+
+    private void ResetJoystick()
+    {
+        Joystick joystick = FindObjectOfType<Joystick>();
+        if (joystick != null)
+        {
+            joystick.ResetJoystick();
+        }
     }
 
     /// <summary>
