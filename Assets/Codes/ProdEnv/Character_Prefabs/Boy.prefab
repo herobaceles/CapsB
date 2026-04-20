@@ -6999,13 +6999,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3126df839d07f8343831088bffe6c207, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
+  moveSpeed: 3
   rotationSpeed: 720
   acceleration: 10
   deceleration: 10
   joystick: {fileID: 0}
-  invertHorizontalInput: 0
-  invertVerticalInput: 0
   gravity: -9.81
   groundCheckDistance: 0.1
   groundLayer:

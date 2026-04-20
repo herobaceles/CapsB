@@ -25,7 +25,7 @@ MonoBehaviour:
   - taskId: before_03_secure_appliances
     taskName: Secure Appliances
     taskDescription: Move all critical appliances above the projected flood level.
-    taskIcon: {fileID: 0}
+    taskIcon: {fileID: 21300000, guid: ae39436ba80fbfd4e9d26b45ed0c874a, type: 3}
     taskType: 6
     isOptional: 0
     showDialogueOnStart: 1

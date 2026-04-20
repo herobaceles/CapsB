@@ -1,0 +1,160 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &6911397854206183396
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -6689036041284674117, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_Name
+      value: Dumbell
+      objectReference: {fileID: 0}
+    - target: {fileID: -6689036041284674117, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_TagString
+      value: EmergencyItem
+      objectReference: {fileID: 0}
+    - target: {fileID: -4569955722642476675, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: -4569955722642476675, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: -4569955722642476675, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: -4569955722642476675, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4569955722642476675, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2774220344278030320, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: -6689036041284674117, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 12757131647763967}
+    - targetCorrespondingSourceObject: {fileID: -6689036041284674117, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 727172713230570819}
+    - targetCorrespondingSourceObject: {fileID: -6689036041284674117, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -3556962721139085668}
+  m_SourcePrefab: {fileID: -5645937942226959685, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+--- !u!1 &8989733048210315871 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -6689036041284674117, guid: b1845c9e21d9bb149b5cbd96964c6730, type: 3}
+  m_PrefabInstance: {fileID: 6911397854206183396}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &12757131647763967
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8989733048210315871}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.2, y: 0.26, z: 0.17}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &727172713230570819
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8989733048210315871}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &-3556962721139085668
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8989733048210315871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf7838e86eee4d34c812c50bebd2dfc9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tableTransform: {fileID: 0}
+  tableSize: {x: 1, y: 0.1, z: 2}
+  minDropDistance: 0.05

@@ -4378,11 +4378,14 @@ MonoBehaviour:
   quitButton: {fileID: 0}
   settingsButton: {fileID: 0}
   pauseSettingsPanel: {fileID: 0}
-  masterVolumeSlider: {fileID: 0}
+  pauseAudioSettingsUI: {fileID: 0}
   bgmVolumeSlider: {fileID: 0}
   sfxVolumeSlider: {fileID: 0}
   closeSettingsButton: {fileID: 0}
   uiClickSfx: {fileID: 0}
+  sceneBgmClip: {fileID: 0}
+  sceneOpenSfx: {fileID: 0}
+  missionCompleteSfx: {fileID: 0}
   loadingPanel: {fileID: 0}
   progressBar: {fileID: 0}
   progressText: {fileID: 0}
@@ -18161,6 +18164,7 @@ MonoBehaviour:
   talkingScaleSpeed: 6
   typingSpeed: 0.03
   allowSkipTyping: 1
+  uiClickSfx: {fileID: 0}
   characterPresets:
   - characterId: professor_lingap
     displayName: Prof. Lingap
@@ -33864,6 +33868,10 @@ PrefabInstance:
       propertyPath: joystick
       value: 
       objectReference: {fileID: 1456186003}
+    - target: {fileID: 2602924635928703019, guid: d8b090226972f534db41972b0af2d136, type: 3}
+      propertyPath: moveSpeed
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 5763504727240264905, guid: d8b090226972f534db41972b0af2d136, type: 3}
       propertyPath: m_Size.x
       value: 0.38
@@ -53513,6 +53521,9 @@ PrefabInstance:
     - {fileID: 4697836894118422642, guid: e4b8a3c0c782d5c44a31a4e3eca0f82d, type: 3}
     - {fileID: 4057376412411770912, guid: e4b8a3c0c782d5c44a31a4e3eca0f82d, type: 3}
     - {fileID: 6276591475191565833, guid: e4b8a3c0c782d5c44a31a4e3eca0f82d, type: 3}
+    - {fileID: 4075713157473033000, guid: e4b8a3c0c782d5c44a31a4e3eca0f82d, type: 3}
+    - {fileID: 2496130208661455415, guid: e4b8a3c0c782d5c44a31a4e3eca0f82d, type: 3}
+    - {fileID: 3106766485130440901, guid: e4b8a3c0c782d5c44a31a4e3eca0f82d, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 2784499915059402644, guid: e4b8a3c0c782d5c44a31a4e3eca0f82d, type: 3}
       insertIndex: 14
@@ -77732,6 +77743,10 @@ PrefabInstance:
       propertyPath: joystick
       value: 
       objectReference: {fileID: 1456186003}
+    - target: {fileID: 2602924635928703019, guid: d8b090226972f534db41972b0af2d136, type: 3}
+      propertyPath: moveSpeed
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 5763504727240264905, guid: d8b090226972f534db41972b0af2d136, type: 3}
       propertyPath: m_Size.x
       value: 0.38
@@ -94544,7 +94559,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 0}
   followDistance: 2
-  moveSpeed: 3
+  moveSpeed: 2
   rotationSpeed: 8
   animator: {fileID: 2115277010}
   speedParameter: Speed

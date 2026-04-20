@@ -7,6 +7,10 @@ public class NPCFollower : MonoBehaviour
     public float moveSpeed = 3f;
     public float rotationSpeed = 8f;
 
+    [Header("Vertical Follow")]
+    [SerializeField] private bool matchPlayerHeight = true;
+    [SerializeField] private float verticalFollowSpeed = 4f;
+
     [Header("Animation")]
     [SerializeField] private Animator animator;
     [SerializeField] private string speedParameter = "Speed";
@@ -42,24 +46,27 @@ public class NPCFollower : MonoBehaviour
     {
         if (player == null) return;
 
-        // Work in horizontal (XZ) space so the NPC stays upright
+        // Follow the player on the horizontal plane while optionally matching
+        // the player's height so both characters sit at the same water depth.
         Vector3 npcPos = transform.position;
-        Vector3 targetPos = player.position;
-
-        // Keep Y the same for movement/rotation to avoid tilting/stretching on slopes
-        targetPos.y = npcPos.y;
-
-        Vector3 toTarget = targetPos - npcPos;
-        float distance = toTarget.magnitude;
+        Vector3 playerPos = player.position;
+        Vector3 horizontalOffset = new Vector3(playerPos.x - npcPos.x, 0f, playerPos.z - npcPos.z);
+        float distance = horizontalOffset.magnitude;
         bool shouldMove = distance > followDistance;
         float normalizedSpeed = 0f;
+
+        if (matchPlayerHeight)
+        {
+            float followSpeed = verticalFollowSpeed > 0f ? verticalFollowSpeed : moveSpeed;
+            npcPos.y = Mathf.MoveTowards(npcPos.y, playerPos.y, followSpeed * Time.deltaTime);
+        }
 
         if (shouldMove)
         {
             // move toward the player until we reach the follow distance buffer
-            Vector3 direction = toTarget.normalized;
+            Vector3 direction = horizontalOffset.normalized;
             Vector3 moveVector = direction * moveSpeed * Time.deltaTime;
-            transform.position += moveVector;
+            npcPos += moveVector;
 
             // rotate smoothly toward player, but stay upright (no pitch/roll)
             Vector3 flatLookDir = new Vector3(direction.x, 0f, direction.z);
@@ -71,6 +78,8 @@ public class NPCFollower : MonoBehaviour
 
             normalizedSpeed = Mathf.Clamp01(moveVector.magnitude / (moveSpeed * Time.deltaTime));
         }
+
+        transform.position = npcPos;
 
         UpdateAnimation(shouldMove, normalizedSpeed);
     }
