@@ -384,7 +384,7 @@ public class ProdDialogueManager : MonoBehaviour
 
     public void ShowProfessorDialogue(string message, UnityAction onComplete = null)
     {
-        ShowDialogue("Professor Lingap", message, null, onComplete);
+        ShowDialogue("Prof. Lingap", message, null, onComplete);
     }
 
     public ProdDialogueSequenceBuilder CreateSequence()
@@ -1090,7 +1090,7 @@ public class ProdDialogueSequenceBuilder
 
     public ProdDialogueSequenceBuilder AddProfessorLine(string message, string expressionId = null, Sprite backgroundSprite = null, DialogueSpeakerSide side = DialogueSpeakerSide.Auto, bool clearBackground = false)
     {
-        var line = new ProdDialogueLine("Professor Lingap", message)
+        var line = new ProdDialogueLine("Prof. Lingap", message)
         {
             characterId = ProfessorCharacterId,
             expressionId = expressionId,

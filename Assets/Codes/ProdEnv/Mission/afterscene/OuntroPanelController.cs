@@ -20,6 +20,7 @@ public class OuntroPanelController : MonoBehaviour
     [SerializeField] private Button continueButton;
     [SerializeField] private Button previousButton;
     [SerializeField] private Button startButton;
+    [SerializeField] private Button nextButton;
     [SerializeField] private Button closeButton;
 
     [Header("Audio")]
@@ -28,6 +29,7 @@ public class OuntroPanelController : MonoBehaviour
 
     private int currentIndex = 0;
     private Action onFinished;
+    private bool useNextButtonOnFinal = false; // If true, show Next on final page; if false, show Start
 
     private void Awake()
     {
@@ -43,9 +45,12 @@ public class OuntroPanelController : MonoBehaviour
     /// Starts the outro sequence from the first (Before) page and shows
     /// this panel. When the player finishes the last page, the supplied
     /// callback is invoked.
+    /// If useNextButtonOnFinal is true, the Next button shows on final page (mission recap mode).
+    /// If useNextButtonOnFinal is false, the Start button shows on final page (tutorial mode).
     /// </summary>
-    public void StartSequence(Action finishedCallback)
+    public void StartSequence(Action finishedCallback, bool useNextButtonOnFinal = false)
     {
+        this.useNextButtonOnFinal = useNextButtonOnFinal;
         onFinished = finishedCallback;
 
         // Wire up navigation buttons safely each time.
@@ -65,6 +70,12 @@ public class OuntroPanelController : MonoBehaviour
         {
             startButton.onClick.RemoveListener(OnStartClicked);
             startButton.onClick.AddListener(OnStartClicked);
+        }
+
+        if (nextButton != null)
+        {
+            nextButton.onClick.RemoveListener(OnNextClicked);
+            nextButton.onClick.AddListener(OnNextClicked);
         }
 
         if (closeButton != null)
@@ -118,12 +129,33 @@ public class OuntroPanelController : MonoBehaviour
         if (previousButton != null)
             previousButton.gameObject.SetActive(currentIndex > 0);
         
-        // Show Continue on intermediate pages; show Start on the final page.
-        if (continueButton != null && startButton != null && pages != null && pages.Length > 0)
+        // On intermediate pages: show Continue, hide final buttons
+        // On final page: show either Next or Start button depending on mode
+        if (pages != null && pages.Length > 0)
         {
             bool isFinal = currentIndex >= pages.Length - 1;
-            continueButton.gameObject.SetActive(!isFinal);
-            startButton.gameObject.SetActive(isFinal);
+            
+            if (continueButton != null)
+                continueButton.gameObject.SetActive(!isFinal);
+            
+            // On final page: show Next if useNextButtonOnFinal=true, otherwise show Start
+            if (isFinal)
+            {
+                if (nextButton != null)
+                    nextButton.gameObject.SetActive(useNextButtonOnFinal);
+                
+                if (startButton != null)
+                    startButton.gameObject.SetActive(!useNextButtonOnFinal);
+            }
+            else
+            {
+                // On intermediate pages: hide both
+                if (nextButton != null)
+                    nextButton.gameObject.SetActive(false);
+                
+                if (startButton != null)
+                    startButton.gameObject.SetActive(false);
+            }
         }
     }
 
@@ -174,6 +206,14 @@ public class OuntroPanelController : MonoBehaviour
     {
         AudioManager.Instance?.PlayUiClick();
         FinishSequence();
+    }
+
+    private void OnNextClicked()
+    {
+        AudioManager.Instance?.PlayUiClick();
+        gameObject.SetActive(false);
+        onFinished = null;
+        SceneManager.LoadScene("MainMenuProd");
     }
 
     private void OnCloseClicked()

@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using TMPro;
 
 /// <summary>
@@ -48,6 +49,7 @@ public class AfterMissionManager : MissionSceneManager
 
     [Header("After Outro UI")]
     [SerializeField] private OuntroPanelController outroPanelController;
+    [SerializeField] private Button continueToSummaryButton;
 
     [Header("Audio")]
     [SerializeField] private AudioClip afterSceneBgmClip;
@@ -634,24 +636,11 @@ public class AfterMissionManager : MissionSceneManager
             sceneController.HideAllInteriorGroups();
         }
 
-        // For Mission_After_03, show the custom OuntroPanel (before/during/after
-        // recap) first, then show the standard MissionComplete banner when the
-        // player finishes the outro sequence. Other missions keep the existing
-        // behaviour of immediately showing the completion UI.
-        bool isAfter03 = currentMission != null &&
-            string.Equals(currentMission.missionId, "after_03", System.StringComparison.OrdinalIgnoreCase);
-
-        if (isAfter03 && outroPanelController != null)
-        {
-            outroPanelController.StartSequence(() =>
-            {
-                ShowMissionCompleteBanner();
-            });
-        }
-        else
-        {
-            ShowMissionCompleteBanner();
-        }
+        // For Mission_After_03, show the MissionComplete banner first.
+        // The player will click Continue to trigger the OuntroPanel.
+        // Other missions keep the existing behaviour of immediately showing
+        // the completion UI.
+        ShowMissionCompleteBanner();
     }
 
     /// <summary>
@@ -714,16 +703,38 @@ public class AfterMissionManager : MissionSceneManager
         if (missionCompleteMessageText != null)
             missionCompleteMessageText.text = completeMessage;
 
-        // Hide ReplayButton for after_03 mission; show only ContinueButton
+        // Hide ReplayButton for after_03 mission; show only ContinueButton or ContinueToSummaryButton
         if (replayButton != null)
         {
             replayButton.gameObject.SetActive(!isAfter03);
         }
 
-        if (continueButton != null)
+        // For after_03, wire ContinueToSummaryButton; for others, use regular ContinueButton
+        if (isAfter03)
         {
-            continueButton.onClick.RemoveListener(OnContinueAfterBanner);
-            continueButton.onClick.AddListener(OnContinueAfterBanner);
+            // Hide regular Continue button; show Continue to Summary button
+            if (continueButton != null)
+                continueButton.gameObject.SetActive(false);
+            
+            if (continueToSummaryButton != null)
+            {
+                continueToSummaryButton.gameObject.SetActive(true);
+                continueToSummaryButton.onClick.RemoveListener(OnContinueToSummaryClicked);
+                continueToSummaryButton.onClick.AddListener(OnContinueToSummaryClicked);
+            }
+        }
+        else
+        {
+            // Show regular Continue button; hide Continue to Summary button
+            if (continueToSummaryButton != null)
+                continueToSummaryButton.gameObject.SetActive(false);
+            
+            if (continueButton != null)
+            {
+                continueButton.gameObject.SetActive(true);
+                continueButton.onClick.RemoveListener(OnContinueAfterBanner);
+                continueButton.onClick.AddListener(OnContinueAfterBanner);
+            }
         }
 
         waitingForContinue = true;
@@ -757,7 +768,50 @@ public class AfterMissionManager : MissionSceneManager
             missionCompletePanel.SetActive(false);
         if (achievementsPanel != null)
             achievementsPanel.SetActive(false);
+
+        // For Mission_After_03, show the OuntroPanel when player clicks Continue.
+        // When OuntroPanel finishes, it will navigate back to MissionSelectManager.
+        // For other missions, proceed directly to mission completion.
+        bool isAfter03 = currentMission != null &&
+            string.Equals(currentMission.missionId, "after_03", System.StringComparison.OrdinalIgnoreCase);
+
+        if (isAfter03 && outroPanelController != null)
+        {
+            outroPanelController.StartSequence(OnOuntroFinished, useNextButtonOnFinal: true);
+        }
+        else
+        {
+            base.CompleteMission();
+        }
+    }
+
+    /// <summary>
+    /// Called when the OuntroPanel finishes (player completes all pages).
+    /// Navigates back to MissionSelectManager.
+    /// </summary>
+    private void OnOuntroFinished()
+    {
         base.CompleteMission();
+    }
+
+    /// <summary>
+    /// Called when player clicks "Continue to Summary" button on MissionCompleteUI (after_03 only).
+    /// Shows the OuntroPanel.
+    /// </summary>
+    private void OnContinueToSummaryClicked()
+    {
+        if (!waitingForContinue) return;
+        waitingForContinue = false;
+        if (missionCompletePanel != null)
+            missionCompletePanel.SetActive(false);
+        if (achievementsPanel != null)
+            achievementsPanel.SetActive(false);
+
+        // Show OuntroPanel; when finished, navigate to MissionSelectManager
+        if (outroPanelController != null)
+        {
+            outroPanelController.StartSequence(OnOuntroFinished, useNextButtonOnFinal: true);
+        }
     }
 
     // -----------------------------------------------------------------------

@@ -15,7 +15,7 @@ public class Before_SecuringAppliancesManager : MonoBehaviour
     private const string SecuringAppliancesTaskId = "before_03_secure_appliances";
 
     [Header("Dialogue Data")]
-    [SerializeField] private string dialogueSpeaker = "Professor Lingap";
+    [SerializeField] private string dialogueSpeaker = "Prof. Lingap";
 
     [Header("Dialogue Settings")]
     [SerializeField] private bool suppressDialogue = false;

@@ -16,7 +16,7 @@ public abstract class MissionSceneManager : MonoBehaviour
 {
     public static MissionSceneManager Instance { get; protected set; }
 
-    private const string DefaultDialogueSpeaker = "Professor Lingap";
+    private const string DefaultDialogueSpeaker = "Prof. Lingap";
 
     [Header("Mission")]
     [SerializeField] protected MissionData fallbackMission;
