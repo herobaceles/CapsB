@@ -237,6 +237,6 @@ MonoBehaviour:
     correctAnswerDialogueRich: []
   startQuizSequence: []
   useMissionTimer: 1
-  missionTimeLimitSeconds: 600
-  completionMessage: Mission Complete! Great job!
+  missionTimeLimitSeconds: 300
+  completionMessage: YOU ARE NOW SAFE
   unlocksMissionId: after_01

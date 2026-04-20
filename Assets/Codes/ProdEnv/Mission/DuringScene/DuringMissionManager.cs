@@ -69,6 +69,7 @@ public class DuringMissionManager : MissionSceneManager
     [SerializeField] private TMP_Text missionTimerText;
     [SerializeField] private GameObject missionTimeoutPanel;
     [SerializeField] private Button missionTimeoutRestartButton;
+    [SerializeField] private Button missionTimeoutMainMenuButton;
 
     [Header("Events")]
     public UnityEvent OnBackpackOpened;
@@ -104,6 +105,12 @@ public class DuringMissionManager : MissionSceneManager
         {
             missionTimeoutRestartButton.onClick.RemoveListener(RestartMissionFromTimeout);
             missionTimeoutRestartButton.onClick.AddListener(RestartMissionFromTimeout);
+        }
+
+        if (missionTimeoutMainMenuButton != null)
+        {
+            missionTimeoutMainMenuButton.onClick.RemoveListener(ReturnToMainMenu);
+            missionTimeoutMainMenuButton.onClick.AddListener(ReturnToMainMenu);
         }
     }
 
@@ -669,7 +676,7 @@ public class DuringMissionManager : MissionSceneManager
         UpdateMissionTimerUI();
 
         if (missionTimeoutPanel != null)
-            missionTimeoutPanel.SetActive(true);
+            missionTimeoutPanel.SetActive(false);
 
         missionTimerRoutine = StartCoroutine(MissionTimerRoutine());
     }
@@ -746,8 +753,6 @@ public class DuringMissionManager : MissionSceneManager
         {
             missionTimeoutPanel.SetActive(true);
         }
-
-        StartCoroutine(RestartAfterDelay(2f));
     }
 
     public void RestartMissionFromTimeout()
@@ -757,12 +762,6 @@ public class DuringMissionManager : MissionSceneManager
 
         Scene currentScene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(currentScene.name);
-    }
-
-    private IEnumerator RestartAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        RestartMissionFromTimeout();
     }
 
     #endregion
