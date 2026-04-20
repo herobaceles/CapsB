@@ -24,9 +24,9 @@ MonoBehaviour:
   sortOrder: 3
   tasks:
   - taskId: after03_quiz_zone
-    taskName: find and select clean up items
+    taskName: Clean flood mud safely
     taskDescription: remove the mud using the tolls spray bottle and cloth
-    taskIcon: {fileID: 0}
+    taskIcon: {fileID: 21300000, guid: 81ae39b20b796464bb9a3e043240541d, type: 3}
     taskType: 6
     isOptional: 0
     showDialogueOnStart: 1
@@ -44,16 +44,7 @@ MonoBehaviour:
     completeDialogue:
     - Now find the table that has the go bag.
     - Now find the table that has the go bag.
-    completeDialogueRich:
-    - characterId: professor_lingap
-      characterName: Prof. Lingap
-      side: 3
-      expressionId: ThumbsUp
-      portraitOverride: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
-      backgroundSprite: {fileID: 0}
-      clearBackground: 0
-      message: Yes! A solution of bleach and water will kill the germs. It's a lot
-        of work, but it's the only way to make your home safe again.
+    completeDialogueRich: []
     arScanForPlaneDialogueRich:
     - characterId: Professor_lingap
       characterName: Prof. Lingap
@@ -133,7 +124,7 @@ MonoBehaviour:
   - taskId: after_03_disinfect_mud
     taskName: find and select clean up items
     taskDescription: remove the mud using the tolls spray bottle and cloth
-    taskIcon: {fileID: 0}
+    taskIcon: {fileID: 21300000, guid: 90772221552d66a4f87d6b00d0ef7218, type: 3}
     taskType: 6
     isOptional: 0
     showDialogueOnStart: 1
@@ -259,19 +250,10 @@ MonoBehaviour:
   startQuiz:
     question: The last step is cleaning. That mud is full of bacteria. We need to
       disinfect everything. What is the correct solution to clean walls and floors?
-    options:
-    - 'A. Plain water. '
-    - B. Bleach and water.
-    - 'C.  Dish soap. '
-    wrongOptionFeedback:
-    - 
-    - 
-    - 
+    options: []
+    wrongOptionFeedback: []
     correctOptionIndex: 1
-    optionSprites:
-    - {fileID: 21300000, guid: 6ab867e10a9f8ea49b626493b69b4586, type: 3}
-    - {fileID: 21300000, guid: c1e9cdb3a83bb5f4d9078a03c466c467, type: 3}
-    - {fileID: 21300000, guid: 84abeb9dfcf2bc04fb0fba6e0a53bcf3, type: 3}
+    optionSprites: []
     placeholderSprite: {fileID: 0}
     questionCharacterId: 
     questionExpressionId: 
@@ -302,20 +284,19 @@ MonoBehaviour:
     - characterId: professor_lingap
       characterName: Prof. Lingap
       side: 3
-      expressionId: ThumbsUp
-      portraitOverride: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
+      expressionId: explaining
+      portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
       backgroundSprite: {fileID: 0}
       clearBackground: 0
-      message: Yes! A solution of bleach and water will kill the germs.
+      message: 'Yes! A solution of bleach and water will kill the germs. '
     - characterId: professor_lingap
       characterName: Prof. Lingap
       side: 3
-      expressionId: ThumbsUp
-      portraitOverride: {fileID: 21300000, guid: 58e863809b293c0409297001037a5a3e, type: 3}
+      expressionId: explaining
+      portraitOverride: {fileID: 21300000, guid: cf9cabd6aada6b44cb4f56c49e4eb647, type: 3}
       backgroundSprite: {fileID: 0}
       clearBackground: 0
-      message: "It\u2019s a lot of work, but it\u2019s the only way to make your
-        home safe again."
+      message: It's a lot of work, but it's the only way to make your home safe again.
   useMissionTimer: 0
   missionTimeLimitSeconds: 0
   completionMessage: Mission Complete! Great job!

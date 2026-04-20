@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   missionId: after_02
   missionName: Safe Items
-  missionDescription: Learn to identify which items are safe to eat after a flood
-    and which are not.
+  missionDescription: Learn how to identify which items are safe to eat and which
+    are unsafe after a flood.
   missionIcon: {fileID: 0}
   phase: 2
   missionSceneName: AfterMission
@@ -24,9 +24,9 @@ MonoBehaviour:
   sortOrder: 2
   tasks:
   - taskId: after_02_Safe_items
-    taskName: find the safeitems to consime after the flood
+    taskName: Safe Item Identification
     taskDescription: get the safe itesm
-    taskIcon: {fileID: 0}
+    taskIcon: {fileID: 21300000, guid: 1315cc37520eb97438bbe400e864ea35, type: 3}
     taskType: 6
     isOptional: 0
     showDialogueOnStart: 1

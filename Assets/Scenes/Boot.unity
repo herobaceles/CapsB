@@ -467,12 +467,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aad084dbd996f9949ae332ce49e11331, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bgmSource: {fileID: 327728316}
+  musicSource: {fileID: 327728316}
   sfxSource: {fileID: 0}
   defaultButtonClickSfx: {fileID: 8300000, guid: 2af2a06ff8316b34baeefadb44ee203d, type: 3}
   defaultButtonHoverSfx: {fileID: 0}
-  masterVolume: 1
-  bgmVolume: 1
+  musicVolume: 1
   sfxVolume: 1
 --- !u!4 &327728318
 Transform:

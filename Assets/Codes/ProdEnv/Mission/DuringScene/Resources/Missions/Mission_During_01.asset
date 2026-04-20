@@ -26,7 +26,7 @@ MonoBehaviour:
   - taskId: tutorial_open_map
     taskName: Check Your Evac Map
     taskDescription: Open the backpack and view the map.
-    taskIcon: {fileID: 21300000, guid: b54f5a7a24c1abd4e9c266eefeeafa26, type: 3}
+    taskIcon: {fileID: 21300000, guid: b0831dce77afa364da1b9bf4cfe841e2, type: 3}
     taskType: 0
     isOptional: 0
     showDialogueOnStart: 1
@@ -63,7 +63,7 @@ MonoBehaviour:
   - taskId: street_route_choice
     taskName: Choose Safe Route
     taskDescription: Follow official markers; avoid the alley.
-    taskIcon: {fileID: 21300000, guid: 99319575a36f24b43beb223203c36de3, type: 3}
+    taskIcon: {fileID: 21300000, guid: 194fca04b6abe1f44994ce8aa3ff05f5, type: 3}
     taskType: 0
     isOptional: 0
     showDialogueOnStart: 0
@@ -100,7 +100,7 @@ MonoBehaviour:
   - taskId: hazard_electrical
     taskName: Isolate Fallen Post
     taskDescription: Place cones/tape; avoid live wires.
-    taskIcon: {fileID: 21300000, guid: 5ecc73771ec00cf43996f025d7a69e8e, type: 3}
+    taskIcon: {fileID: 21300000, guid: b88e53ed66d4086498a1feb85180f18b, type: 3}
     taskType: 0
     isOptional: 0
     showDialogueOnStart: 1
@@ -134,7 +134,7 @@ MonoBehaviour:
   - taskId: evac_center_registration
     taskName: Register at Shelter
     taskDescription: Submit ID and claim a spot.
-    taskIcon: {fileID: 21300000, guid: ea3413c115393f54b8fe6d8dce9b6aa0, type: 3}
+    taskIcon: {fileID: 21300000, guid: b4810d254539e704faa4ada9bf846edb, type: 3}
     taskType: 0
     isOptional: 0
     showDialogueOnStart: 1
