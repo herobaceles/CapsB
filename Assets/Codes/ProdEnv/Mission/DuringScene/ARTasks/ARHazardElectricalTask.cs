@@ -54,6 +54,7 @@ public class ARHazardElectricalTask : ARTaskBase
     private bool previousMovementEnabled;
     private bool interactionEnabled;
     private bool hasShownGate;
+    private bool ignoreNextPointerDown;
     private Coroutine gateRoutine;
 
     private void OnValidate()
@@ -86,6 +87,7 @@ public class ARHazardElectricalTask : ARTaskBase
         activeCone = null;
         cones = null;
         interactionEnabled = false;
+        ignoreNextPointerDown = false;
         hasShownGate = false;
 
         if (chooseNowButton != null)
@@ -214,6 +216,9 @@ public class ARHazardElectricalTask : ARTaskBase
 
     private void HandleInput()
     {
+        if (ConsumeIgnoredPointerDown())
+            return;
+
         // First phase: place the hazard on a detected plane
         if (!hazardPlaced)
         {
@@ -530,6 +535,7 @@ public class ARHazardElectricalTask : ARTaskBase
         else
         {
             // If no button is wired, enable interaction immediately
+            ignoreNextPointerDown = true;
             interactionEnabled = true;
         }
     }
@@ -541,7 +547,20 @@ public class ARHazardElectricalTask : ARTaskBase
             chooseNowButton.gameObject.SetActive(false);
         }
 
+        ignoreNextPointerDown = true;
         interactionEnabled = true;
+    }
+
+    private bool ConsumeIgnoredPointerDown()
+    {
+        if (!ignoreNextPointerDown)
+            return false;
+
+        if (!TryGetPointerDown(out _, out _))
+            return false;
+
+        ignoreNextPointerDown = false;
+        return true;
     }
 }
 

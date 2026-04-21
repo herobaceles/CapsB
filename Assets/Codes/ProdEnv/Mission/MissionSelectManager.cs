@@ -48,6 +48,9 @@ public class MissionSelectManager : MonoBehaviour
     [Header("Navigation")]
     [SerializeField] private Button backButton;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip backgroundMusic;
+
     [Header("Mission List")]
     [SerializeField] private Transform missionListContainer;
     [SerializeField] private GameObject missionButtonPrefab;
@@ -83,9 +86,18 @@ public class MissionSelectManager : MonoBehaviour
     private void Start()
     {
         SetupUI();
+        PlaySceneAudio();
         OrganizeMissionsByPhase();
         DisplayPlayerInfo();
         StartCoroutine(ShowWelcome());
+    }
+
+    private void PlaySceneAudio()
+    {
+        if (AudioManager.Instance == null || backgroundMusic == null)
+            return;
+
+        AudioManager.Instance.PlayMusicIfDifferent(backgroundMusic);
     }
 
     private void SetupUI()

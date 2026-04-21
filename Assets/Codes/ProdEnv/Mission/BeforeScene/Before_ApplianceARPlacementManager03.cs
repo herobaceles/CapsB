@@ -20,6 +20,7 @@ public class ApplianceARPlacementManager03 : MonoBehaviour
     private Before_SecuringAppliancesManager pendingMissionManager;
     private bool waitingForPlacement;
     private bool placed;
+    private bool ignoreNextPointerDown;
     private bool arScanHintShown;
     private bool arTapHintShown;
 
@@ -28,6 +29,7 @@ public class ApplianceARPlacementManager03 : MonoBehaviour
         pendingMissionManager = manager;
         waitingForPlacement = true;
         placed = false;
+        ignoreNextPointerDown = true;
         arScanHintShown = false;
         arTapHintShown = false;
         ResolveRaycastManager();
@@ -61,11 +63,30 @@ public class ApplianceARPlacementManager03 : MonoBehaviour
 
         if (TryGetPointerDown(out Vector2 screenPosition, out int pointerId))
         {
-            Debug.Log($"ApplianceARPlacementManager03: Pointer down at {screenPosition}");
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(pointerId))
+            if (ignoreNextPointerDown)
             {
-                Debug.Log("ApplianceARPlacementManager03: Pointer over UI, ignoring.");
+                ignoreNextPointerDown = false;
                 return;
+            }
+
+            if (ProdDialogueManager.Instance != null && ProdDialogueManager.Instance.IsDialogueActive)
+            {
+                Debug.Log("ApplianceARPlacementManager03: Dialogue still active, ignoring placement tap.");
+                return;
+            }
+
+            Debug.Log($"ApplianceARPlacementManager03: Pointer down at {screenPosition}");
+            if (EventSystem.current != null)
+            {
+                bool isPointerOverUi = pointerId >= 0
+                    ? EventSystem.current.IsPointerOverGameObject(pointerId)
+                    : EventSystem.current.IsPointerOverGameObject();
+
+                if (isPointerOverUi)
+                {
+                    Debug.Log("ApplianceARPlacementManager03: Pointer over UI, ignoring.");
+                    return;
+                }
             }
 
             TryPlaceHouse(screenPosition);

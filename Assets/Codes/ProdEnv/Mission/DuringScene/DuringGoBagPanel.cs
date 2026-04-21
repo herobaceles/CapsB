@@ -16,17 +16,31 @@ public class DuringGoBagPanel : MonoBehaviour
     [SerializeField] private Button closeButton;
     [SerializeField] private TextMeshProUGUI emptyStateLabel;
 
+    [Header("HUD Visibility")]
+    [SerializeField] private GameObject[] hudButtonsToHide;
+    [SerializeField] private GameObject[] overlayUiToHide;
+
+    [Header("Inventory Sync")]
+    [Tooltip("Mission inventory key to read go-bag progress from. Defaults to the Before go-bag mission.")]
+    [SerializeField] private string inventoryMissionId = "before_01";
+    [Tooltip("Definitions used to rebuild go-bag icons after a cold app restart.")]
+    [SerializeField] private List<GoBagItemDefinition> goBagItemDefinitions = new List<GoBagItemDefinition>();
+
     [Header("Map Access")]
     [SerializeField] private Button viewMapButton;
     [SerializeField] private DuringMissionMapDisplay mapDisplay;
 
     private readonly List<GoBagItemSnapshot> snapshotBuffer = new List<GoBagItemSnapshot>();
     private readonly List<DuringGoBagPanelItemView> pooledViews = new List<DuringGoBagPanelItemView>();
+    private readonly List<GameObject> resolvedUiToHide = new List<GameObject>();
+    private bool[] cachedUiStates;
 
     public bool IsVisible => panelRoot != null && panelRoot.activeSelf;
 
     private void Awake()
     {
+        EnsureInventoryDefinitionsApplied();
+
         if (panelRoot != null)
             panelRoot.SetActive(false);
 
@@ -63,7 +77,10 @@ public class DuringGoBagPanel : MonoBehaviour
         }
 
         EnsureCanvasGroup(panelRoot);
+        EnsureInventoryDefinitionsApplied();
         RefreshList();
+        ResolveUiRootsToHide();
+        SetTrackedUiVisible(false);
         panelRoot.SetActive(true);
         Debug.Log("DuringGoBagPanel: Opened backpack panel.");
     }
@@ -73,6 +90,7 @@ public class DuringGoBagPanel : MonoBehaviour
         if (panelRoot != null)
         {
             panelRoot.SetActive(false);
+            SetTrackedUiVisible(true);
             Debug.Log("DuringGoBagPanel: Closed backpack panel.");
         }
     }
@@ -100,6 +118,7 @@ public class DuringGoBagPanel : MonoBehaviour
     private void RefreshList()
     {
         var inventory = GoBagInventoryState.Instance;
+        EnsureInventoryDefinitionsApplied();
         snapshotBuffer.Clear();
         if (inventory != null)
             inventory.FillSnapshot(snapshotBuffer);
@@ -223,5 +242,96 @@ public class DuringGoBagPanel : MonoBehaviour
         cg.alpha = 1f;
         cg.interactable = true;
         cg.blocksRaycasts = true;
+    }
+
+    private void EnsureInventoryDefinitionsApplied()
+    {
+        var inventory = GoBagInventoryState.Instance;
+        if (inventory == null)
+            return;
+
+        if (!string.IsNullOrWhiteSpace(inventoryMissionId))
+            inventory.SetActiveMissionId(inventoryMissionId);
+
+        if (goBagItemDefinitions == null || goBagItemDefinitions.Count == 0)
+            return;
+
+        inventory.ApplyDefinitions(goBagItemDefinitions, false);
+    }
+
+    private void ResolveUiRootsToHide()
+    {
+        resolvedUiToHide.Clear();
+
+        if (hudButtonsToHide != null && hudButtonsToHide.Length > 0)
+        {
+            for (int i = 0; i < hudButtonsToHide.Length; i++)
+                TryAddUiRoot(hudButtonsToHide[i]);
+        }
+        else
+        {
+            TryAddUiRoot(GameObject.Find("BagButton"));
+            TryAddUiRoot(GameObject.Find("Pause"));
+        }
+
+        if (overlayUiToHide != null && overlayUiToHide.Length > 0)
+        {
+            for (int i = 0; i < overlayUiToHide.Length; i++)
+                TryAddUiRoot(overlayUiToHide[i]);
+        }
+        else
+        {
+            TryAddUiRoot(GameObject.Find("DialoguePanel"));
+            TryAddUiRoot(GameObject.Find("BubblePanel"));
+        }
+    }
+
+    private void TryAddUiRoot(GameObject candidate)
+    {
+        if (candidate == null)
+            return;
+
+        if (panelRoot != null && candidate == panelRoot)
+            return;
+
+        if (resolvedUiToHide.Contains(candidate))
+            return;
+
+        resolvedUiToHide.Add(candidate);
+    }
+
+    private void SetTrackedUiVisible(bool visible)
+    {
+        if (resolvedUiToHide.Count == 0)
+            return;
+
+        if (!visible)
+        {
+            cachedUiStates = new bool[resolvedUiToHide.Count];
+            for (int i = 0; i < resolvedUiToHide.Count; i++)
+            {
+                GameObject uiRoot = resolvedUiToHide[i];
+                if (uiRoot == null)
+                    continue;
+
+                cachedUiStates[i] = uiRoot.activeSelf;
+                uiRoot.SetActive(false);
+            }
+
+            return;
+        }
+
+        if (cachedUiStates == null)
+            return;
+
+        for (int i = 0; i < resolvedUiToHide.Count; i++)
+        {
+            GameObject uiRoot = resolvedUiToHide[i];
+            if (uiRoot == null)
+                continue;
+
+            bool shouldRestore = i < cachedUiStates.Length && cachedUiStates[i];
+            uiRoot.SetActive(shouldRestore);
+        }
     }
 }

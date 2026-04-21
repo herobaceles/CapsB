@@ -262,15 +262,7 @@ public class AfterRecoveryARController : MonoBehaviour
         }
         else
         {
-            // Fallback: immediate parenting without tap-to-place.
-            AttachHouseToARRoot(activeHouseRoot);
-
-            // In the fallback path, start HiddenDanger spawning
-            // immediately so behaviour matches the legacy setup.
-            if (hiddenDangerSpawner != null && mode == MissionMode.HiddenDanger)
-            {
-                hiddenDangerSpawner.StartSpawning();
-            }
+            Debug.LogError($"AfterRecoveryARController: Placement manager is missing for mode {mode}. AR house placement has been blocked to avoid auto-spawning content without a placement tap.");
         }
 
         Debug.Log($"AfterRecoveryARController: AR session started for mode {mode}.");

@@ -151,9 +151,9 @@ MonoBehaviour:
   startQuiz:
     question: When leaving the house or evacuating what is the best way to do?
     options:
-    - Just leave the appliences
+    - Just leave the appliances
     - 'Secure important appliances '
-    - Hide the appliences
+    - Hide the appliances
     wrongOptionFeedback:
     - Leaving appliances unsecured can lead to damage or safety hazards during the
       flood.

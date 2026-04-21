@@ -4945,6 +4945,7 @@ MonoBehaviour:
   activeTabColor: {r: 1, g: 1, b: 1, a: 1}
   inactiveTabColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   backButton: {fileID: 630554444}
+  backgroundMusic: {fileID: 8300000, guid: 8a6924f10141b0740a8df1915417b245, type: 3}
   missionListContainer: {fileID: 368972338}
   missionButtonPrefab: {fileID: 9088410064426027953, guid: f39504b88ca855f46a54f22eea2f1ffe, type: 3}
   missionTitleText: {fileID: 654642594}
