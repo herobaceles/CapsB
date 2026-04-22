@@ -69,9 +69,18 @@ public class MainMenuManager : MonoBehaviour
         if (resetConfirmPanel != null)
             resetConfirmPanel.SetActive(false);
         if (confirmResetButton != null)
+        {
+            confirmResetButton.onClick.RemoveListener(ConfirmResetProgress);
             confirmResetButton.onClick.AddListener(ConfirmResetProgress);
+        }
+        else Debug.LogWarning("MainMenuManager: confirmResetButton not assigned in inspector.");
+
         if (cancelResetButton != null)
+        {
+            cancelResetButton.onClick.RemoveListener(CancelResetProgress);
             cancelResetButton.onClick.AddListener(CancelResetProgress);
+        }
+        else Debug.LogWarning("MainMenuManager: cancelResetButton not assigned in inspector.");
 
         // Settings panel starts hidden
         if (settingsPanel != null)
@@ -81,8 +90,10 @@ public class MainMenuManager : MonoBehaviour
 
         if (closeSettingsButton != null)
         {
+            closeSettingsButton.onClick.RemoveListener(CloseSettings);
             closeSettingsButton.onClick.AddListener(CloseSettings);
         }
+        else Debug.LogWarning("MainMenuManager: closeSettingsButton not assigned in inspector.");
 
         // About panel starts hidden
         if (aboutPanel != null)
@@ -90,15 +101,24 @@ public class MainMenuManager : MonoBehaviour
 
         if (closeAboutButton != null)
         {
+            closeAboutButton.onClick.RemoveListener(CloseAbout);
             closeAboutButton.onClick.AddListener(CloseAbout);
         }
+        else Debug.LogWarning("MainMenuManager: closeAboutButton not assigned in inspector.");
+
         if (tutorialButton != null)
         {
+            tutorialButton.onClick.RemoveListener(OpenTutorial);
             tutorialButton.onClick.AddListener(OpenTutorial);
         }
+        else Debug.LogWarning("MainMenuManager: tutorialButton not assigned in inspector.");
 
         if (achievementsButton != null)
+        {
+            achievementsButton.onClick.RemoveListener(OpenAchievements);
             achievementsButton.onClick.AddListener(OpenAchievements);
+        }
+        else Debug.LogWarning("MainMenuManager: achievementsButton not assigned in inspector.");
 
         achievementsPanel?.SetCloseHandler(CloseAchievements);
         achievementsPanel?.Hide();
