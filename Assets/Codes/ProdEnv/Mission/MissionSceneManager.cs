@@ -139,22 +139,55 @@ public abstract class MissionSceneManager : MonoBehaviour
         if (taskPanel != null)
             taskPanel.SetActive(false);
 
-        // Setup button listeners
+        // Setup button listeners (use RemoveListener first to avoid duplicates)
         if (continueButton != null)
+        {
+            continueButton.onClick.RemoveListener(OnContinueClicked);
             continueButton.onClick.AddListener(OnContinueClicked);
+        }
+        else Debug.LogWarning($"{GetType().Name}: continueButton not assigned in inspector.");
+
         if (replayButton != null)
+        {
+            replayButton.onClick.RemoveListener(OnReplayClicked);
             replayButton.onClick.AddListener(OnReplayClicked);
+        }
+        else Debug.LogWarning($"{GetType().Name}: replayButton not assigned in inspector.");
+
         if (resumeButton != null)
+        {
+            resumeButton.onClick.RemoveListener(ResumeMission);
             resumeButton.onClick.AddListener(ResumeMission);
+        }
+        else Debug.LogWarning($"{GetType().Name}: resumeButton not assigned in inspector.");
+
         if (restartButton != null)
+        {
+            restartButton.onClick.RemoveListener(OnReplayClicked);
             restartButton.onClick.AddListener(OnReplayClicked);
+        }
+        else Debug.LogWarning($"{GetType().Name}: restartButton not assigned in inspector.");
+
         if (quitButton != null)
+        {
+            quitButton.onClick.RemoveListener(ReturnToMissionSelect);
             quitButton.onClick.AddListener(ReturnToMissionSelect);
+        }
+        else Debug.LogWarning($"{GetType().Name}: quitButton not assigned in inspector.");
 
         if (settingsButton != null)
+        {
+            settingsButton.onClick.RemoveListener(OpenPauseSettings);
             settingsButton.onClick.AddListener(OpenPauseSettings);
+        }
+        else Debug.LogWarning($"{GetType().Name}: settingsButton not assigned in inspector.");
+
         if (closeSettingsButton != null)
+        {
+            closeSettingsButton.onClick.RemoveListener(ClosePauseSettings);
             closeSettingsButton.onClick.AddListener(ClosePauseSettings);
+        }
+        else Debug.LogWarning($"{GetType().Name}: closeSettingsButton not assigned in inspector.");
 
         // Initialize pause audio sliders from current AudioManager settings, if available.
         RefreshAudioSliders();

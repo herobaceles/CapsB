@@ -111,10 +111,27 @@ public class OuntroPanelController : MonoBehaviour
             return;
         }
 
+        // Compute the last valid (non-null) page index. This guards against
+        // serialized arrays that include trailing null entries in the inspector.
+        int lastValidIndex = -1;
+        for (int i = 0; i < pages.Length; i++)
+        {
+            if (pages[i] != null)
+                lastValidIndex = i;
+        }
+
+        if (lastValidIndex < 0)
+        {
+            // No valid pages found.
+            FinishSequence();
+            return;
+        }
+
+        // Clamp requested index to available range of valid pages.
         if (index < 0)
             index = 0;
-        if (index >= pages.Length)
-            index = pages.Length - 1;
+        if (index > lastValidIndex)
+            index = lastValidIndex;
 
         currentIndex = index;
 
@@ -125,37 +142,38 @@ public class OuntroPanelController : MonoBehaviour
                 pageObj.SetActive(i == currentIndex);
         }
 
-        // Previous is only available after the first page.
+        // Previous is only available after the first visible page.
         if (previousButton != null)
             previousButton.gameObject.SetActive(currentIndex > 0);
-        
-        // On intermediate pages: show Continue, hide final buttons
-        // On final page: show either Next or Start button depending on mode
-        if (pages != null && pages.Length > 0)
+
+        // Determine finality using the last valid page index (not pages.Length - 1).
+        bool isFinal = currentIndex == lastValidIndex;
+
+        if (continueButton != null)
+            continueButton.gameObject.SetActive(!isFinal);
+
+        if (isFinal)
         {
-            bool isFinal = currentIndex >= pages.Length - 1;
-            
-            if (continueButton != null)
-                continueButton.gameObject.SetActive(!isFinal);
-            
-            // On final page: show Next if useNextButtonOnFinal=true, otherwise show Start
-            if (isFinal)
-            {
-                if (nextButton != null)
-                    nextButton.gameObject.SetActive(useNextButtonOnFinal);
-                
-                if (startButton != null)
-                    startButton.gameObject.SetActive(!useNextButtonOnFinal);
-            }
-            else
-            {
-                // On intermediate pages: hide both
-                if (nextButton != null)
-                    nextButton.gameObject.SetActive(false);
-                
-                if (startButton != null)
-                    startButton.gameObject.SetActive(false);
-            }
+            if (nextButton != null)
+                nextButton.gameObject.SetActive(useNextButtonOnFinal);
+
+            if (startButton != null)
+                startButton.gameObject.SetActive(!useNextButtonOnFinal);
+        }
+        else
+        {
+            if (nextButton != null)
+                nextButton.gameObject.SetActive(false);
+
+            if (startButton != null)
+                startButton.gameObject.SetActive(false);
+        }
+
+        // Helpful warning for content creators if the pages array contains
+        // trailing null entries which may indicate an inspector misconfiguration.
+        if (lastValidIndex != pages.Length - 1)
+        {
+            Debug.LogWarning($"OuntroPanelController: pages contains null/trailing entries; lastValidIndex={lastValidIndex}, pages.Length={pages.Length}");
         }
     }
 
